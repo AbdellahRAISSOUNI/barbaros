@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "mongodb+srv://abdellah:abdellah123@barbaros.ofzfjah.mongodb.net/barbaros",
+    "NEXTAUTH_SECRET": "your-secret-key-change-this-in-production",
+    "NODE_ENV": "production"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next"
+} 
