@@ -1,4 +1,4 @@
-import { Admin, Client, Service, ServiceCategory, Reward, Visit, BarberStats, Achievement, BarberAchievement } from './models';
+import { Admin, Client, Service, ServiceCategory, Reward, Visit, BarberStats, Achievement, BarberAchievement, Reservation } from './models';
 import connectToDatabase from './mongodb';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
@@ -817,6 +817,8 @@ export async function clearDatabase() {
     await Achievement.deleteMany({});
     await Visit.deleteMany({});
     await BarberStats.deleteMany({});
+    await BarberAchievement.deleteMany({});
+    await Reservation.deleteMany({});
 
     console.log('Database cleared successfully!');
     return { success: true, message: 'Database cleared successfully' };
@@ -830,3 +832,168 @@ export async function clearDatabase() {
     };
   }
 }
+
+const seedReservations = async () => {
+  console.log('🎯 Seeding reservations...');
+
+  // Clear existing reservations
+  await Reservation.deleteMany({});
+
+  const clients = await Client.find().limit(5);
+  const sampleReservations = [];
+
+  // Create guest reservations
+  const guestReservations = [
+    {
+      guestName: 'John Smith',
+      guestPhone: '+1234567890',
+      preferredDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+      preferredTime: '10:30',
+      status: 'pending',
+      notes: 'First time visit, would like a consultation',
+      source: 'guest'
+    },
+    {
+      guestName: 'Maria Garcia',
+      guestPhone: '+1234567891',
+      preferredDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Day after tomorrow
+      preferredTime: '14:00',
+      status: 'contacted',
+      notes: 'Regular trim, no beard work',
+      source: 'guest',
+      contactedAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+    },
+    {
+      guestName: 'Robert Johnson',
+      guestPhone: '+1234567892',
+      preferredDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      preferredTime: '16:30',
+      status: 'confirmed',
+      notes: 'Need a beard trim and hair cut',
+      source: 'guest',
+      contactedAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
+    },
+    {
+      guestName: 'Sarah Wilson',
+      guestPhone: '+1234567893',
+      preferredDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      preferredTime: '11:00',
+      status: 'completed',
+      notes: 'Wedding preparation',
+      source: 'guest',
+      contactedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    },
+    {
+      guestName: 'Michael Brown',
+      guestPhone: '+1234567894',
+      preferredDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday
+      preferredTime: '15:00',
+      status: 'cancelled',
+      notes: 'Quick trim during lunch break',
+      source: 'guest',
+      contactedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    }
+  ];
+
+  // Create client account reservations
+  const clientReservations = clients.slice(0, 3).map((client, index) => {
+    const daysFromNow = index + 1;
+    const times = ['09:00', '13:30', '17:00'];
+    const statuses = ['pending', 'contacted', 'confirmed'];
+    
+    return {
+      clientId: client._id,
+      preferredDate: new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000),
+      preferredTime: times[index],
+      status: statuses[index],
+      notes: index === 0 ? 'Regular monthly appointment' : undefined,
+      source: 'client_account',
+      contactedAt: index > 0 ? new Date(Date.now() - index * 60 * 60 * 1000) : undefined
+    };
+  });
+
+  // Add some new unread reservations for admin attention
+  const newReservations = [
+    {
+      guestName: 'Alex Thompson',
+      guestPhone: '+1234567895',
+      preferredDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+      preferredTime: '12:00',
+      status: 'pending',
+      isRead: false,
+      notes: 'Important client meeting, need to look sharp',
+      source: 'guest',
+      createdAt: new Date(Date.now() - 15 * 60 * 1000) // 15 minutes ago
+    },
+    {
+      guestName: 'Emma Davis',
+      guestPhone: '+1234567896',
+      preferredDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      preferredTime: '10:00',
+      status: 'pending',
+      isRead: false,
+      notes: 'First visit, heard great things about you!',
+      source: 'guest',
+      createdAt: new Date(Date.now() - 5 * 60 * 1000) // 5 minutes ago
+    }
+  ];
+
+  const allReservations = [...guestReservations, ...clientReservations, ...newReservations];
+
+  for (const reservationData of allReservations) {
+    const reservation = new Reservation(reservationData);
+    await reservation.save();
+    sampleReservations.push(reservation);
+  }
+
+  console.log(`✅ Created ${sampleReservations.length} reservations`);
+  return sampleReservations;
+};
+
+export const seedDatabase = async () => {
+  try {
+    await connectToDatabase();
+    console.log('🌱 Starting database seeding...');
+
+    // Seed in order due to dependencies
+    const categories = await seedServiceCategories();
+    const services = await seedServices();
+    const rewards = await seedRewards();
+    const achievements = await seedAchievements();
+    const clients = await seedClients();
+    const admins = await seedAdmins();
+    const visits = await seedVisits();
+    const barberStats = await seedBarberStats();
+    const barberAchievements = await seedBarberAchievements();
+    const reservations = await seedReservations();
+
+    console.log('🎉 Database seeding completed successfully!');
+    console.log(`📊 Summary:
+    - Service Categories: ${categories.length}
+    - Services: ${services.length}
+    - Rewards: ${rewards.length}
+    - Achievements: ${achievements.length}
+    - Clients: ${clients.length}
+    - Admins: ${admins.length}
+    - Visits: ${visits.length}
+    - Barber Stats: ${barberStats.length}
+    - Barber Achievements: ${barberAchievements.length}
+    - Reservations: ${reservations.length}`);
+
+    return {
+      categories,
+      services,
+      rewards,
+      achievements,
+      clients,
+      admins,
+      visits,
+      barberStats,
+      barberAchievements,
+      reservations
+    };
+  } catch (error) {
+    console.error('❌ Error seeding database:', error);
+    throw error;
+  }
+};

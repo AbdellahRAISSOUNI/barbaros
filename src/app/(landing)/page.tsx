@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FaCalendarAlt, FaUserClock, FaUsers, FaMobileAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaUserClock, FaUsers, FaMobileAlt, FaClock, FaCheckCircle } from 'react-icons/fa';
 
 export default function LandingPage() {
   return (
@@ -14,6 +14,9 @@ export default function LandingPage() {
             <Link href="#contact" className="text-gray-600 hover:text-gray-900">Contact</Link>
           </nav>
           <div className="flex space-x-4">
+            <Link href="/reservations/new" className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium">
+              Book Now
+            </Link>
             <Link href="/login" className="px-4 py-2 rounded-md text-gray-600 hover:bg-gray-100">Login</Link>
             <Link href="/register" className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800">Sign Up</Link>
           </div>
@@ -21,7 +24,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-50 to-gray-100 py-24">
+      <section className="flex-1 bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-10 md:mb-0">
@@ -32,21 +35,42 @@ export default function LandingPage() {
                 Streamline your barbershop operations with our all-in-one appointment booking and client management system.
               </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link href="/register" className="px-8 py-3 rounded-md bg-black text-white text-center hover:bg-gray-800">
+                <Link 
+                  href="/reservations/new" 
+                  className="px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  <FaCalendarAlt className="inline-block mr-2" />
+                  Make Reservation
+                </Link>
+                <Link href="/register" className="px-8 py-4 rounded-lg bg-black text-white text-center hover:bg-gray-800 font-semibold shadow-lg">
                   Get Started
                 </Link>
-                <Link href="#how-it-works" className="px-8 py-3 rounded-md border border-gray-300 text-gray-700 text-center hover:bg-gray-50">
+                <Link href="#how-it-works" className="px-8 py-4 rounded-lg border border-gray-300 text-gray-700 text-center hover:bg-gray-50 font-semibold">
                   Learn More
                 </Link>
+              </div>
+              
+              {/* Quick Reservation CTA */}
+              <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center text-blue-800">
+                  <FaClock className="mr-2" />
+                  <span className="font-medium">Need a quick appointment?</span>
+                </div>
+                <p className="text-blue-600 text-sm mt-1">
+                  Book your slot in under 30 seconds - no account required!
+                </p>
               </div>
             </div>
             <div className="md:w-1/2 md:pl-10">
               <div className="bg-white p-6 rounded-lg shadow-xl">
                 <div 
-                  className="rounded-md w-full bg-gray-200 flex items-center justify-center"
+                  className="rounded-md w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"
                   style={{ height: '300px' }}
                 >
-                  <p className="text-gray-500">Barbershop Management</p>
+                  <div className="text-center">
+                    <FaCalendarAlt className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                    <p className="text-gray-500 font-medium">Easy Online Booking</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -54,35 +78,65 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Booking Benefits Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Why Book With Us?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaCheckCircle className="text-green-600 text-2xl" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Instant Confirmation</h3>
+              <p className="text-gray-600">Get immediate confirmation and we'll call you to finalize details.</p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaClock className="text-blue-600 text-2xl" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Flexible Scheduling</h3>
+              <p className="text-gray-600">Choose your preferred time and date that works best for you.</p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaUsers className="text-purple-600 text-2xl" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Expert Barbers</h3>
+              <p className="text-gray-600">Professional barbers ready to give you the perfect cut.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FaCalendarAlt className="text-gray-700 text-xl" />
+            <div className="p-6 bg-white rounded-lg shadow-sm">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <FaCalendarAlt className="text-blue-700 text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Easy Scheduling</h3>
               <p className="text-gray-600">Book appointments online and manage your schedule efficiently.</p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FaUserClock className="text-gray-700 text-xl" />
+            <div className="p-6 bg-white rounded-lg shadow-sm">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <FaUserClock className="text-green-700 text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Queue Management</h3>
               <p className="text-gray-600">Reduce wait times with our virtual queue system.</p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FaUsers className="text-gray-700 text-xl" />
+            <div className="p-6 bg-white rounded-lg shadow-sm">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <FaUsers className="text-purple-700 text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Client Management</h3>
               <p className="text-gray-600">Keep track of client preferences and history.</p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FaMobileAlt className="text-gray-700 text-xl" />
+            <div className="p-6 bg-white rounded-lg shadow-sm">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                <FaMobileAlt className="text-orange-700 text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Mobile Friendly</h3>
               <p className="text-gray-600">Access from any device with our responsive design.</p>
@@ -92,37 +146,48 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-gray-50">
+      <section id="how-it-works" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
-              <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
-              <p className="text-gray-600">Create an account as a barber or client.</p>
+              <h3 className="text-xl font-semibold mb-2">Choose Your Time</h3>
+              <p className="text-gray-600">Pick your preferred date and time from available slots.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
-              <h3 className="text-xl font-semibold mb-2">Book or Manage</h3>
-              <p className="text-gray-600">Schedule appointments or manage your barbershop.</p>
+              <h3 className="text-xl font-semibold mb-2">Get Confirmation</h3>
+              <p className="text-gray-600">Receive instant confirmation and a call from our team.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
-              <h3 className="text-xl font-semibold mb-2">Enjoy the Service</h3>
-              <p className="text-gray-600">Get notified when it's your turn and enjoy a great haircut.</p>
+              <h3 className="text-xl font-semibold mb-2">Enjoy Your Cut</h3>
+              <p className="text-gray-600">Arrive on time and enjoy a premium barbering experience.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-black text-white">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Barbershop?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">Join thousands of barbershops that have streamlined their operations with Barbaros.</p>
-          <Link href="/register" className="px-8 py-3 rounded-md bg-white text-black font-medium hover:bg-gray-100 inline-block">
-            Get Started for Free
-          </Link>
+          <h2 className="text-4xl font-bold mb-6">Ready for Your Perfect Cut?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Join thousands of satisfied clients who trust us with their style. Book your appointment now!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              href="/reservations/new" 
+              className="px-8 py-4 rounded-lg bg-white text-blue-600 font-semibold hover:bg-gray-100 inline-block shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              <FaCalendarAlt className="inline-block mr-2" />
+              Book Your Appointment
+            </Link>
+            <Link href="/register" className="px-8 py-4 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white hover:text-blue-600 inline-block transition-all duration-200">
+              Create Account
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -139,21 +204,25 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 <li><Link href="#features" className="text-gray-400 hover:text-white">Features</Link></li>
                 <li><Link href="#how-it-works" className="text-gray-400 hover:text-white">How It Works</Link></li>
+                <li><Link href="/reservations/new" className="text-gray-400 hover:text-white">Book Appointment</Link></li>
                 <li><Link href="/login" className="text-gray-400 hover:text-white">Login</Link></li>
                 <li><Link href="/register" className="text-gray-400 hover:text-white">Sign Up</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Legal</h4>
+              <h4 className="text-lg font-semibold mb-4">Services</h4>
               <ul className="space-y-2">
-                <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
+                <li><span className="text-gray-400">Hair Cutting</span></li>
+                <li><span className="text-gray-400">Beard Styling</span></li>
+                <li><span className="text-gray-400">Hair Washing</span></li>
+                <li><span className="text-gray-400">Styling</span></li>
               </ul>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact</h4>
               <p className="text-gray-400 mb-2">Email: info@barbaros.com</p>
-              <p className="text-gray-400">Phone: (123) 456-7890</p>
+              <p className="text-gray-400 mb-2">Phone: (123) 456-7890</p>
+              <p className="text-gray-400">Address: 123 Barber St, City</p>
             </div>
           </div>
           <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">

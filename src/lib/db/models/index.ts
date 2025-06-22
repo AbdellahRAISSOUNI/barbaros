@@ -8,6 +8,7 @@ import Reward from './reward';
 import BarberStats from './barberStats';
 import Achievement from './achievement';
 import BarberAchievement from './barberAchievement';
+import Reservation from './reservation';
 
 export {
   Admin,
@@ -19,7 +20,8 @@ export {
   Reward,
   BarberStats,
   Achievement,
-  BarberAchievement
+  BarberAchievement,
+  Reservation
 };
 
 export type { IAdmin } from './admin';
@@ -30,4 +32,5 @@ export type { IReward } from './reward';
 export type { IVisit, ServiceReceived } from './visit';
 export type { IBarberStats, MonthlyStats, ServiceStats } from './barberStats';
 export type { IAchievement } from './achievement';
-export type { IBarberAchievement } from './barberAchievement'; 
+export type { IBarberAchievement } from './barberAchievement';
+export type { IReservation } from './reservation'; 

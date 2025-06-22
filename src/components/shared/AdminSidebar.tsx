@@ -10,7 +10,8 @@ import {
   FaGift,
   FaUserTie,
   FaTrophy,
-  FaMedal
+  FaMedal,
+  FaCalendarCheck
 } from 'react-icons/fa';
 
 export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (collapsed: boolean) => void }) {
@@ -23,6 +24,11 @@ export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (colla
           icon: FaChartLine,
           label: 'Dashboard',
           exactMatch: true
+        },
+        {
+          href: '/admin/reservations',
+          icon: FaCalendarCheck,
+          label: 'Reservations'
         },
         {
           href: '/admin/clients',
