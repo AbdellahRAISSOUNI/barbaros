@@ -10,6 +10,21 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(searchParams.get('startDate') || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
     const endDate = new Date(searchParams.get('endDate') || new Date());
 
+    // Create cache key based on date range
+    const cacheKey = `analytics_overview_${startDate.toISOString().split('T')[0]}_${endDate.toISOString().split('T')[0]}`;
+    
+    // Set cache headers for better performance
+    const headers = {
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // 5min cache, 10min stale
+      'ETag': `"${cacheKey}"`,
+    };
+    
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match');
+    if (ifNoneMatch === `"${cacheKey}"`) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+
     // Calculate previous period for comparison
     const periodLength = endDate.getTime() - startDate.getTime();
     const previousStartDate = new Date(startDate.getTime() - periodLength);
@@ -102,7 +117,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       metrics
-    });
+    }, { headers });
 
   } catch (error) {
     console.error('Error fetching overview analytics:', error);

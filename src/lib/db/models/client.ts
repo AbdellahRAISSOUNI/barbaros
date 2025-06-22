@@ -83,6 +83,14 @@ ClientSchema.statics.findByPhone = async function(phoneNumber: string): Promise<
   return this.findOne({ phoneNumber });
 };
 
+// Add indexes for better performance
+ClientSchema.index({ firstName: 'text', lastName: 'text', phoneNumber: 'text' });
+ClientSchema.index({ phoneNumber: 1 });
+ClientSchema.index({ clientId: 1 });
+ClientSchema.index({ loyaltyStatus: 1 });
+ClientSchema.index({ totalLifetimeVisits: -1 });
+ClientSchema.index({ lastVisit: -1 });
+
 // Check if the model exists before creating it
 const Client = mongoose.models.Client as IClientModel || mongoose.model<IClient, IClientModel>('Client', ClientSchema);
 

@@ -42,7 +42,7 @@ interface ClientInfo {
   _id: string;
   firstName: string;
   lastName: string;
-  email: string;
+  phoneNumber: string;
   visitCount: number;
 }
 
@@ -72,41 +72,45 @@ export function VisitRecordingForm({
   const [servicesLoading, setServicesLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Load available services and eligible rewards
+  // Load available services and eligible rewards - Optimized with parallel fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
         setServicesLoading(true);
         
-        // Fetch services with caching for better performance
-        const servicesResponse = await fetch('/api/services?isActive=true&limit=100', {
-          headers: {
-            'Cache-Control': 'max-age=300' // Cache for 5 minutes
-          }
-        });
-        if (!servicesResponse.ok) throw new Error('Failed to fetch services');
-        const servicesData = await servicesResponse.json();
-        setServices(servicesData.services || []);
-
-        // Fetch eligible rewards based on client's CURRENT visit count (not +1)
-        // Only show rewards they can actually redeem with their current visit count
-        try {
-          const rewardsResponse = await fetch('/api/rewards?isActive=true&limit=100', {
+        // Fetch services and rewards in parallel for better performance
+        const [servicesResponse, rewardsResponse] = await Promise.allSettled([
+          fetch('/api/services?isActive=true&limit=100', {
             headers: {
-              'Cache-Control': 'max-age=300' // Cache for 5 minutes  
+              'Cache-Control': 'max-age=600' // Cache for 10 minutes (increased from 5)
             }
-          });
-          if (rewardsResponse.ok) {
-            const rewardsData = await rewardsResponse.json();
-            // Fix: Only show rewards they can redeem with CURRENT visit count
-            const eligible = (rewardsData.rewards || []).filter((reward: Reward) => 
-              reward.visitsRequired <= clientInfo.visitCount
-            );
-            setEligibleRewards(eligible);
-          }
-        } catch (rewardsError) {
-          console.error('Error fetching rewards:', rewardsError);
-          // Don't show error for rewards as it's not critical
+          }),
+          fetch('/api/rewards?isActive=true&limit=100', {
+            headers: {
+              'Cache-Control': 'max-age=600' // Cache for 10 minutes (increased from 5)
+            }
+          })
+        ]);
+
+        // Handle services response
+        if (servicesResponse.status === 'fulfilled' && servicesResponse.value.ok) {
+          const servicesData = await servicesResponse.value.json();
+          setServices(servicesData.services || []);
+        } else {
+          throw new Error('Failed to fetch services');
+        }
+
+        // Handle rewards response
+        if (rewardsResponse.status === 'fulfilled' && rewardsResponse.value.ok) {
+          const rewardsData = await rewardsResponse.value.json();
+          // Only show rewards they can redeem with CURRENT visit count
+          const eligible = (rewardsData.rewards || []).filter((reward: Reward) => 
+            reward.visitsRequired <= clientInfo.visitCount
+          );
+          setEligibleRewards(eligible);
+        } else {
+          console.log('Rewards fetch failed, continuing without rewards');
+          setEligibleRewards([]);
         }
       } catch (error) {
         console.error('Error fetching services:', error);

@@ -34,11 +34,11 @@ interface ClientInfo {
   clientId: string;
   firstName: string;
   lastName: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   visitCount: number;
   rewardsEarned: number;
   rewardsRedeemed: number;
-  qrCodeUrl: string;
+  qrCodeUrl?: string;
   lastVisit?: Date;
   accountActive: boolean;
   totalLifetimeVisits: number;
@@ -72,36 +72,41 @@ export function ClientInfoCard({
         setIsLoading(true);
         setError(null);
         
-        // Fetch client information
-        const clientResponse = await fetch(`/api/clients/${clientId}`);
-        if (!clientResponse.ok) {
+        // Fetch all data in parallel to avoid N+1 queries
+        const [clientResponse, loyaltyResponse, visitsResponse] = await Promise.allSettled([
+          fetch(`/api/clients/${clientId}`),
+          fetch(`/api/loyalty/${clientId}`),
+          fetch(`/api/clients/${clientId}/visits?limit=3`)
+        ]);
+        
+        // Handle client data
+        if (clientResponse.status === 'fulfilled' && clientResponse.value.ok) {
+          const clientData = await clientResponse.value.json();
+          setClientInfo(clientData);
+        } else {
           throw new Error('Failed to fetch client information');
         }
-        const clientData = await clientResponse.json();
-        setClientInfo(clientData);
         
-        // Fetch loyalty status for accurate progress tracking
-        try {
-          const loyaltyResponse = await fetch(`/api/loyalty/${clientId}`);
-          if (loyaltyResponse.ok) {
-            const loyaltyData = await loyaltyResponse.json();
+        // Handle loyalty data
+        if (loyaltyResponse.status === 'fulfilled' && loyaltyResponse.value.ok) {
+          try {
+            const loyaltyData = await loyaltyResponse.value.json();
             if (loyaltyData.success) {
               setLoyaltyStatus(loyaltyData.loyaltyStatus);
             }
+          } catch (loyaltyError) {
+            console.error('Error parsing loyalty status:', loyaltyError);
           }
-        } catch (loyaltyError) {
-          console.error('Error fetching loyalty status:', loyaltyError);
         }
         
-        // Fetch recent visits
-        try {
-          const visitsResponse = await fetch(`/api/clients/${clientId}/visits?limit=3`);
-          if (visitsResponse.ok) {
-            const visitsData = await visitsResponse.json();
+        // Handle visits data
+        if (visitsResponse.status === 'fulfilled' && visitsResponse.value.ok) {
+          try {
+            const visitsData = await visitsResponse.value.json();
             setRecentVisits(visitsData.visits || []);
+          } catch (visitsError) {
+            console.error('Error parsing visits:', visitsError);
           }
-        } catch (visitsError) {
-          console.error('Error fetching visits:', visitsError);
         }
         
       } catch (err) {

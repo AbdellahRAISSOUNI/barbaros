@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { FaEdit, FaTrash, FaEye, FaQrcode, FaSortUp, FaSortDown, FaSort } from 'react-icons/fa';
 
 interface Client {
@@ -28,7 +28,7 @@ interface ClientTableProps {
   className?: string;
 }
 
-export function ClientTable({
+const ClientTable = memo(function ClientTable({
   clients,
   onView,
   onEdit,
@@ -55,23 +55,26 @@ export function ClientTable({
       <FaSortDown className="ml-1 text-black" />;
   };
 
-  // Apply sorting to the client list
-  const sortedClients = [...clients].sort((a, b) => {
-    if (sortConfig.key === '') return 0;
+  // Apply sorting to the client list - memoized for performance
+  const sortedClients = useMemo(() => {
+    if (sortConfig.key === '') return clients;
     
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
-    
-    if (aValue === bValue) return 0;
-    
-    // Handle undefined values
-    if (aValue === undefined) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (bValue === undefined) return sortConfig.direction === 'asc' ? 1 : -1;
-    
-    // Compare based on direction
-    const compareResult = aValue < bValue ? -1 : 1;
-    return sortConfig.direction === 'asc' ? compareResult : -compareResult;
-  });
+    return [...clients].sort((a, b) => {
+      const key = sortConfig.key as keyof Client;
+      const aValue = a[key];
+      const bValue = b[key];
+      
+      if (aValue === bValue) return 0;
+      
+      // Handle undefined values
+      if (aValue === undefined) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bValue === undefined) return sortConfig.direction === 'asc' ? 1 : -1;
+      
+      // Compare based on direction
+      const compareResult = aValue < bValue ? -1 : 1;
+      return sortConfig.direction === 'asc' ? compareResult : -compareResult;
+    });
+  }, [clients, sortConfig]);
 
   // Format date for display
   const formatDate = (date?: Date) => {
@@ -218,4 +221,6 @@ export function ClientTable({
       </table>
     </div>
   );
-}
+});
+
+export { ClientTable };

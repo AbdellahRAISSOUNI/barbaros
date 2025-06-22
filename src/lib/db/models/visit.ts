@@ -95,6 +95,10 @@ VisitSchema.index({ visitDate: -1 });
 VisitSchema.index({ barber: 1 });
 VisitSchema.index({ barberId: 1 });
 VisitSchema.index({ barberId: 1, visitDate: -1 });
+// Additional indexes for analytics queries
+VisitSchema.index({ visitDate: 1, totalPrice: 1 }); // For revenue analytics
+VisitSchema.index({ 'services.serviceId': 1 }); // For service popularity
+VisitSchema.index({ rewardRedeemed: 1 }); // For loyalty analytics
 
 // Check if model already exists to prevent OverwriteModelError during hot reloads
 const Visit = mongoose.models.Visit || mongoose.model<IVisit>('Visit', VisitSchema);

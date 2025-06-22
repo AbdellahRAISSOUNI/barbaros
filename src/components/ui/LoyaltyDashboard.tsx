@@ -66,32 +66,40 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
   const [showRewardSelection, setShowRewardSelection] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Fetch loyalty data
+  // Fetch loyalty data - Optimized with better error handling
   const fetchLoyaltyData = async () => {
     try {
       setIsLoading(true);
       
-      // Fetch loyalty status, available rewards, and history in parallel
-      const [statusRes, rewardsRes, historyRes] = await Promise.all([
+      // Fetch loyalty status, available rewards, and history in parallel with Promise.allSettled for better error handling
+      const [statusRes, rewardsRes, historyRes] = await Promise.allSettled([
         fetch(`/api/loyalty/${clientId}`),
         fetch(`/api/loyalty/${clientId}/rewards`),
         fetch(`/api/loyalty/${clientId}/history`)
       ]);
 
-      const statusData = await statusRes.json();
-      const rewardsData = await rewardsRes.json();
-      const historyData = await historyRes.json();
-
-      if (statusData.success) {
-        setLoyaltyStatus(statusData.loyaltyStatus);
+      // Handle status data
+      if (statusRes.status === 'fulfilled' && statusRes.value.ok) {
+        const statusData = await statusRes.value.json();
+        if (statusData.success) {
+          setLoyaltyStatus(statusData.loyaltyStatus);
+        }
       }
 
-      if (rewardsData.success) {
-        setAvailableRewards(rewardsData.rewards);
+      // Handle rewards data
+      if (rewardsRes.status === 'fulfilled' && rewardsRes.value.ok) {
+        const rewardsData = await rewardsRes.value.json();
+        if (rewardsData.success) {
+          setAvailableRewards(rewardsData.rewards);
+        }
       }
 
-      if (historyData.success) {
-        setRewardHistory(historyData.history);
+      // Handle history data
+      if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
+        const historyData = await historyRes.value.json();
+        if (historyData.success) {
+          setRewardHistory(historyData.history);
+        }
       }
     } catch (error) {
       console.error('Error fetching loyalty data:', error);

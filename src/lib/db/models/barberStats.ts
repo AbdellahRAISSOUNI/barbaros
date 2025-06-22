@@ -141,6 +141,10 @@ BarberStatsSchema.index({ barberId: 1 });
 BarberStatsSchema.index({ lastUpdated: -1 });
 BarberStatsSchema.index({ totalVisits: -1 });
 BarberStatsSchema.index({ totalRevenue: -1 });
+// Additional indexes for leaderboard queries
+BarberStatsSchema.index({ uniqueClientsServed: -1 });
+BarberStatsSchema.index({ averageVisitsPerDay: -1 });
+BarberStatsSchema.index({ workDaysSinceJoining: -1 });
 
 // Static method to calculate work days since joining
 BarberStatsSchema.methods.calculateWorkDays = function(joinDate: Date): number {

@@ -42,7 +42,13 @@ async function connectToDatabase() {
     const opts = {
       bufferCommands: false,
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      maxPoolSize: 10, // Maintain up to 10 socket connections
+      maxPoolSize: 50, // Increased from 10 to 50 for better concurrency
+      minPoolSize: 5, // Minimum pool size
+      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      family: 4, // Use IPv4, skip trying IPv6
+      keepAlive: true,
+      keepAliveInitialDelay: 300000, // 5 minutes
     };
 
     console.log('Connecting to MongoDB...');
