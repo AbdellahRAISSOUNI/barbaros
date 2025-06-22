@@ -8,9 +8,10 @@ interface AuthCheckProps {
   children: React.ReactNode;
   adminOnly?: boolean;
   clientOnly?: boolean;
+  barberOnly?: boolean;
 }
 
-export function AuthCheck({ children, adminOnly = false, clientOnly = false }: AuthCheckProps) {
+export function AuthCheck({ children, adminOnly = false, clientOnly = false, barberOnly = false }: AuthCheckProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   
@@ -31,7 +32,12 @@ export function AuthCheck({ children, adminOnly = false, clientOnly = false }: A
       router.push('/login');
       return;
     }
-  }, [session, status, router, adminOnly, clientOnly]);
+
+    if (barberOnly && session.user.role !== 'barber') {
+      router.push('/login');
+      return;
+    }
+  }, [session, status, router, adminOnly, clientOnly, barberOnly]);
   
   if (status === 'loading') {
     return (
@@ -52,9 +58,13 @@ export function AuthCheck({ children, adminOnly = false, clientOnly = false }: A
     return null;
   }
   
-  if (clientOnly && session.user.userType !== 'client') {
+    if (clientOnly && session.user.userType !== 'client') {
     return null;
   }
-  
+
+  if (barberOnly && session.user.role !== 'barber') {
+    return null;
+  }
+
   return <>{children}</>;
 } 

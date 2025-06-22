@@ -61,10 +61,17 @@ export const authOptions: NextAuthOptions = {
           
           // Determine if admin or client login
           if (credentials.userType === 'admin') {
-            // Find admin by email (admins still use email)
-            const admin = await Admin.findOne({ email: credentials.identifier });
+            // Find admin/barber by email OR phone number (to support barber login)
+            const admin = await Admin.findOne({
+              $or: [
+                { email: credentials.identifier },
+                { phoneNumber: credentials.identifier }
+              ],
+              active: true // Only allow active accounts
+            });
             
             if (!admin) {
+              console.log('Admin/barber not found or inactive for identifier:', credentials.identifier);
               return null;
             }
             

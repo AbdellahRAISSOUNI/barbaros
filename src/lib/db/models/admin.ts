@@ -9,6 +9,11 @@ export interface IAdmin extends Document {
   lastLogin?: Date;
   email: string;
   active: boolean;
+  // New barber-specific fields
+  profilePicture?: string;
+  joinDate: Date;
+  isBarber: boolean;
+  phoneNumber?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -48,6 +53,24 @@ const AdminSchema = new Schema<IAdmin>(
       type: Boolean,
       default: true,
     },
+    // New barber-specific fields
+    profilePicture: {
+      type: String, // Base64 encoded image
+    },
+    joinDate: {
+      type: Date,
+      default: Date.now,
+    },
+    isBarber: {
+      type: Boolean,
+      default: function() {
+        return this.role === 'barber';
+      },
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -67,10 +90,23 @@ AdminSchema.pre('save', async function (next) {
   }
 });
 
+// Update isBarber flag when role changes
+AdminSchema.pre('save', function (next) {
+  if (this.isModified('role')) {
+    this.isBarber = this.role === 'barber';
+  }
+  next();
+});
+
 // Method to compare passwords
 AdminSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
+
+// Indexes for better performance
+AdminSchema.index({ role: 1 });
+AdminSchema.index({ isBarber: 1 });
+AdminSchema.index({ active: 1 });
 
 // Check if model already exists to prevent OverwriteModelError during hot reloads
 const Admin = mongoose.models.Admin || mongoose.model<IAdmin>('Admin', AdminSchema);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaTimes, FaSave, FaCalculator, FaClipboard, FaClock, FaUser, FaCut, FaGift, FaPercentage } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import BarberSelector from './BarberSelector';
 
 interface Service {
   _id: string;
@@ -64,6 +65,7 @@ export function VisitRecordingForm({
     new Date().toISOString().slice(0, 16)
   );
   const [barber, setBarber] = useState<string>('');
+  const [barberId, setBarberId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState<string>('');
   const [customPrice, setCustomPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -178,6 +180,11 @@ export function VisitRecordingForm({
     );
   };
 
+  const handleBarberChange = (newBarberId: string | undefined, newBarberName: string) => {
+    setBarberId(newBarberId);
+    setBarber(newBarberName);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -187,7 +194,7 @@ export function VisitRecordingForm({
     }
 
     if (!barber.trim()) {
-      toast.error('Please enter the barber name');
+      toast.error('Please select or enter the barber name');
       return;
     }
 
@@ -204,6 +211,7 @@ export function VisitRecordingForm({
         services: selectedServices,
         totalPrice: finalTotal,
         barber: barber.trim(),
+        barberId: barberId || undefined,
         notes: notes.trim(),
         rewardRedeemed: !!selectedReward,
         redeemedRewardId: selectedReward?._id || null,
@@ -580,21 +588,12 @@ export function VisitRecordingForm({
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="barber" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaUser className="inline mr-1" />
-                    Barber Name
-                  </label>
-                  <input
-                    id="barber"
-                    type="text"
-                    value={barber}
-                    onChange={(e) => setBarber(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
-                    placeholder="Enter barber name"
-                    required
-                  />
-                </div>
+                <BarberSelector
+                  selectedBarberId={barberId}
+                  selectedBarberName={barber}
+                  onBarberChange={handleBarberChange}
+                  disabled={isLoading}
+                />
 
                 <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">

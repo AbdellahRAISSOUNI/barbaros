@@ -13,6 +13,7 @@ export interface IVisit extends Document {
   services: ServiceReceived[];
   totalPrice: number;
   barber: string;
+  barberId?: mongoose.Types.ObjectId;
   notes?: string;
   rewardRedeemed: boolean;
   redeemedRewardId?: mongoose.Types.ObjectId;
@@ -62,6 +63,11 @@ const VisitSchema = new Schema<IVisit>(
       type: String,
       required: [true, 'Barber name is required'],
     },
+    barberId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Admin',
+      index: true,
+    },
     notes: {
       type: String,
     },
@@ -87,6 +93,8 @@ const VisitSchema = new Schema<IVisit>(
 VisitSchema.index({ clientId: 1, visitDate: -1 });
 VisitSchema.index({ visitDate: -1 });
 VisitSchema.index({ barber: 1 });
+VisitSchema.index({ barberId: 1 });
+VisitSchema.index({ barberId: 1, visitDate: -1 });
 
 // Check if model already exists to prevent OverwriteModelError during hot reloads
 const Visit = mongoose.models.Visit || mongoose.model<IVisit>('Visit', VisitSchema);

@@ -263,56 +263,81 @@ export default function RewardRedemptionInterface({
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Available Rewards</h3>
             <div className="space-y-3">
-              {loyaltyStatus.eligibleRewards.map((reward) => (
-                <div key={reward._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        reward.rewardType === 'free' ? 'bg-green-100' : 'bg-blue-100'
-                      }`}>
-                        {reward.rewardType === 'free' ? (
-                          <FaGift className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <FaPercentage className="w-5 h-5 text-blue-600" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{reward.name}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{reward.description}</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="text-gray-500">
-                            Required: {reward.visitsRequired} visits
-                          </span>
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${
-                            reward.rewardType === 'free' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
+              {loyaltyStatus.eligibleRewards.map((reward) => {
+                const isEligibleForRedemption = loyaltyStatus.currentProgressVisits >= reward.visitsRequired;
+                const visitsNeeded = reward.visitsRequired - loyaltyStatus.currentProgressVisits;
+                
+                return (
+                  <div key={reward._id} className={`border rounded-lg p-4 transition-all ${
+                    isEligibleForRedemption 
+                      ? 'border-green-200 bg-green-50 hover:shadow-md' 
+                      : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          reward.rewardType === 'free' ? 'bg-green-100' : 'bg-blue-100'
+                        }`}>
+                          {reward.rewardType === 'free' ? (
+                            <FaGift className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <FaPercentage className="w-5 h-5 text-blue-600" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{reward.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{reward.description}</p>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="text-gray-500">
+                              Required: {reward.visitsRequired} visits
+                            </span>
+                            <div className={`px-2 py-1 rounded text-xs font-medium ${
+                              reward.rewardType === 'free' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
+                            </div>
+                            {isEligibleForRedemption && (
+                              <div className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                ✓ Ready to Redeem
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-xs text-gray-500">
+                              Applicable to: {reward.applicableServices.map(s => s.name).join(', ')}
+                            </p>
+                            {!isEligibleForRedemption && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                ⚠️ Need {visitsNeeded} more visit{visitsNeeded !== 1 ? 's' : ''} to unlock
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div className="mt-2">
-                          <p className="text-xs text-gray-500">
-                            Applicable to: {reward.applicableServices.map(s => s.name).join(', ')}
-                          </p>
-                        </div>
+                      </div>
+                      <div className="ml-4">
+                        {isEligibleForRedemption ? (
+                          <button
+                            onClick={() => handleRedeemReward(reward._id)}
+                            disabled={isRedeeming && selectedRewardForRedemption === reward._id}
+                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isRedeeming && selectedRewardForRedemption === reward._id 
+                              ? 'Redeeming...' 
+                              : 'Redeem Now'
+                            }
+                          </button>
+                        ) : (
+                          <div className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed">
+                            Not Available
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="ml-4">
-                      <button
-                        onClick={() => handleRedeemReward(reward._id)}
-                        disabled={isRedeeming && selectedRewardForRedemption === reward._id}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isRedeeming && selectedRewardForRedemption === reward._id 
-                          ? 'Redeeming...' 
-                          : 'Redeem'
-                        }
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

@@ -21,16 +21,17 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional(),
 }).refine((data) => {
   if (data.userType === 'admin') {
-    // For admin, validate email format
+    // For admin/barber, accept either email OR phone number format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(data.identifier);
+    const phoneRegex = /^\+?[0-9\s\-()]{7,}$/;
+    return emailRegex.test(data.identifier) || phoneRegex.test(data.identifier);
   } else {
     // For client, validate phone number format
     const phoneRegex = /^\+?[0-9\s\-()]{7,}$/;
     return phoneRegex.test(data.identifier);
   }
 }, {
-  message: "Please enter a valid email (for admin) or phone number (for client)",
+  message: "Please enter a valid email or phone number (for admin/barber) or phone number (for client)",
   path: ['identifier'],
 });
 
@@ -84,9 +85,9 @@ export default function LoginPage() {
         return;
       }
       
-      // Redirect based on user type
+      // Redirect based on user type - middleware will handle specific role redirects
       if (data.userType === 'admin') {
-        router.push('/admin');
+        router.push('/admin'); // Middleware will redirect barbers to /barber
       } else {
         router.push('/client');
       }
@@ -158,7 +159,7 @@ export default function LoginPage() {
                         onChange: (e) => handleUserTypeChange(e.target.value)
                       })}
                     />
-                    Admin
+                    Admin/Barber
                   </label>
                 </div>
               </div>
@@ -166,14 +167,14 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
-                {userType === 'admin' ? 'Email address' : 'Phone number'}
+                {userType === 'admin' ? 'Email or Phone number' : 'Phone number'}
               </label>
               <div className="mt-1">
                 <input
                   id="identifier"
                   type="text"
                   autoComplete={userType === 'admin' ? 'email' : 'tel'}
-                  placeholder={userType === 'admin' ? 'admin@barbaros.com' : '+1234567890'}
+                  placeholder={userType === 'admin' ? 'admin@barbaros.com or +1234567890' : '+1234567890'}
                   className={`appearance-none block w-full px-3 py-2 border ${
                     errors.identifier ? 'border-red-300' : 'border-gray-300'
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}

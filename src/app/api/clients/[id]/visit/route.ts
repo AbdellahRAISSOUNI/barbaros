@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createVisit, recordVisitForLoyalty } from '@/lib/db/api';
 import { getClientById, getClientByClientId } from '@/lib/db/api/clientApi';
+import { updateBarberStatsAfterVisit } from '@/lib/db/api/barberApi';
+import { updateBarberAchievementProgress } from '@/lib/db/api/achievementEngine';
 import { IVisit } from '@/lib/db/models/visit';
 import mongoose from 'mongoose';
 
@@ -42,6 +44,7 @@ export async function POST(
       services: body.services || [],
       totalPrice: body.totalPrice || 0,
       barber: body.barber || '',
+      barberId: body.barberId ? new mongoose.Types.ObjectId(body.barberId) : undefined,
       notes: body.notes || '',
       rewardRedeemed: body.rewardRedeemed || false,
       redeemedRewardId: body.redeemedRewardId || null,
@@ -63,6 +66,32 @@ export async function POST(
     }
 
     const visit = await createVisit(visitData);
+
+    // Update barber statistics and achievements if barberId is provided
+    if (visitData.barberId) {
+      try {
+        const servicesForStats = (visitData.services || []).map(service => ({
+          serviceId: service.serviceId.toString(),
+          name: service.name,
+          price: service.price,
+          duration: service.duration,
+        }));
+
+        // Update barber statistics
+        await updateBarberStatsAfterVisit(visitData.barberId.toString(), {
+          clientId,
+          totalPrice: visitData.totalPrice || 0,
+          services: servicesForStats,
+          visitDate: visitData.visitDate || new Date(),
+        });
+
+        // Update achievement progress for the barber
+        await updateBarberAchievementProgress(visitData.barberId.toString());
+      } catch (barberStatsError) {
+        console.error('Error updating barber statistics or achievements:', barberStatsError);
+        // Continue execution even if barber stats/achievements update fails
+      }
+    }
 
     // Update loyalty progress
     try {

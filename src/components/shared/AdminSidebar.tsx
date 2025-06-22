@@ -7,7 +7,10 @@ import {
   FaChartLine, 
   FaCog, 
   FaCut,
-  FaGift
+  FaGift,
+  FaUserTie,
+  FaTrophy,
+  FaMedal
 } from 'react-icons/fa';
 
 export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (collapsed: boolean) => void }) {
@@ -27,6 +30,11 @@ export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (colla
           label: 'Clients'
         },
         {
+          href: '/admin/barbers',
+          icon: FaUserTie,
+          label: 'Barbers'
+        },
+        {
           href: '/admin/services',
           icon: FaCut,
           label: 'Services'
@@ -35,6 +43,16 @@ export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (colla
           href: '/admin/rewards',
           icon: FaGift,
           label: 'Rewards'
+        },
+        {
+          href: '/admin/achievements',
+          icon: FaTrophy,
+          label: 'Achievements'
+        },
+        {
+          href: '/admin/leaderboard',
+          icon: FaMedal,
+          label: 'Leaderboard'
         },
         {
           href: '/admin/scanner',
