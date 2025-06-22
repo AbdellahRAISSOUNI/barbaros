@@ -14,6 +14,7 @@ Welcome to the comprehensive documentation for the Barbaros Advanced Barbershop 
 - **[Database Seeding](database-seeding.md)** - Sample data and initialization
 - **[API Endpoints](api-endpoints.md)** - Complete API reference
 - **[Authentication](authentication.md)** - User management and security
+- **[Reservation System](reservation-system.md)** - 🆕 Dual-flow booking system for guests and clients
 
 ### Client Management
 - **[Data Models](data-models.md)** - Client and visit data structures
@@ -36,12 +37,14 @@ Welcome to the comprehensive documentation for the Barbaros Advanced Barbershop 
 ### Development
 - **[Development Guide](development-guide.md)** - Setup, configuration, and contribution guidelines
 
-## 🆕 New in Latest Update: Advanced Achievement System
+## 🆕 New in Latest Update: Advanced Achievement System & Reservation System
 
 ### What's New
-The latest update introduces a sophisticated **employee achievement system** designed specifically for employee loyalty and retention:
+The latest update introduces two major new systems:
 
-#### 🏆 Key Features
+#### 🏆 Advanced Achievement System
+A sophisticated **employee achievement system** designed specifically for employee loyalty and retention:
+
 - **8 Achievement Categories**: From tenure tracking to skill mastery
 - **5-Tier Progression**: Bronze to Diamond advancement system
 - **Automatic Tracking**: Real-time progress updates on every visit
@@ -49,10 +52,21 @@ The latest update introduces a sophisticated **employee achievement system** des
 - **Flexible Rewards**: Monetary, time off, recognition, privileges, training
 - **Privacy-Focused**: No revenue-based achievements for fair competition
 
+#### 📅 Dual Reservation System  
+A comprehensive **booking management platform** with smart user routing:
+
+- **Guest Reservations**: Quick booking without account creation
+- **Client Reservations**: Account-based booking with enhanced features
+- **Smart Routing**: Automatic redirection based on authentication status
+- **Admin Management**: Real-time alerts and comprehensive status tracking
+- **Mobile Optimized**: Responsive design for all devices
+- **Status Workflow**: Complete lifecycle from booking to completion
+
 #### 📖 Essential Reading
 1. **[Achievement System Documentation](achievement-system.md)** - Complete technical overview
-2. **[Admin Guide](admin-guide.md)** - How to create and manage achievements
-3. **[Barber System](barber-system.md)** - Updated with achievement features
+2. **[Reservation System Documentation](reservation-system.md)** - Dual-flow booking system
+3. **[Admin Guide](admin-guide.md)** - How to create and manage achievements
+4. **[Barber System](barber-system.md)** - Updated with achievement features
 
 #### 🚀 Quick Start
 For administrators wanting to implement the achievement system:

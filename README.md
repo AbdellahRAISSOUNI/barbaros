@@ -47,6 +47,15 @@ A sophisticated employee loyalty and retention platform featuring:
 - **Prerequisites**: Achievement chains and progression paths
 - **Admin Dashboard**: Visual achievement builder with comprehensive management
 
+### Reservation System
+- **Dual booking flows**: Guest reservations and client account bookings
+- **Guest reservations**: Quick booking without account creation (name + phone only)
+- **Client reservations**: Account-based booking with auto-filled information
+- **Smart routing**: Non-logged users directed to guest booking, logged users to client dashboard
+- **Admin management**: Comprehensive reservation tracking with status updates
+- **Real-time alerts**: Eye-catching notifications for new reservations
+- **Status tracking**: Complete lifecycle from pending to confirmed/cancelled
+
 ### Service Management
 - **Service catalog** with pricing and duration
 - **Category organization** for better service discovery
@@ -67,6 +76,7 @@ A sophisticated employee loyalty and retention platform featuring:
 - **Comprehensive client management** with full CRUD operations
 - **Barber profile management** and performance tracking
 - **Achievement system administration** with visual builder
+- **Reservation management** with real-time alerts and status tracking
 - **Advanced analytics** including revenue and business metrics
 - **Service and category management**
 - **Complete leaderboard** with all performance metrics
@@ -79,6 +89,14 @@ A sophisticated employee loyalty and retention platform featuring:
 - **Visit history** with filtering and export capabilities
 - **Profile management** with photo upload
 - **Privacy-focused leaderboard** (excludes revenue data)
+
+#### Client Dashboard
+- **Personal reservation management** with booking history
+- **New reservation booking** with account benefits
+- **Visit history tracking** with detailed service records
+- **QR code access** for quick check-ins
+- **Loyalty rewards** and points tracking
+- **Profile management** and preferences
 
 ## 🛠️ Technical Stack
 
@@ -109,6 +127,7 @@ A sophisticated employee loyalty and retention platform featuring:
 - **Visit**: Service records, pricing, barber attribution, dates
 - **Service**: Catalog with categories, pricing, duration
 - **Reward**: Loyalty system rewards and redemption tracking
+- **Reservation**: Guest and client bookings with status tracking
 - **Admin/Barber**: User profiles with role-based permissions
 
 ### Achievement System Models
@@ -179,9 +198,10 @@ Visit `http://localhost:3000` to access the application.
 1. **Login** with admin credentials
 2. **Create barber profiles** with photos and essential information
 3. **Manage achievement system** with visual builder and comprehensive options
-4. **Record visits** for clients with automatic barber attribution
-5. **Monitor performance** through analytics dashboard
-6. **Export data** for business analysis
+4. **Manage reservations** with real-time alerts and status tracking
+5. **Record visits** for clients with automatic barber attribution
+6. **Monitor performance** through analytics dashboard
+7. **Export data** for business analysis
 
 ### Barber Functions
 1. **Login** with email or phone number
@@ -190,6 +210,15 @@ Visit `http://localhost:3000` to access the application.
 4. **Track achievements** and career progression
 5. **View personal statistics** and performance metrics
 6. **Manage profile** and update personal information
+
+### Client Functions
+1. **Create account** or **book as guest** without registration
+2. **Make reservations** with smart routing (guest vs account booking)
+3. **Track reservation status** and booking history
+4. **View visit history** and service records
+5. **Access QR code** for quick check-ins
+6. **Manage loyalty points** and redeem rewards
+7. **Update profile** and preferences
 
 ## 🏆 Achievement System Highlights
 
@@ -227,6 +256,7 @@ src/
 │   │   │   ├── achievements/    # Achievement management
 │   │   │   ├── barbers/         # Barber management
 │   │   │   ├── clients/         # Client management
+│   │   │   ├── reservations/    # Reservation management with alerts
 │   │   │   └── leaderboard/     # Full analytics leaderboard
 │   │   ├── barber/              # Barber-only pages
 │   │   │   ├── achievements/    # Personal achievement tracking
@@ -234,6 +264,13 @@ src/
 │   │   │   ├── visits/          # Visit history
 │   │   │   └── leaderboard/     # Privacy-focused leaderboard
 │   │   └── client/              # Client-facing pages
+│   │       ├── reservations/    # Client reservation management
+│   │       │   └── new/         # New reservation booking
+│   │       ├── history/         # Visit history
+│   │       ├── qrcode/          # QR code access
+│   │       └── rewards/         # Loyalty rewards
+│   ├── (landing)/               # Public landing page
+│   ├── reservations/new/        # Guest reservation booking
 │   ├── api/                     # API routes
 │   │   ├── admin/               # Admin APIs
 │   │   │   ├── achievements/    # Achievement CRUD
@@ -241,6 +278,7 @@ src/
 │   │   ├── barber/              # Barber-specific APIs
 │   │   │   ├── achievements/    # Achievement progress
 │   │   │   └── leaderboard/     # Privacy-focused rankings
+│   │   ├── reservations/        # Reservation management APIs
 │   │   └── clients/             # Client management APIs
 │   └── globals.css              # Global styles
 ├── components/                   # React components
@@ -254,11 +292,18 @@ src/
 │   │   ├── api/                 # Database API functions
 │   │   │   └── achievementEngine.ts  # Achievement calculation engine
 │   │   └── models/              # Database models
+│   │       └── reservation.ts   # Reservation data model
 │   └── utils/                   # Helper utilities
 └── middleware.ts                # Route protection middleware
 ```
 
 ## 🔧 API Documentation
+
+### Reservation System APIs
+- `GET /api/reservations` - List reservations with filtering and pagination
+- `POST /api/reservations` - Create guest or client reservations
+- `PUT /api/reservations/[id]` - Update reservation status
+- `GET /api/reservations/stats` - Real-time reservation statistics
 
 ### Achievement System APIs
 - `GET /api/admin/achievements` - List and manage all achievements
