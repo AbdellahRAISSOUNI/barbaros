@@ -48,8 +48,7 @@ interface IClient {
   _id: ObjectId;
   firstName: string;              // 2-50 characters, required
   lastName: string;               // 2-50 characters, required
-  email: string;                  // Valid email, unique, required
-  phone: string;                  // 10-15 digits, unique, required
+  phoneNumber: string;            // 10-15 digits, unique, required (for authentication)
   password: string;               // Hashed password, min 6 chars
   
   // Optional Profile Data
@@ -107,19 +106,7 @@ const clientSchema = new mongoose.Schema({
     maxlength: 50,
     trim: true
   },
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true,
-    lowercase: true,
-    validate: {
-      validator: function(email: string) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      },
-      message: 'Invalid email format'
-    }
-  },
-  phone: { 
+  phoneNumber: { 
     type: String, 
     required: true, 
     unique: true,
@@ -817,8 +804,7 @@ const clientWithReward = await Client.findById(clientId).populate('selectedRewar
 
 ```javascript
 // Client collection indexes
-db.clients.createIndex({ "email": 1 }, { unique: true });
-db.clients.createIndex({ "phone": 1 }, { unique: true });
+db.clients.createIndex({ "phoneNumber": 1 }, { unique: true });
 db.clients.createIndex({ "qrCode": 1 }, { unique: true });
 db.clients.createIndex({ "loyaltyStatus": 1, "createdAt": -1 });
 db.clients.createIndex({ "totalLifetimeVisits": -1 });
@@ -864,8 +850,7 @@ db.clients.createIndex({
 db.clients.createIndex({
   "firstName": "text",
   "lastName": "text", 
-  "email": "text",
-  "phone": "text"
+  "phoneNumber": "text"
 });
 
 db.services.createIndex({
@@ -885,14 +870,14 @@ db.rewards.createIndex({
 ### Custom Validators
 
 ```typescript
-// Email uniqueness validator
-clientSchema.path('email').validate(async function(email) {
+// Phone number uniqueness validator
+clientSchema.path('phoneNumber').validate(async function(phoneNumber) {
   const client = await this.constructor.findOne({ 
-    email: email, 
+    phoneNumber: phoneNumber, 
     _id: { $ne: this._id } 
   });
   return !client;
-}, 'Email already exists');
+}, 'Phone number already exists');
 
 // Visit total price validation
 visitSchema.path('totalPrice').validate(function(totalPrice) {

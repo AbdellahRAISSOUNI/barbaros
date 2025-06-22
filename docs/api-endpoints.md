@@ -333,8 +333,8 @@ Retrieves a paginated list of all clients with optional filtering and sorting.
 |-----------|------|----------|-------------|
 | `page` | number | No | Page number (1-based). Default: 1 |
 | `limit` | number | No | Items per page (max 100). Default: 20 |
-| `search` | string | No | Search in name, email, phone |
-| `sortBy` | string | No | Sort field: 'name', 'email', 'createdAt', 'lastVisit' |
+| `search` | string | No | Search in name, phone |
+| `sortBy` | string | No | Sort field: 'name', 'phoneNumber', 'createdAt', 'lastVisit' |
 | `sortOrder` | string | No | Sort order: 'asc', 'desc'. Default: 'desc' |
 | `loyaltyStatus` | string | No | Filter by loyalty status |
 
@@ -351,8 +351,7 @@ GET /api/clients?page=1&limit=20&search=john&sortBy=createdAt&sortOrder=desc
     _id: string,
     firstName: string,
     lastName: string,
-    email: string,
-    phone: string,
+    phoneNumber: string,
     dateOfBirth?: string,
     address?: string,
     notes?: string,
@@ -399,8 +398,7 @@ Creates a new client account with automatic QR code generation.
 {
   firstName: string,        // Required, 2-50 characters
   lastName: string,         // Required, 2-50 characters
-  email: string,            // Required, valid email format
-  phone: string,            // Required, 10-15 digits
+  phoneNumber: string,      // Required, 10-15 digits, unique
   password: string,         // Required, min 6 characters
   dateOfBirth?: string,     // Optional, ISO date format
   address?: string,         // Optional, max 200 characters
@@ -416,8 +414,7 @@ Creates a new client account with automatic QR code generation.
     _id: string,
     firstName: string,
     lastName: string,
-    email: string,
-    phone: string,
+    phoneNumber: string,
     qrCode: string,           // Auto-generated unique QR code
     createdAt: string,
     loyaltyStatus: 'new',
@@ -428,8 +425,7 @@ Creates a new client account with automatic QR code generation.
 ```
 
 **Validation Rules:**
-- Email must be unique
-- Phone must be unique
+- Phone number must be unique
 - Password is hashed before storage
 - QR code is automatically generated and unique
 
@@ -467,8 +463,7 @@ GET /api/clients/507f1f77bcf86cd799439011?includeVisits=true&includeRewards=true
     _id: string,
     firstName: string,
     lastName: string,
-    email: string,
-    phone: string,
+    phoneNumber: string,
     dateOfBirth?: string,
     address?: string,
     notes?: string,
@@ -540,8 +535,7 @@ Updates client information and profile data.
 {
   firstName?: string,       // 2-50 characters
   lastName?: string,        // 2-50 characters
-  email?: string,           // Valid email format, must be unique
-  phone?: string,           // 10-15 digits, must be unique
+  phoneNumber?: string,     // 10-15 digits, must be unique
   dateOfBirth?: string,     // ISO date format
   address?: string,         // Max 200 characters
   notes?: string,           // Max 500 characters
@@ -1366,8 +1360,7 @@ Registers a new client account.
 {
   firstName: string,              // Required, 2-50 characters
   lastName: string,               // Required, 2-50 characters
-  email: string,                  // Required, valid email, unique
-  phone: string,                  // Required, 10-15 digits, unique
+  phoneNumber: string,            // Required, 10-15 digits, unique
   password: string,               // Required, min 6 characters
   dateOfBirth?: string,           // Optional, ISO date format
   address?: string                // Optional, max 200 characters
@@ -1382,7 +1375,7 @@ Registers a new client account.
     _id: string,
     firstName: string,
     lastName: string,
-    email: string,
+    phoneNumber: string,
     qrCode: string,
     loyaltyStatus: 'new'
   },
@@ -1413,7 +1406,7 @@ Retrieves client information using their unique QR code for scanner functionalit
     _id: string,
     firstName: string,
     lastName: string,
-    phone: string,
+    phoneNumber: string,
     qrCode: string,
     
     // Loyalty Information

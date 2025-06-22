@@ -8,7 +8,9 @@ The Barbaros system implements authentication using NextAuth.js, a complete auth
 
 The following authentication methods are supported:
 
-1. **Credentials Authentication**: Email and password-based authentication
+1. **Credentials Authentication**: 
+   - **Admin Users**: Email and password-based authentication
+   - **Client Users**: Phone number and password-based authentication
 2. **OAuth Providers**: Support for Google, Facebook, etc. (planned for future)
 
 ## User Types
@@ -38,8 +40,8 @@ The system supports multiple user types with different roles and permissions:
 
 1. Client navigates to the login page (`/login`) 
 2. Client selects "Client" user type (default)
-3. Client enters email and password
-4. System validates credentials against the Client collection
+3. Client enters phone number and password
+4. System validates credentials against the Client collection using phone number
 5. If valid, system creates a session and redirects to the client dashboard
 6. If invalid, system displays an error message
 
@@ -51,15 +53,15 @@ The system supports self-registration for clients:
 2. Client fills out the registration form with:
    - First name
    - Last name
-   - Email address
    - Phone number
    - Password (with confirmation)
+   - Optional: Date of birth, address
 3. System validates the input:
    - Checks for required fields
-   - Validates email format
+   - Validates phone number format
    - Ensures password meets complexity requirements
    - Confirms passwords match
-4. System checks for duplicate email
+4. System checks for duplicate phone number
 5. If validation passes:
    - Password is hashed using bcrypt
    - New client record is created
@@ -127,12 +129,12 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Email or Phone", type: "text" },
         password: { label: "Password", type: "password" },
         userType: { label: "User Type", type: "text" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.userType) {
+        if (!credentials?.identifier || !credentials?.password || !credentials?.userType) {
           return null;
         }
 
@@ -142,7 +144,7 @@ export const authOptions: NextAuthOptions = {
           // Determine if admin or client login
           if (credentials.userType === 'admin') {
             // Find admin by email
-            const admin = await Admin.findOne({ email: credentials.email });
+            const admin = await Admin.findOne({ email: credentials.identifier });
             
             if (!admin) {
               return null;
@@ -168,8 +170,8 @@ export const authOptions: NextAuthOptions = {
               userType: 'admin'
             };
           } else {
-            // Find client by email
-            const client = await Client.findOne({ email: credentials.email });
+            // Find client by phone number
+            const client = await Client.findOne({ phoneNumber: credentials.identifier });
             
             if (!client) {
               return null;

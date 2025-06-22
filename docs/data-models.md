@@ -21,7 +21,6 @@ erDiagram
     }
     CLIENT {
         string clientId
-        string email
         string passwordHash
         string firstName
         string lastName
@@ -134,7 +133,6 @@ interface PreferredService {
 
 interface IClient extends Document {
   clientId: string;
-  email: string;
   passwordHash: string;
   firstName: string;
   lastName: string;
@@ -159,7 +157,7 @@ interface IClient extends Document {
 | Field            | Type     | Description                                  |
 |------------------|----------|----------------------------------------------|
 | clientId         | String   | Unique identifier                            |
-| phoneNumber      | String   | Client phone number (for login and verification) |
+| phoneNumber      | String   | Client phone number (for login and authentication) |
 | passwordHash     | String   | Hashed password for client portal            |
 | firstName        | String   | Client's first name                          |
 | lastName         | String   | Client's last name                           |
