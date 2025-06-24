@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FaUser, FaPhone, FaCut, FaGift, FaPlus, FaHistory, FaCrown, FaCheck } from 'react-icons/fa';
 import { VisitRecordingForm } from './VisitRecordingForm';
 import { VisitHistoryView } from './VisitHistoryView';
+import RewardRedemptionInterface from './RewardRedemptionInterface';
 
 interface Visit {
   _id: string;
@@ -34,6 +35,7 @@ interface ClientInfo {
   clientId: string;
   firstName: string;
   lastName: string;
+  email?: string;
   phoneNumber?: string;
   visitCount: number;
   rewardsEarned: number;
@@ -46,7 +48,7 @@ interface ClientInfo {
   loyaltyStatus: string;
 }
 
-type ViewMode = 'info' | 'recording' | 'history';
+type ViewMode = 'info' | 'recording' | 'history' | 'rewards';
 
 interface ClientInfoCardProps {
   clientId: string;
@@ -161,7 +163,14 @@ export function ClientInfoCard({
   if (viewMode === 'recording' && clientInfo) {
     return (
       <VisitRecordingForm
-        clientInfo={clientInfo}
+        clientInfo={{
+          _id: clientInfo._id,
+          firstName: clientInfo.firstName,
+          lastName: clientInfo.lastName,
+          email: clientInfo.email || '',
+          visitCount: clientInfo.visitCount,
+          phone: clientInfo.phoneNumber
+        }}
         onVisitCreated={handleVisitCreated}
         onCancel={handleBackToInfo}
       />
@@ -174,6 +183,50 @@ export function ClientInfoCard({
         clientId={clientInfo._id}
         clientName={`${clientInfo.firstName} ${clientInfo.lastName}`}
         onBack={handleBackToInfo}
+      />
+    );
+  }
+
+  if (viewMode === 'rewards' && clientInfo) {
+    return (
+      <RewardRedemptionInterface
+        clientId={clientInfo._id}
+        barberName="Admin" // You might want to get the actual barber name from context
+        onRedemptionComplete={() => {
+          // Refresh data after redemption
+          setViewMode('info');
+          // Call the existing fetchAllData function
+          const refreshData = async () => {
+            try {
+              const [clientResponse, loyaltyResponse, visitsResponse] = await Promise.all([
+                fetch(`/api/clients/${clientId}`),
+                fetch(`/api/loyalty/${clientId}`),
+                fetch(`/api/clients/${clientId}/visits?limit=3`)
+              ]);
+
+              if (clientResponse.ok) {
+                const clientData = await clientResponse.json();
+                setClientInfo(clientData.client);
+              }
+
+              if (loyaltyResponse.ok) {
+                const loyaltyData = await loyaltyResponse.json();
+                if (loyaltyData.success) {
+                  setLoyaltyStatus(loyaltyData.loyaltyStatus);
+                }
+              }
+
+              if (visitsResponse.ok) {
+                const visitsData = await visitsResponse.json();
+                setRecentVisits(visitsData.visits || []);
+              }
+            } catch (err) {
+              console.error('Error refreshing data:', err);
+            }
+          };
+          refreshData();
+        }}
+        onClose={handleBackToInfo}
       />
     );
   }
@@ -406,6 +459,17 @@ export function ClientInfoCard({
             <FaPlus className="h-4 w-4 mr-2" />
             Record New Visit
           </button>
+          
+          {/* Show Redeem Reward button only if client is eligible */}
+          {loyaltyStatus && loyaltyStatus.canRedeem && (
+            <button
+              onClick={() => setViewMode('rewards')}
+              className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg font-medium animate-pulse"
+            >
+              <FaGift className="h-4 w-4 mr-2" />
+              🎉 Redeem Reward!
+            </button>
+          )}
           
           <button
             onClick={() => setViewMode('history')}

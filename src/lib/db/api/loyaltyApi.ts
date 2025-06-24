@@ -44,12 +44,49 @@ export async function getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
     // Get all active rewards
     const allActiveRewards = await Reward.find({ isActive: true })
       .populate('applicableServices')
-      .sort({ visitsRequired: 1 });
+      .sort({ visitsRequired: 1 })
+      .exec();
 
-    // Find eligible rewards (client has enough visits)
-    const eligibleRewards = allActiveRewards.filter(reward => 
-      client.currentProgressVisits >= reward.visitsRequired
-    );
+    // Check if selected reward has expired
+    if (client.selectedReward && client.selectedRewardStartVisits !== undefined) {
+      const currentSelectedReward = await Reward.findById(client.selectedReward).lean() as IReward | null;
+      if (currentSelectedReward?.validForDays) {
+        const startDate = new Date(client.loyaltyJoinDate || client.dateCreated);
+        const expirationDate = new Date(startDate);
+        expirationDate.setDate(expirationDate.getDate() + currentSelectedReward.validForDays);
+        
+        if (new Date() > expirationDate) {
+          // Reset selected reward if expired
+          client.selectedReward = undefined;
+          client.selectedRewardStartVisits = undefined;
+          client.loyaltyStatus = 'active';
+          await client.save();
+        }
+      }
+    }
+
+    // Find eligible rewards (client has enough visits and hasn't exceeded max redemptions)
+    const eligibleRewards: IReward[] = [];
+    for (const reward of allActiveRewards) {
+      const rewardDoc = reward as unknown as IReward;
+      
+      // CRITICAL FIX: Client must have BOTH enough total visits AND current progress visits
+      const hasEnoughTotalVisits = client.totalLifetimeVisits >= rewardDoc.visitsRequired;
+      const hasEnoughProgressVisits = client.currentProgressVisits >= rewardDoc.visitsRequired;
+      
+      // Only show as eligible if client truly has enough visits
+      if (hasEnoughTotalVisits && hasEnoughProgressVisits && client.totalLifetimeVisits > 0) {
+        // Check max redemptions if applicable
+        if (rewardDoc.maxRedemptions) {
+          const previousRedemptions = await getClientRewardHistory(clientId, rewardDoc._id.toString());
+          if (previousRedemptions.length < rewardDoc.maxRedemptions) {
+            eligibleRewards.push(rewardDoc);
+          }
+        } else {
+          eligibleRewards.push(rewardDoc);
+        }
+      }
+    }
 
     // Calculate progress for selected reward
     let visitsToNextReward = 0;
@@ -58,15 +95,56 @@ export async function getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
     let milestoneReached = false;
 
     if (client.selectedReward) {
-      const selectedReward = client.selectedReward as IReward;
-      visitsToNextReward = Math.max(0, selectedReward.visitsRequired - client.currentProgressVisits);
-      progressPercentage = Math.min(100, (client.currentProgressVisits / selectedReward.visitsRequired) * 100);
-      canRedeem = client.currentProgressVisits >= selectedReward.visitsRequired;
+      const selectedReward = await Reward.findById(client.selectedReward).lean() as IReward | null;
+      if (!selectedReward) {
+        throw new Error('Selected reward not found');
+      }
+      
+      // CRITICAL FIX: Check if client has earned enough new visits since selecting the reward
+      const visitsEarnedSinceSelection = client.currentProgressVisits - (client.selectedRewardStartVisits || 0);
+      const hasEarnedEnoughVisits = visitsEarnedSinceSelection >= selectedReward.visitsRequired;
+      
+      // ADDITIONAL VALIDATION: Ensure client has minimum total visits and current progress
+      const hasMinimumTotalVisits = client.totalLifetimeVisits >= selectedReward.visitsRequired;
+      const hasMinimumCurrentProgress = client.currentProgressVisits >= selectedReward.visitsRequired;
+      const hasNonZeroVisits = client.totalLifetimeVisits > 0 && client.currentProgressVisits > 0;
+      
+      visitsToNextReward = hasEarnedEnoughVisits ? 0 : selectedReward.visitsRequired - visitsEarnedSinceSelection;
+      progressPercentage = Math.min(100, (visitsEarnedSinceSelection / selectedReward.visitsRequired) * 100);
+      
+      // Check if reward has expired
+      let isExpired = false;
+      if (selectedReward.validForDays) {
+        const startDate = new Date(client.loyaltyJoinDate || client.dateCreated);
+        const expirationDate = new Date(startDate);
+        expirationDate.setDate(expirationDate.getDate() + selectedReward.validForDays);
+        isExpired = new Date() > expirationDate;
+      }
+      
+      // Check max redemptions
+      let hasReachedMaxRedemptions = false;
+      if (selectedReward.maxRedemptions) {
+        const previousRedemptions = await getClientRewardHistory(clientId, selectedReward._id.toString());
+        hasReachedMaxRedemptions = previousRedemptions.length >= selectedReward.maxRedemptions;
+      }
+      
+      // STRICT VALIDATION: All conditions must be met
+      canRedeem = hasEarnedEnoughVisits && 
+                  hasMinimumTotalVisits && 
+                  hasMinimumCurrentProgress && 
+                  hasNonZeroVisits && 
+                  !isExpired && 
+                  !hasReachedMaxRedemptions;
+      
       milestoneReached = canRedeem;
       
       // Update loyalty status
       if (canRedeem && client.loyaltyStatus !== 'milestone_reached') {
         client.loyaltyStatus = 'milestone_reached';
+        await client.save();
+      } else if (!canRedeem && client.loyaltyStatus === 'milestone_reached') {
+        // Reset status if no longer eligible
+        client.loyaltyStatus = 'active';
         await client.save();
       }
     } else if (eligibleRewards.length > 0) {
@@ -74,9 +152,13 @@ export async function getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
       milestoneReached = true;
     }
 
+    const currentSelectedReward = client.selectedReward ? 
+      await Reward.findById(client.selectedReward).lean() as IReward | null : 
+      undefined;
+
     return {
       client,
-      selectedReward: client.selectedReward as IReward,
+      selectedReward: currentSelectedReward || undefined,
       eligibleRewards,
       visitsToNextReward,
       progressPercentage: Math.round(progressPercentage),
@@ -189,9 +271,41 @@ export async function redeemReward(
       throw new Error('Reward not found or inactive');
     }
 
-    // Check if client is eligible
+    // Check if client has selected this reward
+    if (!client.selectedReward || client.selectedReward.toString() !== rewardId) {
+      throw new Error('Client must select this reward before redeeming it');
+    }
+
+    // CRITICAL VALIDATION: Multiple checks to prevent abuse
+    if (client.totalLifetimeVisits === 0 || client.currentProgressVisits === 0) {
+      throw new Error('Client must have at least 1 visit to redeem any reward');
+    }
+
+    // Check if client has earned enough new visits since selecting the reward
+    const visitsEarnedSinceSelection = client.currentProgressVisits - (client.selectedRewardStartVisits || 0);
+    if (visitsEarnedSinceSelection < reward.visitsRequired) {
+      throw new Error(`Client needs ${reward.visitsRequired - visitsEarnedSinceSelection} more visits since selecting this reward`);
+    }
+
+    // Ensure client has enough total visits
+    if (client.totalLifetimeVisits < reward.visitsRequired) {
+      throw new Error(`Client needs ${reward.visitsRequired - client.totalLifetimeVisits} more total visits to redeem this reward`);
+    }
+
+    // Ensure client has enough current progress visits
     if (client.currentProgressVisits < reward.visitsRequired) {
-      throw new Error(`Client needs ${reward.visitsRequired - client.currentProgressVisits} more visits to redeem this reward`);
+      throw new Error(`Client needs ${reward.visitsRequired - client.currentProgressVisits} more progress visits to redeem this reward`);
+    }
+
+    // Check if reward has expired
+    if (reward.validForDays) {
+      const startDate = new Date(client.loyaltyJoinDate || client.dateCreated);
+      const expirationDate = new Date(startDate);
+      expirationDate.setDate(expirationDate.getDate() + reward.validForDays);
+      
+      if (new Date() > expirationDate) {
+        throw new Error('This reward has expired. Please select a new reward.');
+      }
     }
 
     // Check max redemptions limit
@@ -297,10 +411,11 @@ export async function getAvailableRewards(clientId: string): Promise<IReward[]> 
     // Get all active rewards
     const rewards = await Reward.find({ isActive: true })
       .populate('applicableServices')
-      .sort({ visitsRequired: 1 });
+      .sort({ visitsRequired: 1 })
+      .lean() as IReward[];
 
     // Filter out rewards with max redemptions reached
-    const availableRewards = [];
+    const availableRewards: IReward[] = [];
     
     for (const reward of rewards) {
       if (reward.maxRedemptions) {

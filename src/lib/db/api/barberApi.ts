@@ -1,6 +1,6 @@
 import connectToDatabase from '../mongodb';
 import { Admin, BarberStats, Visit } from '../models';
-import { IAdmin, IBarberStats } from '../models';
+import { IAdmin, IBarberStats, MonthlyStats, ServiceStats } from '../models';
 import mongoose from 'mongoose';
 
 /**
@@ -29,7 +29,7 @@ export async function getBarberById(barberId: string): Promise<IAdmin | null> {
     _id: barberId, 
     role: 'barber', 
     active: true 
-  }).select('-passwordHash');
+  }).select('-passwordHash').lean() as Promise<IAdmin | null>;
 }
 
 /**
@@ -71,7 +71,7 @@ export async function updateBarber(barberId: string, updateData: Partial<IAdmin>
     { _id: barberId, role: 'barber' },
     safeUpdateData,
     { new: true, runValidators: true }
-  ).select('-passwordHash');
+  ).select('-passwordHash').lean() as Promise<IAdmin | null>;
 }
 
 /**
@@ -152,7 +152,7 @@ export async function updateBarberStatsAfterVisit(
   }
   
   // Update monthly stats
-  let monthlyStats = stats.monthlyStats.find(m => m.month === visitMonth);
+  let monthlyStats = stats.monthlyStats.find((m: MonthlyStats) => m.month === visitMonth);
   if (!monthlyStats) {
     monthlyStats = {
       month: visitMonth,
@@ -178,7 +178,7 @@ export async function updateBarberStatsAfterVisit(
   
   // Update service stats
   for (const service of visitData.services) {
-    let serviceStats = stats.serviceStats.find(s => s.serviceId.toString() === service.serviceId);
+    let serviceStats = stats.serviceStats.find((s: ServiceStats) => s.serviceId.toString() === service.serviceId);
     if (!serviceStats) {
       serviceStats = {
         serviceId: new mongoose.Types.ObjectId(service.serviceId),
@@ -207,9 +207,9 @@ export async function updateBarberStatsAfterVisit(
   
   // Update top services (top 5)
   const sortedServices = stats.serviceStats
-    .sort((a, b) => b.count - a.count)
+    .sort((a: ServiceStats, b: ServiceStats) => b.count - a.count)
     .slice(0, 5);
-  stats.topServices = sortedServices.map(s => s.serviceName);
+  stats.topServices = sortedServices.map((s: ServiceStats) => s.serviceName);
   
   // Calculate client retention rate
   if (stats.uniqueClientsServed.length > 0) {
@@ -310,54 +310,63 @@ export async function getBarberLeaderboard(
     .sort(sortCriteria)
     .limit(20);
   
-  // Calculate efficiency and create result
-  const processedStats = barbersWithStats.map((stats: any, index: number) => {
-    const barber = stats.barberId;
-    
-    // Calculate efficiency score
-    const workDays = stats.workDaysSinceJoining || 1;
-    const visitsPerDay = stats.totalVisits / workDays;
-    const revenuePerVisit = stats.totalVisits > 0 ? stats.totalRevenue / stats.totalVisits : 0;
-    const efficiency = Math.round((visitsPerDay * revenuePerVisit) * 10) / 10;
-    
-    // Handle time period filtering for monthly stats
-    let visits = stats.totalVisits;
-    let revenue = stats.totalRevenue;
-    let uniqueClients = stats.uniqueClientsServed.length;
-    
-    if (timePeriod === 'this-month') {
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      const monthStats = stats.monthlyStats.find((m: any) => m.month === currentMonth);
-      if (monthStats) {
-        visits = monthStats.visitsCount;
-        revenue = monthStats.revenue;
-        uniqueClients = monthStats.uniqueClients;
+  // Calculate efficiency and create result - Filter out null barbers
+  const processedStats = barbersWithStats
+    .filter((stats: any) => stats.barberId) // Filter out entries with null barbers
+    .map((stats: any, index: number) => {
+      const barber = stats.barberId;
+      
+      // Additional safety check
+      if (!barber || !barber._id) {
+        console.warn('Skipping barber stats with invalid barber data:', stats._id);
+        return null;
       }
-    }
-    
-    return {
-      _id: barber._id,
-      name: barber.name,
-      profilePicture: barber.profilePicture,
-      joinDate: barber.joinDate,
-      workDays: stats.workDaysSinceJoining,
-      stats: {
-        totalVisits: visits,
-        totalRevenue: revenue,
-        uniqueClientsServed: uniqueClients,
-        thisMonth: {
-          visits: stats.monthlyStats.find((m: any) => m.month === new Date().toISOString().slice(0, 7))?.visitsCount || 0,
-          revenue: stats.monthlyStats.find((m: any) => m.month === new Date().toISOString().slice(0, 7))?.revenue || 0
+      
+      // Calculate efficiency score
+      const workDays = stats.workDaysSinceJoining || 1;
+      const visitsPerDay = stats.totalVisits / workDays;
+      const revenuePerVisit = stats.totalVisits > 0 ? stats.totalRevenue / stats.totalVisits : 0;
+      const efficiency = Math.round((visitsPerDay * revenuePerVisit) * 10) / 10;
+      
+      // Handle time period filtering for monthly stats
+      let visits = stats.totalVisits;
+      let revenue = stats.totalRevenue;
+      let uniqueClients = stats.uniqueClientsServed ? stats.uniqueClientsServed.length : 0;
+      
+      if (timePeriod === 'this-month') {
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const monthStats = stats.monthlyStats ? stats.monthlyStats.find((m: any) => m.month === currentMonth) : null;
+        if (monthStats) {
+          visits = monthStats.visitsCount;
+          revenue = monthStats.revenue;
+          uniqueClients = monthStats.uniqueClients;
         }
-      },
-      rank: index + 1,
-      efficiency,
-      achievements: Math.min(Math.floor(stats.totalVisits / 10), 10), // Mock achievements count
-      badges: stats.totalVisits > 100 ? ['👑', '🏆', '💎'] : 
-              stats.totalVisits > 50 ? ['🥈', '⭐', '🔥'] : 
-              stats.totalVisits > 20 ? ['🥉', '🎯', '💪'] : ['🚀', '⚡']
-    };
-  });
+      }
+      
+      return {
+        _id: barber._id,
+        name: barber.name || 'Unknown Barber',
+        profilePicture: barber.profilePicture,
+        joinDate: barber.joinDate,
+        workDays: stats.workDaysSinceJoining,
+        stats: {
+          totalVisits: visits,
+          totalRevenue: revenue,
+          uniqueClientsServed: uniqueClients,
+          thisMonth: {
+            visits: stats.monthlyStats ? stats.monthlyStats.find((m: any) => m.month === new Date().toISOString().slice(0, 7))?.visitsCount || 0 : 0,
+            revenue: stats.monthlyStats ? stats.monthlyStats.find((m: any) => m.month === new Date().toISOString().slice(0, 7))?.revenue || 0 : 0
+          }
+        },
+        rank: index + 1,
+        efficiency,
+        achievements: Math.min(Math.floor(stats.totalVisits / 10), 10), // Mock achievements count
+        badges: stats.totalVisits > 100 ? ['👑', '🏆', '💎'] : 
+                stats.totalVisits > 50 ? ['🥈', '⭐', '🔥'] : 
+                stats.totalVisits > 20 ? ['🥉', '🎯', '💪'] : ['🚀', '⚡']
+      };
+    })
+    .filter(Boolean); // Remove null entries
   
   // Re-sort if efficiency is the criteria
   if (sortBy === 'efficiency') {

@@ -89,8 +89,8 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
     e.preventDefault();
     
     // Validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.username.trim()) {
-      toast.error('Please fill in all required fields');
+    if (!formData.name.trim() || !formData.username.trim() || !formData.phoneNumber.trim()) {
+      toast.error('Please fill in all required fields (name, username, phone)');
       return;
     }
 
@@ -109,10 +109,13 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
+    // Validate email only if provided
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
     }
 
     try {
@@ -120,9 +123,9 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
 
       const submitData: any = {
         name: formData.name.trim(),
-        email: formData.email.trim(),
+        email: formData.email.trim() || undefined,
         username: formData.username.trim(),
-        phoneNumber: formData.phoneNumber.trim() || undefined,
+        phoneNumber: formData.phoneNumber.trim(),
       };
 
       // Add password for new barbers
@@ -272,26 +275,9 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  <FaEnvelope className="inline mr-2" />
-                  Email Address *
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-
-              <div>
                 <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
                   <FaPhone className="inline mr-2" />
-                  Phone Number
+                  Phone Number *
                 </label>
                 <input
                   id="phoneNumber"
@@ -301,6 +287,23 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                   placeholder="Enter phone number"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  <FaEnvelope className="inline mr-2" />
+                  Email Address (optional)
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  placeholder="Enter email address (optional)"
                 />
               </div>
             </div>

@@ -304,7 +304,7 @@ export default function ServicesTab() {
                 <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
                   <span>{service.durationMinutes} min</span>
                   <span className="bg-gray-100 px-2 py-1 rounded text-xs">
-                    {service.categoryId.name}
+                    {service.categoryId?.name || 'No Category'}
                   </span>
                 </div>
 

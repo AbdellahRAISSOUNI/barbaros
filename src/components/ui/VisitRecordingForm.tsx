@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { FaPlus, FaTimes, FaSave, FaCalculator, FaClipboard, FaClock, FaUser, FaCut, FaGift, FaPercentage, FaSearch, FaSpinner } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaSave, FaCalculator, FaClipboard, FaClock, FaUser, FaCut, FaGift, FaPercentage, FaSearch, FaSpinner, FaTrash, FaCheck } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import BarberSelector from './BarberSelector';
 import { debounce } from 'lodash';
@@ -45,6 +45,7 @@ interface ClientInfo {
   lastName: string;
   email: string;
   visitCount: number;
+  phone?: string;
 }
 
 interface VisitRecordingFormProps {
@@ -58,24 +59,20 @@ export function VisitRecordingForm({
   onVisitCreated,
   onCancel,
 }: VisitRecordingFormProps) {
-  const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<ServiceReceived[]>([]);
-  const [eligibleRewards, setEligibleRewards] = useState<Reward[]>([]);
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
-  const [visitDate, setVisitDate] = useState<string>(
-    new Date().toISOString().slice(0, 16)
-  );
   const [barber, setBarber] = useState<string>('');
   const [barberId, setBarberId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState<string>('');
-  const [customPrice, setCustomPrice] = useState<number | null>(null);
+  const [visitDate, setVisitDate] = useState(new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // Service-related states
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [servicesLoading, setServicesLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [serviceCategories, setServiceCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-
+  const [serviceCategories, setServiceCategories] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Optimized data loading with better caching and parallel requests
@@ -100,7 +97,7 @@ export function VisitRecordingForm({
         // Process services
         if (servicesResponse.ok) {
         const servicesData = await servicesResponse.json();
-        setServices(servicesData.services || []);
+        setAvailableServices(servicesData.services || []);
         } else {
           throw new Error('Failed to fetch services');
         }
@@ -111,7 +108,7 @@ export function VisitRecordingForm({
             const eligible = (rewardsData.rewards || []).filter((reward: Reward) => 
               reward.visitsRequired <= clientInfo.visitCount
             );
-            setEligibleRewards(eligible);
+            // setEligibleRewards(eligible);
           }
 
         // Process categories
@@ -164,26 +161,26 @@ export function VisitRecordingForm({
       let servicePrice = service.price;
       
       // Apply reward discount if applicable
-      if (selectedReward && selectedReward.applicableServices.includes(service.serviceId)) {
-        if (selectedReward.rewardType === 'free') {
-          servicePrice = 0;
-        } else if (selectedReward.rewardType === 'discount' && selectedReward.discountPercentage) {
-          servicePrice = servicePrice * (100 - selectedReward.discountPercentage) / 100;
-        }
-      }
+      // if (selectedReward && selectedReward.applicableServices.includes(service.serviceId)) {
+      //   if (selectedReward.rewardType === 'free') {
+      //     servicePrice = 0;
+      //   } else if (selectedReward.rewardType === 'discount' && selectedReward.discountPercentage) {
+      //     servicePrice = servicePrice * (100 - selectedReward.discountPercentage) / 100;
+      //   }
+      // }
       
       total += servicePrice;
     });
     
     return total;
-  }, [selectedServices, selectedReward]);
+  }, [selectedServices]);
 
-  const finalTotal = customPrice !== null ? customPrice : calculatedTotalWithReward;
+  const finalTotal = calculatedTotalWithReward;
   const rewardSavings = calculatedTotal - calculatedTotalWithReward;
 
   // Enhanced service filtering with category support
   const filteredServices = useMemo(() => {
-    let filtered = services;
+    let filtered = availableServices;
     
     // Filter by category if selected
     if (selectedCategory) {
@@ -210,7 +207,7 @@ export function VisitRecordingForm({
       }
       return a.name.localeCompare(b.name);
     });
-  }, [services, searchTerm, selectedCategory]);
+  }, [availableServices, searchTerm, selectedCategory]);
 
   // PHASE 2 FIX: Memoized callbacks for better performance
   const addService = useCallback((service: Service) => {
@@ -274,8 +271,6 @@ export function VisitRecordingForm({
         barber: barber.trim(),
         barberId: barberId || undefined,
         notes: notes.trim(),
-        rewardRedeemed: !!selectedReward,
-        redeemedRewardId: selectedReward?._id || null,
       };
 
       const response = await fetch(`/api/clients/${clientInfo._id}/visit`, {
@@ -511,113 +506,7 @@ export function VisitRecordingForm({
               </div>
 
               {/* Rewards Section */}
-              {eligibleRewards.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                      <FaGift className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">Available Rewards</h3>
-                      <p className="text-sm text-purple-600">Client can redeem these now</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {eligibleRewards.map((reward) => {
-                      const isSelected = selectedReward?._id === reward._id;
-                      const applicableSelectedServices = selectedServices.filter(service => 
-                        reward.applicableServices.includes(service.serviceId)
-                      );
-                      
-                      return (
-                        <div
-                          key={reward._id}
-                          className={`p-3 lg:p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-purple-500 bg-purple-50'
-                              : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
-                          }`}
-                          onClick={() => setSelectedReward(isSelected ? null : reward)}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-1 lg:gap-2 mb-2">
-                                {reward.rewardType === 'free' ? (
-                                  <FaGift className="w-4 h-4 text-green-600 shrink-0" />
-                                ) : (
-                                  <FaPercentage className="w-4 h-4 text-blue-600 shrink-0" />
-                                )}
-                                <h4 className="font-semibold text-gray-900 text-sm lg:text-base truncate">{reward.name}</h4>
-                                {reward.rewardType === 'discount' && (
-                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full shrink-0">
-                                    {reward.discountPercentage}% OFF
-                                  </span>
-                                )}
-                                {reward.rewardType === 'free' && (
-                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full shrink-0">
-                                    FREE
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">{reward.description}</p>
-                              
-                              {applicableSelectedServices.length > 0 ? (
-                                <div>
-                                  <p className="text-xs text-green-600 font-medium mb-1">
-                                    Applies to {applicableSelectedServices.length} service{applicableSelectedServices.length !== 1 ? 's' : ''}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {applicableSelectedServices.slice(0, 2).map((service, idx) => (
-                                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded truncate">
-                                        {service.name}
-                                      </span>
-                                    ))}
-                                    {applicableSelectedServices.length > 2 && (
-                                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                                        +{applicableSelectedServices.length - 2} more
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-500">
-                                  No applicable services selected
-                                </p>
-                              )}
-                            </div>
-                            
-                            <div className="shrink-0">
-                              <div className={`w-4 h-4 rounded-full border-2 ${
-                                isSelected 
-                                  ? 'bg-purple-600 border-purple-600' 
-                                  : 'border-gray-300'
-                              }`}>
-                                {isSelected && (
-                                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {selectedReward && (
-                    <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                      <p className="text-sm text-purple-800 font-medium">
-                        🎉 Reward Selected: <span className="truncate">{selectedReward.name}</span>
-                      </p>
-                      {rewardSavings > 0 && (
-                        <p className="text-sm text-green-600 mt-1">
-                          Saving ${rewardSavings.toFixed(2)}!
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* All reward-related UI components removed */}
             </div>
           </div>
 
@@ -637,12 +526,6 @@ export function VisitRecordingForm({
                   <span>Services Total:</span>
                   <span className="font-medium">${calculatedTotal.toFixed(2)}</span>
                 </div>
-                {selectedReward && rewardSavings > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span className="truncate pr-2">Reward Discount:</span>
-                    <span className="font-medium">-${rewardSavings.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between">
                   <span>Total Duration:</span>
                   <span className="font-medium">{totalDuration} minutes</span>
@@ -657,13 +540,9 @@ export function VisitRecordingForm({
                     <input
                       id="customPrice"
                       type="number"
-                      value={customPrice !== null ? customPrice : calculatedTotalWithReward}
-                      onChange={(e) => setCustomPrice(parseFloat(e.target.value) || 0)}
-                      onBlur={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (value === calculatedTotalWithReward) {
-                          setCustomPrice(null);
-                        }
+                      value={finalTotal}
+                      onChange={(e) => {
+                        // Handle price change
                       }}
                       className="w-20 lg:w-24 px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-black focus:border-transparent text-right font-semibold text-sm"
                       step="0.01"
@@ -671,11 +550,6 @@ export function VisitRecordingForm({
                     />
                   </div>
                 </div>
-                {customPrice !== null && customPrice !== calculatedTotalWithReward && (
-                  <p className="text-xs text-amber-600">
-                    Price adjusted from ${calculatedTotalWithReward.toFixed(2)}
-                  </p>
-                )}
               </div>
             </div>
 

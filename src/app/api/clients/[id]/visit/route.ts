@@ -46,8 +46,6 @@ export async function POST(
       barber: body.barber || '',
       barberId: body.barberId ? new mongoose.Types.ObjectId(body.barberId) : undefined,
       notes: body.notes || '',
-      rewardRedeemed: body.rewardRedeemed || false,
-      redeemedRewardId: body.redeemedRewardId || null,
     };
 
     // Validate required fields

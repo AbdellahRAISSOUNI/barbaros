@@ -93,28 +93,57 @@ if (!global.mongoose) {
  */
 async function connectToDatabase() {
   if (cached.conn) {
-    console.log('Using cached MongoDB connection');
-    return cached.conn;
+    // Check if connection is still alive
+    if (cached.conn.connection.readyState === 1) {
+      console.log('Using cached MongoDB connection');
+      return cached.conn;
+    } else {
+      console.log('Cached connection is not ready, reconnecting...');
+      cached.conn = null;
+      cached.promise = null;
+    }
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 10000, // Increase timeout to 10s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
       maxPoolSize: 10, // Maintain up to 10 socket connections
+      minPoolSize: 5, // Maintain minimum 5 connections
+      maxIdleTimeMS: 30000, // Close connections after 30s of inactivity
+      retryWrites: true, // Retry writes on network errors
+      heartbeatFrequencyMS: 10000, // Check connection every 10s
     };
 
     console.log('Connecting to MongoDB...');
     cached.promise = mongoose.connect(MONGODB_URI, opts)
       .then((mongoose) => {
         console.log('Connected to MongoDB');
+        
+        // Set up connection event handlers
         mongoose.connection.on('error', (err) => {
           console.error('MongoDB connection error:', err);
+          // Clear cache on error to force reconnection
+          cached.conn = null;
+          cached.promise = null;
         });
+
+        mongoose.connection.on('disconnected', () => {
+          console.warn('MongoDB disconnected');
+          cached.conn = null;
+          cached.promise = null;
+        });
+
+        mongoose.connection.on('reconnected', () => {
+          console.log('MongoDB reconnected');
+        });
+
         return mongoose;
       })
       .catch((error) => {
         console.error('MongoDB connection error:', error);
+        cached.promise = null;
         throw error;
       });
   }
@@ -124,6 +153,7 @@ async function connectToDatabase() {
     return cached.conn;
   } catch (e) {
     cached.promise = null;
+    console.error('Failed to connect to MongoDB:', e);
     throw e;
   }
 }
