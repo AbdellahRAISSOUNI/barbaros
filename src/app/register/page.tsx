@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { signIn } from 'next-auth/react';
+import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
 
 // Define validation schema with Zod
 const registerSchema = z.object({
@@ -95,30 +96,40 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-extrabold text-gray-900">Barbaros</h1>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
+      <div className="absolute top-4 left-4">
+        <Link 
+          href="/" 
+          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+        >
+          <FaArrowLeft className="mr-2" />
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-slide-up">
+        <h1 className="text-center text-4xl font-extrabold text-gray-900 mb-2">Barbaros</h1>
+        <h2 className="text-center text-2xl font-bold text-gray-900">
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-black hover:text-gray-800">
+          <Link href="/login" className="font-medium text-black hover:text-gray-800 transition-colors duration-200">
             Sign in
           </Link>
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-xl sm:px-10 border border-gray-100">
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative animate-fade-in" role="alert">
               <span className="block sm:inline">{error}</span>
             </div>
           )}
           
           {success && (
-            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative animate-fade-in" role="alert">
               <span className="block sm:inline">{success}</span>
             </div>
           )}
@@ -126,7 +137,7 @@ export default function RegisterPage() {
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="firstName" className="form-label">
                   First name
                 </label>
                 <div className="mt-1">
@@ -134,9 +145,7 @@ export default function RegisterPage() {
                     id="firstName"
                     type="text"
                     autoComplete="given-name"
-                    className={`appearance-none block w-full px-3 py-2 border ${
-                      errors.firstName ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
+                    className={`form-input ${errors.firstName ? 'error' : ''}`}
                     {...register('firstName')}
                   />
                   {errors.firstName && (
@@ -146,7 +155,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="lastName" className="form-label">
                   Last name
                 </label>
                 <div className="mt-1">
@@ -154,9 +163,7 @@ export default function RegisterPage() {
                     id="lastName"
                     type="text"
                     autoComplete="family-name"
-                    className={`appearance-none block w-full px-3 py-2 border ${
-                      errors.lastName ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
+                    className={`form-input ${errors.lastName ? 'error' : ''}`}
                     {...register('lastName')}
                   />
                   {errors.lastName && (
@@ -167,7 +174,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="phoneNumber" className="form-label">
                 Phone number
               </label>
               <div className="mt-1">
@@ -176,9 +183,7 @@ export default function RegisterPage() {
                   type="tel"
                   autoComplete="tel"
                   placeholder="+1234567890"
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
+                  className={`form-input ${errors.phoneNumber ? 'error' : ''}`}
                   {...register('phoneNumber')}
                 />
                 {errors.phoneNumber && (
@@ -188,7 +193,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="form-label">
                 Password
               </label>
               <div className="mt-1">
@@ -196,9 +201,7 @@ export default function RegisterPage() {
                   id="password"
                   type="password"
                   autoComplete="new-password"
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
+                  className={`form-input ${errors.password ? 'error' : ''}`}
                   {...register('password')}
                 />
                 {errors.password && (
@@ -208,7 +211,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="form-label">
                 Confirm password
               </label>
               <div className="mt-1">
@@ -216,9 +219,7 @@ export default function RegisterPage() {
                   id="confirmPassword"
                   type="password"
                   autoComplete="new-password"
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
+                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
                   {...register('confirmPassword')}
                 />
                 {errors.confirmPassword && (
@@ -231,33 +232,17 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                    <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
                     Creating account...
                   </>
                 ) : (
                   'Create account'
                 )}
               </button>
-            </div>
-
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                By creating an account, you agree to our{' '}
-                <a href="#" className="text-black hover:text-gray-800">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-black hover:text-gray-800">
-                  Privacy Policy
-                </a>
-              </p>
             </div>
           </form>
         </div>

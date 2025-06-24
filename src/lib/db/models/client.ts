@@ -83,8 +83,8 @@ ClientSchema.index({
 
 // Compound indexes for common query patterns
 ClientSchema.index({ lastName: 1, firstName: 1 }, { background: true });
-ClientSchema.index({ phoneNumber: 1 }, { background: true }); // Already unique, but explicit
-ClientSchema.index({ clientId: 1 }, { background: true }); // Already unique, but explicit
+ClientSchema.index({ phoneNumber: 1 }, { background: true });
+ClientSchema.index({ clientId: 1 }, { background: true });
 ClientSchema.index({ accountActive: 1, dateCreated: -1 }, { background: true });
 ClientSchema.index({ loyaltyStatus: 1, totalLifetimeVisits: -1 }, { background: true });
 ClientSchema.index({ lastVisit: -1 }, { background: true, sparse: true });
