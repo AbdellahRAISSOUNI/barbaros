@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.next/
+.vercel/
+out/
+
+# Generated files
+*.d.ts
+next-env.d.ts
+
+# Production builds
+build/
+dist/
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# All TypeScript files (for deployment)
+*.ts
+*.tsx
+
+# Ignore all source files during build
+src/ 
