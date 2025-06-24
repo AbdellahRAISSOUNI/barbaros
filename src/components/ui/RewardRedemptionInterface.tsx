@@ -264,8 +264,11 @@ export default function RewardRedemptionInterface({
             <h3 className="text-lg font-medium text-gray-900 mb-4">Available Rewards</h3>
             <div className="space-y-3">
               {loyaltyStatus.eligibleRewards.map((reward) => {
-                const isEligibleForRedemption = loyaltyStatus.currentProgressVisits >= reward.visitsRequired;
-                const visitsNeeded = reward.visitsRequired - loyaltyStatus.currentProgressVisits;
+                // Double check eligibility: client must have enough visits AND visits must be >= required
+                const hasEnoughVisits = loyaltyStatus.currentProgressVisits >= reward.visitsRequired;
+                const totalVisitsCheck = loyaltyStatus.totalVisits >= reward.visitsRequired;
+                const isEligibleForRedemption = hasEnoughVisits && totalVisitsCheck;
+                const visitsNeeded = Math.max(0, reward.visitsRequired - loyaltyStatus.currentProgressVisits);
                 
                 return (
                   <div key={reward._id} className={`border rounded-lg p-4 transition-all ${
@@ -298,9 +301,13 @@ export default function RewardRedemptionInterface({
                             }`}>
                               {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
                             </div>
-                            {isEligibleForRedemption && (
+                            {isEligibleForRedemption ? (
                               <div className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
                                 ✓ Ready to Redeem
+                              </div>
+                            ) : (
+                              <div className="px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                ⚠️ Not Eligible
                               </div>
                             )}
                           </div>
@@ -308,6 +315,10 @@ export default function RewardRedemptionInterface({
                             <p className="text-xs text-gray-500">
                               Applicable to: {reward.applicableServices.map(s => s.name).join(', ')}
                             </p>
+                            <div className="text-xs text-gray-500 mt-1 space-y-1">
+                              <p>Current Progress: {loyaltyStatus.currentProgressVisits} visits</p>
+                              <p>Total Lifetime: {loyaltyStatus.totalVisits} visits</p>
+                            </div>
                             {!isEligibleForRedemption && (
                               <p className="text-xs text-orange-600 mt-1">
                                 ⚠️ Need {visitsNeeded} more visit{visitsNeeded !== 1 ? 's' : ''} to unlock

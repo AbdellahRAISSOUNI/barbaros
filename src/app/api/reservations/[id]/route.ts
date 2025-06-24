@@ -63,7 +63,14 @@ export async function PATCH(
     } else if (action === 'mark_unread') {
       reservation.isRead = false;
     } else if (action === 'update_status' && status) {
+      const previousStatus = reservation.status;
       reservation.status = status;
+      
+      // Automatically mark as read when status changes from pending
+      // This ensures the notification count updates correctly
+      if (previousStatus === 'pending' && status !== 'pending') {
+        reservation.isRead = true;
+      }
       
       // If marking as contacted, track who contacted and when
       if (status === 'contacted') {
@@ -72,7 +79,15 @@ export async function PATCH(
       }
     } else {
       // General update
-      if (status !== undefined) reservation.status = status;
+      if (status !== undefined) {
+        const previousStatus = reservation.status;
+        reservation.status = status;
+        
+        // Automatically mark as read when status changes from pending
+        if (previousStatus === 'pending' && status !== 'pending') {
+          reservation.isRead = true;
+        }
+      }
       if (isRead !== undefined) reservation.isRead = isRead;
       if (adminNotes !== undefined) reservation.adminNotes = adminNotes;
     }

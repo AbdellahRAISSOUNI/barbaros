@@ -155,6 +155,18 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // If user is redirected to /admin after login, check if they should go to a specific dashboard
+      if (url === `${baseUrl}/admin`) {
+        // This will be handled by the login page logic
+        return url;
+      }
+      
+      // Handle other redirects normally
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   debug: process.env.NODE_ENV === "development",
 };

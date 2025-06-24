@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   FaUsers, 
   FaQrcode, 
@@ -27,44 +27,6 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState<'overview' | 'analytics'>('overview');
   const [reservationStats, setReservationStats] = useState<any>(null);
   
-  // Memoize callback functions to prevent unnecessary re-renders
-  const checkDbStatus = useCallback(async () => {
-    try {
-      const response = await axios.get('/api/db-status');
-      if (response.data.connected) {
-        setDbStatus({
-          status: 'connected',
-          message: 'Connected',
-          dbName: response.data.data?.databaseName || 'barbaros'
-        });
-      } else {
-        setDbStatus({
-          status: 'error',
-          message: response.data.message || 'Connection failed',
-          dbName: ''
-        });
-      }
-    } catch (error) {
-      setDbStatus({
-        status: 'error',
-        message: 'Failed to connect to database',
-        dbName: ''
-      });
-    }
-  }, []);
-
-  const fetchReservationStats = useCallback(async () => {
-    try {
-      const response = await fetch('/api/reservations/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setReservationStats(data);
-      }
-    } catch (error) {
-      console.error('Error fetching reservation stats:', error);
-    }
-  }, []);
-
   useEffect(() => {
     // Redirect if not authenticated
     if (status === 'unauthenticated') {
@@ -72,16 +34,52 @@ export default function AdminDashboard() {
       return;
     }
     
-    // Only run data fetching if authenticated
-    if (status === 'authenticated') {
-      checkDbStatus();
-      fetchReservationStats();
-      
-      // Poll for new reservations every 60 seconds (reduced from 30s for better performance)
-      const interval = setInterval(fetchReservationStats, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [status, router, checkDbStatus, fetchReservationStats]);
+    // Check database status
+    const checkDbStatus = async () => {
+      try {
+        const response = await axios.get('/api/db-status');
+        if (response.data.connected) {
+          setDbStatus({
+            status: 'connected',
+            message: 'Connected',
+            dbName: response.data.data?.databaseName || 'barbaros'
+          });
+        } else {
+          setDbStatus({
+            status: 'error',
+            message: response.data.message || 'Connection failed',
+            dbName: ''
+          });
+        }
+      } catch (error) {
+        setDbStatus({
+          status: 'error',
+          message: 'Failed to connect to database',
+          dbName: ''
+        });
+      }
+    };
+    
+    // Fetch reservation stats
+    const fetchReservationStats = async () => {
+      try {
+        const response = await fetch('/api/reservations/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setReservationStats(data);
+        }
+      } catch (error) {
+        console.error('Error fetching reservation stats:', error);
+      }
+    };
+    
+    checkDbStatus();
+    fetchReservationStats();
+    
+    // Poll for new reservations every 30 seconds
+    const interval = setInterval(fetchReservationStats, 30000);
+    return () => clearInterval(interval);
+  }, [status, router]);
   
   // Show loading state while checking session
   if (status === 'loading') {

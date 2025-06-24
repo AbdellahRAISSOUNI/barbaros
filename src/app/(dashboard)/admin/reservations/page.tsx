@@ -132,7 +132,11 @@ export default function AdminReservationsPage() {
         toast.success(
           action === 'mark_read' ? 'Marked as read' :
           action === 'mark_unread' ? 'Marked as unread' :
-          `Status updated to ${newStatus}`
+          `Reservation ${newStatus === 'contacted' ? 'marked as contacted' : 
+            newStatus === 'confirmed' ? 'confirmed' : 
+            newStatus === 'completed' ? 'completed' : 
+            newStatus === 'cancelled' ? 'cancelled' : 
+            `updated to ${newStatus}`} and marked as read`
         );
       } else {
         toast.error('Failed to update reservation');
@@ -140,6 +144,27 @@ export default function AdminReservationsPage() {
     } catch (error) {
       console.error('Error updating reservation:', error);
       toast.error('Failed to update reservation');
+    }
+  };
+
+  const fixUnreadReservations = async () => {
+    try {
+      const response = await fetch('/api/reservations/fix-unread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        fetchReservations();
+        fetchStats();
+        toast.success(`Fixed ${data.details.updated} processed reservations that were incorrectly marked as unread`);
+      } else {
+        toast.error('Failed to fix unread reservations');
+      }
+    } catch (error) {
+      console.error('Error fixing unread reservations:', error);
+      toast.error('Failed to fix unread reservations');
     }
   };
 
@@ -340,16 +365,28 @@ export default function AdminReservationsPage() {
               <h1 className="text-3xl font-bold text-gray-900">Reservations Management</h1>
               <p className="text-gray-600 mt-1">Manage and track all customer reservations</p>
             </div>
-            {stats && stats.overview.unread > 0 && (
-              <motion.div
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg shadow-lg"
-              >
-                <FaBell className="h-4 w-4" />
-                <span className="font-semibold">{stats.overview.unread} New</span>
-              </motion.div>
-            )}
+            <div className="flex items-center gap-3">
+              {stats && stats.overview.unread > 0 && (
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg shadow-lg"
+                >
+                  <FaBell className="h-4 w-4" />
+                  <span className="font-semibold">{stats.overview.unread} New</span>
+                </motion.div>
+              )}
+              
+              {stats && stats.overview.unread > 0 && (
+                <button
+                  onClick={fixUnreadReservations}
+                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  title="Fix notifications for processed reservations"
+                >
+                  Fix Notifications
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}

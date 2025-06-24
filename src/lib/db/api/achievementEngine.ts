@@ -58,7 +58,7 @@ async function calculateVisitProgress(barberId: string, achievement: any): Promi
   switch (timeframe) {
     case 'monthly':
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const monthStats = barberStats.monthlyStats.find((m: any) => m.month === currentMonth);
+      const monthStats = barberStats.monthlyStats.find(m => m.month === currentMonth);
       return monthStats?.visitsCount || 0;
     
     case 'weekly':
@@ -103,7 +103,7 @@ async function calculateClientProgress(barberId: string, achievement: any): Prom
   switch (timeframe) {
     case 'monthly':
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const monthStats = barberStats.monthlyStats.find((m: any) => m.month === currentMonth);
+      const monthStats = barberStats.monthlyStats.find(m => m.month === currentMonth);
       return monthStats?.uniqueClients || 0;
     
     default: // all-time
@@ -337,34 +337,21 @@ export async function getBarberAchievements(barberId: string): Promise<Achieveme
 }
 
 /**
- * Get achievement leaderboard - Optimized aggregation pipeline
+ * Get achievement leaderboard
  */
 export async function getAchievementLeaderboard(): Promise<any[]> {
   await connectToDatabase();
   
   const leaderboard = await BarberAchievement.aggregate([
     {
-      $match: { 
-        isCompleted: true,
-        // Add index hint for better performance
-        barberId: { $exists: true }
-      }
+      $match: { isCompleted: true }
     },
     {
       $lookup: {
         from: 'achievements',
         localField: 'achievementId',
         foreignField: '_id',
-        as: 'achievement',
-        // Only get necessary fields from achievements
-        pipeline: [
-          {
-            $project: {
-              points: 1,
-              tier: 1
-            }
-          }
-        ]
+        as: 'achievement'
       }
     },
     {
@@ -391,32 +378,17 @@ export async function getAchievementLeaderboard(): Promise<any[]> {
         from: 'admins',
         localField: '_id',
         foreignField: '_id',
-        as: 'barber',
-        // Only get necessary fields from admins
-        pipeline: [
-          {
-            $match: { 
-              role: 'barber', 
-              active: true 
-            }
-          },
-          {
-            $project: {
-              name: 1,
-              profilePicture: 1
-            }
-          }
-        ]
+        as: 'barber'
       }
     },
     {
       $unwind: '$barber'
     },
     {
-      $sort: { totalPoints: -1, completedAchievements: -1 }
+      $match: { 'barber.role': 'barber', 'barber.active': true }
     },
     {
-      $limit: 50 // Limit results for better performance
+      $sort: { totalPoints: -1, completedAchievements: -1 }
     },
     {
       $project: {
@@ -432,7 +404,7 @@ export async function getAchievementLeaderboard(): Promise<any[]> {
     }
   ]);
   
-  return leaderboard.map((entry: any, index: number) => ({
+  return leaderboard.map((entry, index) => ({
     ...entry,
     rank: index + 1
   }));

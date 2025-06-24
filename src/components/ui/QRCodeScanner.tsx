@@ -53,6 +53,21 @@ export function QRCodeScanner({
 
         console.log('Checking camera permissions...');
         
+        // Check permission state first if supported
+        if (navigator.permissions) {
+          try {
+            const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+            console.log('Camera permission state:', cameraPermission.state);
+            
+            if (cameraPermission.state === 'denied') {
+              setError('Camera permission is permanently denied. Please enable camera access in your browser settings and refresh the page.');
+              return;
+            }
+          } catch (permissionQueryError) {
+            console.log('Permission query not supported, will try direct access');
+          }
+        }
+        
         // Test basic camera access
         try {
           const testStream = await navigator.mediaDevices.getUserMedia({ 
@@ -63,13 +78,13 @@ export function QRCodeScanner({
         } catch (permissionError: any) {
           console.error('Camera permission error:', permissionError);
           if (permissionError.name === 'NotAllowedError') {
-            setError('Camera permission denied. Please allow camera access and refresh the page.');
+            setError('Camera permission denied. Please allow camera access in your browser and refresh the page. Check your browser\'s permission settings if the camera icon shows as blocked.');
           } else if (permissionError.name === 'NotFoundError') {
             setError('No camera found. Please ensure your device has a camera.');
           } else if (permissionError.name === 'NotReadableError') {
             setError('Camera is being used by another application. Please close other applications and try again.');
           } else {
-            setError(`Camera access failed: ${permissionError.message}`);
+            setError(`Camera access failed: ${permissionError.message}. Please check your browser permissions.`);
           }
           return;
         }

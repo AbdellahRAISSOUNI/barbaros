@@ -66,45 +66,41 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
   const [showRewardSelection, setShowRewardSelection] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Fetch loyalty data - Optimized with better error handling
+  // Fetch loyalty data - optimized to load critical data first, then details
   const fetchLoyaltyData = async () => {
     try {
       setIsLoading(true);
       
-      // Fetch loyalty status, available rewards, and history in parallel with Promise.allSettled for better error handling
-      const [statusRes, rewardsRes, historyRes] = await Promise.allSettled([
-        fetch(`/api/loyalty/${clientId}`),
-        fetch(`/api/loyalty/${clientId}/rewards`),
-        fetch(`/api/loyalty/${clientId}/history`)
-      ]);
+      // First, load just the essential loyalty status for immediate display
+      const statusResponse = await fetch(`/api/loyalty/${clientId}`);
+      const statusData = await statusResponse.json();
 
-      // Handle status data
-      if (statusRes.status === 'fulfilled' && statusRes.value.ok) {
-        const statusData = await statusRes.value.json();
-        if (statusData.success) {
-          setLoyaltyStatus(statusData.loyaltyStatus);
-        }
+      if (statusData.success) {
+        setLoyaltyStatus(statusData.loyaltyStatus);
+        setIsLoading(false); // Show basic info immediately
+        
+        // Then load additional data in background
+        const [rewardsRes, historyRes] = await Promise.all([
+          fetch(`/api/loyalty/${clientId}/rewards`),
+          fetch(`/api/loyalty/${clientId}/history`)
+        ]);
+
+        const rewardsData = await rewardsRes.json();
+        const historyData = await historyRes.json();
+
+      if (rewardsData.success) {
+        setAvailableRewards(rewardsData.rewards);
       }
 
-      // Handle rewards data
-      if (rewardsRes.status === 'fulfilled' && rewardsRes.value.ok) {
-        const rewardsData = await rewardsRes.value.json();
-        if (rewardsData.success) {
-          setAvailableRewards(rewardsData.rewards);
+      if (historyData.success) {
+        setRewardHistory(historyData.history);
         }
-      }
-
-      // Handle history data
-      if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
-        const historyData = await historyRes.value.json();
-        if (historyData.success) {
-          setRewardHistory(historyData.history);
-        }
+      } else {
+        throw new Error(statusData.message || 'Failed to load loyalty status');
       }
     } catch (error) {
       console.error('Error fetching loyalty data:', error);
       toast.error('Failed to load loyalty information');
-    } finally {
       setIsLoading(false);
     }
   };

@@ -247,13 +247,129 @@ Sessions are managed using JSON Web Tokens (JWT) with a 30-day expiration by def
 
 ## Password Security
 
-Passwords are securely hashed using bcrypt before being stored in the database. The hashing process includes:
+The system implements secure password handling:
 
-1. Generating a salt with a cost factor of 10
-2. Hashing the password with the salt
-3. Storing only the hash in the database
+- **Minimum Length**: 6 characters (configurable)
+- **Hashing**: bcrypt with salt rounds for secure storage
+- **Validation**: Real-time validation during registration and password changes
 
-Password comparison is done using bcrypt's compare function, which securely compares a candidate password with the stored hash.
+```javascript
+// Password hashing implementation
+import bcrypt from 'bcrypt';
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  const saltRounds = 12;
+  this.password = await bcrypt.hash(this.password, saltRounds);
+  next();
+});
+
+// Compare password method
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+```
+
+### Enhanced Security Features
+
+#### Rate Limiting
+Login attempts are rate-limited to prevent brute force attacks:
+
+```javascript
+// Rate limiting configuration
+const rateLimitConfig = {
+  windowMs: 60 * 1000, // 1 minute window
+  max: 1000, // limit each IP to 1000 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+};
+```
+
+#### Session Security
+Enhanced session management includes:
+
+- **Secure Tokens**: JWT tokens with proper signing and validation
+- **Session Timeout**: Automatic session expiration
+- **Token Refresh**: Secure token refresh mechanism
+- **Cross-Site Protection**: CSRF protection and secure cookies
+
+```javascript
+// Enhanced session validation
+const authOptions: NextAuthOptions = {
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      // Enhanced token validation
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.userType = user.userType;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Secure session data
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.userType = token.userType;
+      }
+      return session;
+    }
+  }
+};
+```
+
+#### Input Validation and Sanitization
+All authentication inputs are validated and sanitized:
+
+```javascript
+// Input validation for login
+function validateAuthInput(input: string): string {
+  if (typeof input !== 'string') {
+    throw new Error('Invalid input type');
+  }
+  
+  // Sanitize and limit length
+  const sanitized = input.trim().slice(0, 100);
+  
+  // Basic validation
+  if (sanitized.length < 3) {
+    throw new Error('Input too short');
+  }
+  
+  return sanitized;
+}
+
+// Phone number validation
+function validatePhoneNumber(phone: string): boolean {
+  const phoneRegex = /^\+?[\d\s\-\(\)]{10,15}$/;
+  return phoneRegex.test(phone);
+}
+```
+
+#### Security Headers
+Authentication endpoints include enhanced security headers:
+
+```javascript
+// Security headers for auth endpoints
+const securityHeaders = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-XSS-Protection': '1; mode=block'
+};
+```
 
 ## Protected Routes
 

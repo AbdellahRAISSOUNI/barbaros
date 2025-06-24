@@ -1,63 +1,125 @@
+import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const isBarberRoute = request.nextUrl.pathname.startsWith('/barber');
-  const isClientRoute = request.nextUrl.pathname.startsWith('/client');
-  const isAuthRoute = request.nextUrl.pathname === '/login' || 
-                      request.nextUrl.pathname === '/register';
-  
-  // Redirect unauthenticated users to login
-  if ((isAdminRoute || isBarberRoute || isClientRoute) && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  
-  // Redirect authenticated users away from auth routes
-  if (isAuthRoute && token) {
-    if (token.userType === 'admin') {
-      // Redirect based on specific role
-      if (token.role === 'barber') {
-        return NextResponse.redirect(new URL('/barber', request.url));
-      } else {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      }
-    } else if (token.userType === 'client') {
-      return NextResponse.redirect(new URL('/client', request.url));
+// PHASE 1 FIX: Simple rate limiting store (in production use Redis)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function rateLimit(req: NextRequest, maxRequests: number = 100, windowMs: number = 60000): boolean {
+  const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  const now = Date.now();
+  const windowStart = now - windowMs;
+
+  // Clean up old entries
+  for (const [key, value] of rateLimitStore.entries()) {
+    if (value.resetTime < now) {
+      rateLimitStore.delete(key);
     }
   }
+
+  const current = rateLimitStore.get(clientIp);
   
-  // Check role-based access for admin routes (only allow admin roles, not barbers)
-  if (isAdminRoute && token && (token.userType !== 'admin' || token.role === 'barber')) {
-    // Redirect barbers to their own dashboard
-    if (token.role === 'barber') {
-      return NextResponse.redirect(new URL('/barber', request.url));
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
+  if (!current || current.resetTime < now) {
+    // New window
+    rateLimitStore.set(clientIp, { count: 1, resetTime: now + windowMs });
+    return true;
   }
-  
-  // Check role-based access for barber routes (only allow barber role)
-  if (isBarberRoute && token && (token.userType !== 'admin' || token.role !== 'barber')) {
-    return NextResponse.redirect(new URL('/login', request.url));
+
+  if (current.count >= maxRequests) {
+    return false; // Rate limit exceeded
   }
-  
-  // Check role-based access for client routes
-  if (isClientRoute && token && token.userType !== 'client') {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  
-  return NextResponse.next();
+
+  current.count++;
+  return true;
 }
+
+export default withAuth(
+  function middleware(req) {
+    // PHASE 1 FIX: Add rate limiting for API routes
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+      if (!rateLimit(req, 1000, 60000)) { // 1000 requests per minute
+        return new NextResponse('Too Many Requests', { status: 429 });
+      }
+  }
+  
+    // PHASE 1 FIX: Enhanced security headers
+    const response = NextResponse.next();
+    
+    // Add security headers
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    
+    // Only allow HTTPS in production
+    if (process.env.NODE_ENV === 'production') {
+      response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+
+    return response;
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
+
+        // Allow public routes
+        if (
+          pathname === '/' ||
+          pathname === '/login' ||
+          pathname === '/register' ||
+          pathname.startsWith('/api/auth') ||
+          pathname.startsWith('/api/register') ||
+          pathname.startsWith('/api/db-status') ||
+          pathname.startsWith('/api/test-db') ||
+          pathname.startsWith('/_next') ||
+          pathname.startsWith('/favicon') ||
+          pathname.includes('.')
+        ) {
+          return true;
+        }
+
+        // PHASE 1 FIX: Enhanced session validation
+        if (!token) {
+          return false;
+  }
+  
+        // Validate token structure (email can be empty for clients)
+        if (!token.id || !token.role) {
+          console.warn('Invalid token structure detected');
+          return false;
+        }
+
+        // Route-based authorization
+        if (pathname.startsWith('/admin')) {
+          return token.role === 'owner' || token.role === 'admin' || token.role === 'receptionist';
+        }
+
+        if (pathname.startsWith('/barber')) {
+          return token.role === 'barber' || token.role === 'owner' || token.role === 'admin';
+  }
+  
+        if (pathname.startsWith('/client')) {
+          return token.role === 'client';
+        }
+
+        // Default to requiring authentication
+        return !!token;
+      },
+    },
+  }
+);
 
 export const config = {
   matcher: [
-    '/admin/:path*', 
-    '/barber/:path*',
-    '/client/:path*', 
-    '/login',
-    '/register'
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (NextAuth.js routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (public folder)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }; 

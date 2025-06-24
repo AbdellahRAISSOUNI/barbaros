@@ -120,23 +120,22 @@ export async function deleteClient(id: string) {
 }
 
 /**
- * List all clients with pagination - Optimized with field selection
+ * List all clients with pagination
  */
 export async function listClients(page = 1, limit = 10, filter: any = {}) {
   try {
     await connectToDatabase();
     const skip = (page - 1) * limit;
     
-    // Execute queries in parallel for better performance
-    const [clients, total] = await Promise.all([
-      Client.find(filter)
-        .select('clientId firstName lastName phoneNumber visitCount totalLifetimeVisits accountActive lastVisit loyaltyStatus rewardsEarned rewardsRedeemed')
-        .lean() // Convert to plain objects for better performance
-        .sort({ lastName: 1, firstName: 1 })
-        .skip(skip)
-        .limit(limit),
-      Client.countDocuments(filter)
-    ]);
+    // PHASE 2 FIX: Use lean queries and select only needed fields
+    const clients = await Client.find(filter)
+      .select('clientId firstName lastName phoneNumber visitCount rewardsEarned rewardsRedeemed accountActive lastVisit loyaltyStatus')
+      .sort({ lastName: 1, firstName: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(); // Lean for better performance
+      
+    const total = await Client.countDocuments(filter);
     
     return {
       clients,
@@ -184,52 +183,68 @@ export async function updateClientVisitCount(clientId: string, increment = 1) {
 }
 
 /**
- * Search clients - Optimized with text search index
+ * Search clients
  */
 export async function searchClients(query: string, page = 1, limit = 10) {
   try {
     await connectToDatabase();
     const skip = (page - 1) * limit;
     
-    // Use text search for better performance when available
+    // PHASE 2 FIX: Use text search if available, fallback to regex
     let searchQuery: any;
+    let sortOption: any = { lastName: 1, firstName: 1 };
     
-    // Check if query looks like a phone number or clientId
-    if (/^[+\d\s\-()]+$/.test(query) || /^C[A-Za-z0-9]+$/.test(query)) {
-      // Use regex for phone numbers and client IDs
-      const searchRegex = new RegExp(query.replace(/[+\s\-()]/g, ''), 'i');
+    // Check if query looks like a phone number
+    const isPhoneQuery = /^[\d\s\-\+\(\)\.]+$/.test(query);
+    
+    if (isPhoneQuery) {
+      // Exact phone number search with partial matching
+      const cleanQuery = query.replace(/[\s\-\+\(\)\.]/g, '');
       searchQuery = {
         $or: [
-          { phoneNumber: searchRegex },
-          { clientId: searchRegex }
+          { phoneNumber: new RegExp(cleanQuery, 'i') },
+          { phoneNumber: new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
         ]
       };
-    } else {
-      // Use text search for names
+    } else if (query.length >= 3) {
+      // Use text search for better performance on longer queries
       try {
         searchQuery = { $text: { $search: query } };
+        sortOption = { score: { $meta: 'textScore' }, lastName: 1 };
       } catch (textSearchError) {
-        // Fall back to regex if text search fails
-        const searchRegex = new RegExp(query, 'i');
+        // Fallback to regex if text search fails
+        console.warn('Text search not available, using regex fallback');
+        const searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
         searchQuery = {
-          $or: [
-            { firstName: searchRegex },
-            { lastName: searchRegex }
-          ]
+      $or: [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { clientId: searchRegex }
+      ]
         };
       }
+    } else {
+      // For short queries, use targeted regex search
+      const searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      searchQuery = {
+      $or: [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { phoneNumber: searchRegex },
+        { clientId: searchRegex }
+      ]
+      };
     }
     
-    // Execute search with lean() for better performance
-    const [clients, total] = await Promise.all([
-      Client.find(searchQuery)
-        .select('clientId firstName lastName phoneNumber visitCount totalLifetimeVisits accountActive lastVisit loyaltyStatus')
-        .lean()
-        .sort({ lastName: 1, firstName: 1 })
-        .skip(skip)
-        .limit(limit),
-      Client.countDocuments(searchQuery)
-    ]);
+    // PHASE 2 FIX: Use lean queries for better performance
+    const clients = await Client.find(searchQuery)
+      .select('clientId firstName lastName phoneNumber visitCount rewardsEarned rewardsRedeemed accountActive lastVisit')
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .lean(); // Lean for better performance
+      
+    const total = await Client.countDocuments(searchQuery);
     
     return {
       clients,

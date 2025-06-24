@@ -3,8 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import ClientVisitHistory from '@/components/ui/ClientVisitHistory';
-import ServiceHistoryChart from '@/components/ui/ServiceHistoryChart';
-import { FaHistory, FaChartLine, FaSpinner } from 'react-icons/fa';
+import { FaHistory, FaSpinner } from 'react-icons/fa';
 
 export default function VisitHistoryPage() {
   const { data: session, status } = useSession();
@@ -51,39 +50,8 @@ export default function VisitHistoryPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-            <FaHistory className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Visit History & Analytics</h1>
-          <p className="text-gray-600 text-lg">View your complete barbershop visit records, service analytics, and export your data</p>
-        </div>
-        
-        {/* Service Analytics */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg">
-              <FaChartLine className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">Service Analytics</h2>
-          </div>
-          <ServiceHistoryChart clientId={session.user.id} />
-        </div>
-        
-        {/* Visit History */}
-        <div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg">
-              <FaHistory className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">Visit History</h2>
-          </div>
-          <ClientVisitHistory clientId={session.user.id} />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 px-4 md:px-6 py-4 md:py-6">
+      <ClientVisitHistory clientId={session.user.id} />
     </div>
   );
 } 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { createClient, getClientById, listClients, updateClient, deleteClient } from '@/lib/db/api/clientApi';
+import { apiCache } from '@/lib/db/mongodb';
 
 /**
  * GET /api/clients
@@ -23,15 +24,28 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     
+    // PHASE 2 FIX: Add caching for client listings (short cache for frequently changing data)
+    const cacheKey = `clients:list:${page}:${limit}`;
+    const cachedResult = apiCache.get(cacheKey);
+    
+    if (cachedResult) {
+      return NextResponse.json(cachedResult);
+    }
+    
     // Get clients with pagination
     const result = await listClients(page, limit);
     
-    return NextResponse.json({
+    const response = {
       clients: result.clients,
       totalClients: result.pagination.total,
       totalPages: result.pagination.pages,
       currentPage: result.pagination.page,
-    });
+    };
+    
+    // Cache for 2 minutes (shorter cache for dynamic data)
+    apiCache.set(cacheKey, response, 120);
+    
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error('Error fetching clients:', error);
     return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db/mongodb';
+import connectToDatabase, { apiCache } from '@/lib/db/mongodb';
 import { Visit, Client, Service } from '@/lib/db/models';
 
 export async function GET(request: NextRequest) {
@@ -10,19 +10,12 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(searchParams.get('startDate') || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
     const endDate = new Date(searchParams.get('endDate') || new Date());
 
-    // Create cache key based on date range
-    const cacheKey = `analytics_overview_${startDate.toISOString().split('T')[0]}_${endDate.toISOString().split('T')[0]}`;
+    // PHASE 1 FIX: Add caching for analytics overview
+    const cacheKey = `analytics:overview:${startDate.toISOString()}:${endDate.toISOString()}`;
+    const cachedResult = apiCache.get(cacheKey);
     
-    // Set cache headers for better performance
-    const headers = {
-      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // 5min cache, 10min stale
-      'ETag': `"${cacheKey}"`,
-    };
-    
-    // Check if client has cached version
-    const ifNoneMatch = request.headers.get('if-none-match');
-    if (ifNoneMatch === `"${cacheKey}"`) {
-      return new NextResponse(null, { status: 304, headers });
+    if (cachedResult) {
+      return NextResponse.json(cachedResult);
     }
 
     // Calculate previous period for comparison
@@ -114,10 +107,15 @@ export async function GET(request: NextRequest) {
       averageVisitsPerClient: Math.round(averageVisitsPerClient * 10) / 10
     };
 
-    return NextResponse.json({
+    // PHASE 1 FIX: Cache the result for 10 minutes
+    const result = {
       success: true,
       metrics
-    }, { headers });
+    };
+    
+    apiCache.set(cacheKey, result, 600); // 10 minutes cache
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Error fetching overview analytics:', error);

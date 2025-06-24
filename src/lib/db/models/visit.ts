@@ -95,10 +95,20 @@ VisitSchema.index({ visitDate: -1 });
 VisitSchema.index({ barber: 1 });
 VisitSchema.index({ barberId: 1 });
 VisitSchema.index({ barberId: 1, visitDate: -1 });
-// Additional indexes for analytics queries
-VisitSchema.index({ visitDate: 1, totalPrice: 1 }); // For revenue analytics
-VisitSchema.index({ 'services.serviceId': 1 }); // For service popularity
-VisitSchema.index({ rewardRedeemed: 1 }); // For loyalty analytics
+
+// CRITICAL PERFORMANCE INDEXES - Phase 1 Fix
+// Enhanced compound indexes for analytics and performance
+VisitSchema.index({ visitDate: 1, totalPrice: 1 }, { background: true });
+VisitSchema.index({ visitDate: 1, barberId: 1, totalPrice: 1 }, { background: true });
+VisitSchema.index({ 'services.serviceId': 1, visitDate: -1 }, { background: true });
+VisitSchema.index({ rewardRedeemed: 1, visitDate: -1 }, { background: true });
+VisitSchema.index({ clientId: 1, barberId: 1, visitDate: -1 }, { background: true });
+
+// Index for visit number and pagination
+VisitSchema.index({ visitNumber: 1 }, { background: true });
+
+// Sparse index for optional fields
+VisitSchema.index({ redeemedRewardId: 1 }, { background: true, sparse: true });
 
 // Check if model already exists to prevent OverwriteModelError during hot reloads
 const Visit = mongoose.models.Visit || mongoose.model<IVisit>('Visit', VisitSchema);

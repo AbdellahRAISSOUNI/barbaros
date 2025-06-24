@@ -13,9 +13,10 @@ This guide provides comprehensive instructions for setting up, developing, and c
 5. [Database Development](#database-development)
 6. [API Development](#api-development)
 7. [Frontend Development](#frontend-development)
-8. [Testing Guidelines](#testing-guidelines)
-9. [Deployment](#deployment)
-10. [Contributing](#contributing)
+8. [Performance and Security](#performance-and-security)
+9. [Testing Guidelines](#testing-guidelines)
+10. [Deployment](#deployment)
+11. [Contributing](#contributing)
 
 ## Prerequisites
 
@@ -724,6 +725,165 @@ export default function ExampleForm({
     </form>
   );
 }
+```
+
+## Performance and Security
+
+### Database Performance Optimizations
+
+The application includes several database performance optimizations:
+
+#### Database Indexes
+```javascript
+// Client model indexes for search performance
+{
+  // Text search index for full-text search
+  firstName: 'text',
+  lastName: 'text', 
+  phoneNumber: 'text',
+  clientId: 'text'
+}
+
+// Compound indexes for common query patterns
+{ phoneNumber: 1, isActive: 1 }
+{ clientId: 1 }
+{ lastName: 1, firstName: 1 }
+{ createdAt: -1 }
+```
+
+#### Visit Model Indexes
+```javascript
+// Analytics and reporting indexes
+{ clientId: 1, visitDate: -1 }
+{ visitDate: -1 }
+{ barber: 1, visitDate: -1 }
+{ createdAt: -1 }
+```
+
+#### Query Optimization
+- **Lean Queries**: Use `.lean()` for read-only operations to improve performance
+- **Field Selection**: Only fetch required fields using `.select()`
+- **Text Search**: Intelligent routing between phone number regex and text search
+- **Pagination**: Efficient pagination using cursor-based approach
+
+```javascript
+// Example optimized query
+const clients = await Client.find(query)
+  .select('firstName lastName phoneNumber clientId')
+  .lean()
+  .limit(limit)
+  .skip(skip);
+```
+
+### API Response Caching
+
+The application implements a simple in-memory caching system:
+
+```javascript
+// Cache configuration in mongodb.ts
+class SimpleCache {
+  constructor(defaultTTL = 300000) // 5 minutes default
+  
+  // Usage in API endpoints
+  const cacheKey = `analytics_overview_${startDate}_${endDate}`;
+  let cachedData = cache.get(cacheKey);
+  
+  if (!cachedData) {
+    cachedData = await computeAnalytics();
+    cache.set(cacheKey, cachedData, 600000); // 10 minutes
+  }
+}
+```
+
+### Security Enhancements
+
+#### Rate Limiting
+```javascript
+// Global rate limiting configuration
+const rateLimitConfig = {
+  windowMs: 60 * 1000, // 1 minute
+  max: 1000, // limit each IP to 1000 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' }
+};
+```
+
+#### Input Validation and Sanitization
+```javascript
+// Enhanced search query sanitization
+function sanitizeRegex(input) {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// NoSQL injection prevention
+function validateAndSanitizeInput(input) {
+  if (typeof input !== 'string') {
+    throw new Error('Invalid input type');
+  }
+  return input.trim().slice(0, 100); // Limit length
+}
+```
+
+#### Enhanced Security Headers
+```javascript
+// Security headers in middleware
+const securityHeaders = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+};
+```
+
+#### Session Security
+- Enhanced session validation using `withAuth` middleware
+- Proper token verification and user context validation
+- Automatic session cleanup and timeout handling
+
+### Performance Monitoring
+
+#### Memory Management
+- Proper cleanup of polling intervals and event listeners
+- Efficient component re-rendering using `React.memo` and `useMemo`
+- Optimized state management to prevent memory leaks
+
+#### Database Connection Optimization
+```javascript
+// Optimized connection pooling
+const mongooseOptions = {
+  bufferCommands: false,
+  serverSelectionTimeoutMS: 5000,
+  maxPoolSize: 10,
+  minPoolSize: 2
+};
+```
+
+### Best Practices
+
+#### Frontend Performance
+1. **Component Optimization**: Use `React.memo` for expensive components
+2. **State Management**: Minimize re-renders with proper dependency arrays
+3. **Code Splitting**: Lazy load heavy components and routes
+4. **Bundle Optimization**: Tree shaking and dead code elimination
+
+#### Backend Performance
+1. **Database Queries**: Always use appropriate indexes
+2. **API Responses**: Implement caching for expensive operations
+3. **Pagination**: Use cursor-based pagination for large datasets
+4. **Error Handling**: Graceful error handling without exposing sensitive data
+
+#### Security Guidelines
+1. **Input Validation**: Validate and sanitize all user inputs
+2. **Authentication**: Use secure session management
+3. **Authorization**: Implement proper role-based access control
+4. **Data Protection**: Never expose sensitive data in error messages
+
+### Development Environment Security
+```env
+# Security-related environment variables
+API_RATE_LIMIT_MAX=1000
+API_RATE_LIMIT_WINDOW=60000
+SESSION_TIMEOUT=3600000
+CACHE_TTL=300000
 ```
 
 ## Testing Guidelines

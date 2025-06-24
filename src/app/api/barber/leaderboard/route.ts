@@ -31,8 +31,6 @@ export async function GET(request: NextRequest) {
     
     const barbersWithStats = await BarberStats.find()
       .populate('barberId', 'name profilePicture joinDate')
-      .select('barberId totalVisits uniqueClientsServed averageVisitsPerDay monthlyStats workDaysSinceJoining')
-      .lean() // Convert to plain objects for better performance
       .sort(sortCriteria)
       .limit(20);
     

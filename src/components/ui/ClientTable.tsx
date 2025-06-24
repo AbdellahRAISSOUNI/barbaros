@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, memo, useMemo } from 'react';
-import { FaEdit, FaTrash, FaEye, FaQrcode, FaSortUp, FaSortDown, FaSort } from 'react-icons/fa';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { FaEdit, FaTrash, FaEye, FaQrcode, FaSortUp, FaSortDown, FaSort, FaSync, FaClock } from 'react-icons/fa';
+import { useRealTimeData, useRealTimeEvent, realTimeEvents } from '@/lib/hooks/useRealTimeData';
 
 interface Client {
   _id: string;
@@ -25,44 +26,184 @@ interface ClientTableProps {
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
   onViewQR: (client: Client) => void;
+  onDataUpdate?: (clients: Client[]) => void;
+  searchQuery?: string;
   className?: string;
+  enableRealTime?: boolean;
 }
 
-const ClientTable = memo(function ClientTable({
+// PHASE 2 FIX: Memoized table row component for better performance
+const ClientTableRow = React.memo(({ 
+  client, 
+  onView, 
+  onEdit, 
+  onDelete, 
+  onViewQR 
+}: {
+  client: Client;
+  onView: (client: Client) => void;
+  onEdit: (client: Client) => void;
+  onDelete: (client: Client) => void;
+  onViewQR: (client: Client) => void;
+}) => {
+  const formatDate = useCallback((date?: Date) => {
+    if (!date) return 'Never';
+    return new Date(date).toLocaleDateString();
+  }, []);
+
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        {client.clientId}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {client.firstName} {client.lastName}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {client.phoneNumber}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {client.visitCount}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {formatDate(client.lastVisit)}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${client.accountActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {client.accountActive ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={() => onView(client)}
+            className="text-blue-600 hover:text-blue-900"
+            aria-label="View client"
+          >
+            <FaEye />
+          </button>
+          <button
+            onClick={() => onEdit(client)}
+            className="text-green-600 hover:text-green-900"
+            aria-label="Edit client"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => onViewQR(client)}
+            className="text-purple-600 hover:text-purple-900"
+            aria-label="View QR code"
+          >
+            <FaQrcode />
+          </button>
+          <button
+            onClick={() => onDelete(client)}
+            className="text-red-600 hover:text-red-900"
+            aria-label="Delete client"
+          >
+            <FaTrash />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+ClientTableRow.displayName = 'ClientTableRow';
+
+// PHASE 2 FIX: Memoized main component with real-time updates
+export const ClientTable = React.memo(({
   clients,
   onView,
   onEdit,
   onDelete,
   onViewQR,
+  onDataUpdate,
+  searchQuery = '',
   className = '',
-}: ClientTableProps) {
+  enableRealTime = true,
+}: ClientTableProps) => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const requestSort = (key: keyof Client) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  const requestSort = useCallback((key: keyof Client) => {
+    setSortConfig(prevConfig => {
+      let direction: 'asc' | 'desc' = 'asc';
+      if (prevConfig.key === key && prevConfig.direction === 'asc') {
+        direction = 'desc';
+      }
+      return { key, direction };
+    });
+  }, []);
 
-  const getSortIcon = (key: keyof Client) => {
+  const getSortIcon = useCallback((key: keyof Client) => {
     if (sortConfig.key !== key) {
       return <FaSort className="ml-1 text-gray-400" />;
     }
     return sortConfig.direction === 'asc' ? 
       <FaSortUp className="ml-1 text-black" /> : 
       <FaSortDown className="ml-1 text-black" />;
-  };
+  }, [sortConfig]);
 
-  // Apply sorting to the client list - memoized for performance
+  // Manual refresh function
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      // Emit refresh request event
+      realTimeEvents.emit('clients:refresh-request', {});
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Error refreshing clients:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing]);
+
+  // Listen for real-time client updates
+  useRealTimeEvent('clients:updated', (updatedClients: Client[]) => {
+    if (onDataUpdate) {
+      onDataUpdate(updatedClients);
+    }
+    setLastUpdate(new Date());
+  }, [onDataUpdate]);
+
+  // Listen for individual client changes
+  useRealTimeEvent('client:created', (newClient: Client) => {
+    if (onDataUpdate) {
+      const updatedClients = [...clients, newClient];
+      onDataUpdate(updatedClients);
+    }
+    setLastUpdate(new Date());
+  }, [clients, onDataUpdate]);
+
+  useRealTimeEvent('client:updated', (updatedClient: Client) => {
+    if (onDataUpdate) {
+      const updatedClients = clients.map(client => 
+        client._id === updatedClient._id ? updatedClient : client
+      );
+      onDataUpdate(updatedClients);
+    }
+    setLastUpdate(new Date());
+  }, [clients, onDataUpdate]);
+
+  useRealTimeEvent('client:deleted', (deletedClientId: string) => {
+    if (onDataUpdate) {
+      const updatedClients = clients.filter(client => client._id !== deletedClientId);
+      onDataUpdate(updatedClients);
+    }
+    setLastUpdate(new Date());
+  }, [clients, onDataUpdate]);
+
+  // PHASE 2 FIX: Memoized sorted clients for better performance
   const sortedClients = useMemo(() => {
     if (sortConfig.key === '') return clients;
     
     return [...clients].sort((a, b) => {
-      const key = sortConfig.key as keyof Client;
-      const aValue = a[key];
-      const bValue = b[key];
+      const aValue = a[sortConfig.key as keyof Client];
+      const bValue = b[sortConfig.key as keyof Client];
       
       if (aValue === bValue) return 0;
       
@@ -76,15 +217,44 @@ const ClientTable = memo(function ClientTable({
     });
   }, [clients, sortConfig]);
 
-  // Format date for display
-  const formatDate = (date?: Date) => {
-    if (!date) return 'Never';
-    return new Date(date).toLocaleDateString();
-  };
-
   return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className={className}>
+      {/* Real-time controls header */}
+      {enableRealTime && (
+        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  isRefreshing 
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                <FaSync className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
+              
+              {lastUpdate && (
+                <div className="flex items-center space-x-1 text-xs text-gray-500">
+                  <FaClock className="h-3 w-3" />
+                  <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              {sortedClients.length} client{sortedClients.length !== 1 ? 's' : ''}
+              {searchQuery && ` (filtered)`}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th 
@@ -155,60 +325,14 @@ const ClientTable = memo(function ClientTable({
         <tbody className="bg-white divide-y divide-gray-200">
           {sortedClients.length > 0 ? (
             sortedClients.map((client) => (
-              <tr key={client._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {client.clientId}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {client.firstName} {client.lastName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {client.phoneNumber}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {client.visitCount}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(client.lastVisit)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${client.accountActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {client.accountActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => onView(client)}
-                      className="text-blue-600 hover:text-blue-900"
-                      aria-label="View client"
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={() => onEdit(client)}
-                      className="text-green-600 hover:text-green-900"
-                      aria-label="Edit client"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => onViewQR(client)}
-                      className="text-purple-600 hover:text-purple-900"
-                      aria-label="View QR code"
-                    >
-                      <FaQrcode />
-                    </button>
-                    <button
-                      onClick={() => onDelete(client)}
-                      className="text-red-600 hover:text-red-900"
-                      aria-label="Delete client"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              <ClientTableRow
+                key={client._id}
+                client={client}
+                onView={onView}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onViewQR={onViewQR}
+              />
             ))
           ) : (
             <tr>
@@ -219,8 +343,9 @@ const ClientTable = memo(function ClientTable({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 });
 
-export { ClientTable };
+ClientTable.displayName = 'ClientTable';

@@ -12,6 +12,65 @@ interface MongooseCache {
   promise: Promise<typeof mongoose> | null;
 }
 
+// PHASE 1 FIX: Simple in-memory cache for API responses
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+  ttl: number; // Time to live in milliseconds
+}
+
+class SimpleCache {
+  private cache: Map<string, CacheEntry> = new Map();
+
+  set(key: string, data: any, ttlSeconds: number = 300): void {
+    const ttl = ttlSeconds * 1000; // Convert to milliseconds
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    });
+  }
+
+  get(key: string): any | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  // Clean up expired entries
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
+
+// Global cache instance
+export const apiCache = new SimpleCache();
+
+// Run cleanup every 5 minutes
+setInterval(() => {
+  apiCache.cleanup();
+}, 5 * 60 * 1000);
+
 // Declare the global mongoose cache
 declare global {
   var mongoose: MongooseCache | undefined;
@@ -42,13 +101,7 @@ async function connectToDatabase() {
     const opts = {
       bufferCommands: false,
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      maxPoolSize: 50, // Increased from 10 to 50 for better concurrency
-      minPoolSize: 5, // Minimum pool size
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      family: 4, // Use IPv4, skip trying IPv6
-      keepAlive: true,
-      keepAliveInitialDelay: 300000, // 5 minutes
+      maxPoolSize: 10, // Maintain up to 10 socket connections
     };
 
     console.log('Connecting to MongoDB...');

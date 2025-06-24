@@ -1,24 +1,29 @@
 # Visit Recording System
 
-The visit recording system allows admin users to record client visits, track services provided, and manage payment information through an intuitive interface integrated with the QR code scanner.
+The visit recording system allows admin and barber users to record client visits, track services provided, and manage payment information through an enhanced interface integrated with the redesigned QR code scanner system.
 
 ## Features Overview
 
 ### 🎯 Core Functionality
-- **Client QR Code Scanning**: Scan client QR codes via camera, image upload, or manual search
+- **Enhanced QR Code Scanning**: Redesigned scanner with multiple input methods and modern UI
+- **Rich Client Overview**: Comprehensive client information display after scanning
 - **Service Selection**: Browse and select multiple services from active service catalog
 - **Price Management**: Automatic calculation with manual adjustment capability
 - **Visit Notes**: Optional notes for special instructions or observations
 - **Date/Time Management**: Record visits with customizable date and time
 - **Visit History**: Complete history of client visits with detailed information
 - **Real-time Updates**: Automatic client visit count and loyalty progress updates
+- **Reward Integration**: Enhanced reward redemption validation and tracking
 
-### 📱 User Interface
+### 📱 Enhanced User Interface (Latest)
+- **Modern Scanner Design**: Professional gradients and smooth animations
+- **Client Overview Cards**: Rich information display with loyalty progress
 - **Mobile-Responsive Design**: Optimized for tablets and mobile devices
 - **Intuitive Service Selection**: Grid layout with search and filtering
 - **Real-time Price Calculation**: Dynamic total updates as services are selected
-- **Visual Feedback**: Toast notifications for all user actions
+- **Improved Notifications**: Single toast notifications without duplication
 - **Progress Indicators**: Loading states and clear visual feedback
+- **Visit History Display**: Actual visit data instead of placeholder content
 
 ## Implementation Details
 

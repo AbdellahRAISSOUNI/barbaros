@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaPlus, FaTimes, FaSave, FaCalculator, FaClipboard, FaClock, FaUser, FaCut, FaGift, FaPercentage } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { FaPlus, FaTimes, FaSave, FaCalculator, FaClipboard, FaClock, FaUser, FaCut, FaGift, FaPercentage, FaSearch, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import BarberSelector from './BarberSelector';
+import { debounce } from 'lodash';
 
 interface Service {
   _id: string;
@@ -42,7 +43,7 @@ interface ClientInfo {
   _id: string;
   firstName: string;
   lastName: string;
-  phoneNumber: string;
+  email: string;
   visitCount: number;
 }
 
@@ -71,49 +72,56 @@ export function VisitRecordingForm({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [servicesLoading, setServicesLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [serviceCategories, setServiceCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  // Load available services and eligible rewards - Optimized with parallel fetching
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Optimized data loading with better caching and parallel requests
   useEffect(() => {
     const fetchData = async () => {
       try {
         setServicesLoading(true);
         
-        // Fetch services and rewards in parallel for better performance
-        const [servicesResponse, rewardsResponse] = await Promise.allSettled([
-          fetch('/api/services?isActive=true&limit=100', {
-            headers: {
-              'Cache-Control': 'max-age=600' // Cache for 10 minutes (increased from 5)
-            }
+        // Parallel data fetching for better performance
+        const [servicesResponse, rewardsResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/services?isActive=true&limit=200', {
+            headers: { 'Cache-Control': 'max-age=600' } // Cache for 10 minutes
           }),
           fetch('/api/rewards?isActive=true&limit=100', {
-            headers: {
-              'Cache-Control': 'max-age=600' // Cache for 10 minutes (increased from 5)
-            }
+            headers: { 'Cache-Control': 'max-age=600' }
+          }),
+          fetch('/api/service-categories?isActive=true', {
+            headers: { 'Cache-Control': 'max-age=1800' } // Cache categories for 30 minutes
           })
         ]);
 
-        // Handle services response
-        if (servicesResponse.status === 'fulfilled' && servicesResponse.value.ok) {
-          const servicesData = await servicesResponse.value.json();
-          setServices(servicesData.services || []);
+        // Process services
+        if (servicesResponse.ok) {
+        const servicesData = await servicesResponse.json();
+        setServices(servicesData.services || []);
         } else {
           throw new Error('Failed to fetch services');
         }
 
-        // Handle rewards response
-        if (rewardsResponse.status === 'fulfilled' && rewardsResponse.value.ok) {
-          const rewardsData = await rewardsResponse.value.json();
-          // Only show rewards they can redeem with CURRENT visit count
-          const eligible = (rewardsData.rewards || []).filter((reward: Reward) => 
-            reward.visitsRequired <= clientInfo.visitCount
-          );
-          setEligibleRewards(eligible);
-        } else {
-          console.log('Rewards fetch failed, continuing without rewards');
-          setEligibleRewards([]);
+        // Process rewards
+          if (rewardsResponse.ok) {
+            const rewardsData = await rewardsResponse.json();
+            const eligible = (rewardsData.rewards || []).filter((reward: Reward) => 
+              reward.visitsRequired <= clientInfo.visitCount
+            );
+            setEligibleRewards(eligible);
+          }
+
+        // Process categories
+        if (categoriesResponse.ok) {
+          const categoriesData = await categoriesResponse.json();
+          setServiceCategories(categoriesData.categories || []);
         }
+
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching data:', error);
         toast.error('Failed to load services');
       } finally {
         setServicesLoading(false);
@@ -123,8 +131,33 @@ export function VisitRecordingForm({
     fetchData();
   }, [clientInfo.visitCount]);
 
-  // Calculate total price with reward discounts
-  const calculateTotalWithReward = () => {
+  // Debounced search for real-time filtering
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      setIsSearching(false);
+    }, 300),
+    []
+  );
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setIsSearching(true);
+    debouncedSearch(value);
+  }, [debouncedSearch]);
+
+  // PHASE 2 FIX: Memoized calculations for better performance
+  const calculatedTotal = useMemo(() => 
+    selectedServices.reduce((sum, service) => sum + service.price, 0),
+    [selectedServices]
+  );
+
+  const totalDuration = useMemo(() => 
+    selectedServices.reduce((sum, service) => sum + service.duration, 0),
+    [selectedServices]
+  );
+
+  const calculatedTotalWithReward = useMemo(() => {
     let total = 0;
     
     selectedServices.forEach(service => {
@@ -143,22 +176,44 @@ export function VisitRecordingForm({
     });
     
     return total;
-  };
+  }, [selectedServices, selectedReward]);
 
-  const calculatedTotal = selectedServices.reduce((sum, service) => sum + service.price, 0);
-  const calculatedTotalWithReward = calculateTotalWithReward();
   const finalTotal = customPrice !== null ? customPrice : calculatedTotalWithReward;
-  const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
   const rewardSavings = calculatedTotal - calculatedTotalWithReward;
 
-  // Filter services based on search
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Enhanced service filtering with category support
+  const filteredServices = useMemo(() => {
+    let filtered = services;
+    
+    // Filter by category if selected
+    if (selectedCategory) {
+      filtered = filtered.filter(service => service.category?._id === selectedCategory);
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(service =>
+        service.name.toLowerCase().includes(term) ||
+        service.description.toLowerCase().includes(term) ||
+        service.category?.name.toLowerCase().includes(term)
+      );
+    }
+    
+    // Sort by popularity/name for better UX
+    return filtered.sort((a, b) => {
+      // First by category, then by name
+      const categoryA = a.category?.name || '';
+      const categoryB = b.category?.name || '';
+      if (categoryA !== categoryB) {
+        return categoryA.localeCompare(categoryB);
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [services, searchTerm, selectedCategory]);
 
-  const addService = (service: Service) => {
+  // PHASE 2 FIX: Memoized callbacks for better performance
+  const addService = useCallback((service: Service) => {
     const serviceReceived: ServiceReceived = {
       serviceId: service._id,
       name: service.name,
@@ -168,26 +223,28 @@ export function VisitRecordingForm({
 
     setSelectedServices(prev => [...prev, serviceReceived]);
     toast.success(`${service.name} added to visit`);
-  };
+  }, []);
 
-  const removeService = (index: number) => {
-    const serviceName = selectedServices[index].name;
-    setSelectedServices(prev => prev.filter((_, i) => i !== index));
+  const removeService = useCallback((index: number) => {
+    setSelectedServices(prev => {
+      const serviceName = prev[index].name;
     toast.success(`${serviceName} removed from visit`);
-  };
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
 
-  const updateServicePrice = (index: number, newPrice: number) => {
+  const updateServicePrice = useCallback((index: number, newPrice: number) => {
     setSelectedServices(prev =>
       prev.map((service, i) =>
         i === index ? { ...service, price: newPrice } : service
       )
     );
-  };
+  }, []);
 
-  const handleBarberChange = (newBarberId: string | undefined, newBarberName: string) => {
+  const handleBarberChange = useCallback((newBarberId: string | undefined, newBarberName: string) => {
     setBarberId(newBarberId);
     setBarber(newBarberName);
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,15 +341,69 @@ export function VisitRecordingForm({
                   <h2 className="text-lg font-semibold text-gray-900">Select Services</h2>
                 </div>
               
-                {/* Service Search */}
-                <div className="relative mb-4">
+                {/* Enhanced Search and Filter Controls */}
+                <div className="space-y-3 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {/* Search Input */}
+                    <div className="flex-1 relative">
                   <input
+                        ref={searchInputRef}
                     type="text"
-                    placeholder="Search services..."
+                        placeholder="Search services by name, description, or category..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 transition-all"
-                  />
+                        onChange={handleSearchChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 transition-all"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        {isSearching ? (
+                          <FaSpinner className="h-4 w-4 text-gray-400 animate-spin" />
+                        ) : (
+                          <FaSearch className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Category Filter */}
+                    <div className="sm:w-48">
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 text-sm"
+                      >
+                        <option value="">All Categories</option>
+                        {serviceCategories.map((category) => (
+                          <option key={category._id} value={category._id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Results Count and Quick Actions */}
+                  {!servicesLoading && (
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="text-gray-600">
+                        {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
+                        {searchTerm && ` for "${searchTerm}"`}
+                        {selectedCategory && serviceCategories.find(c => c._id === selectedCategory) && 
+                          ` in ${serviceCategories.find(c => c._id === selectedCategory)?.name}`}
+                      </div>
+                      {(searchTerm || selectedCategory) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchTerm('');
+                            setSelectedCategory('');
+                            searchInputRef.current?.focus();
+                          }}
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Clear filters
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Available Services */}

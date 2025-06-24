@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaPlus, FaQrcode, FaEdit, FaTrash, FaUsers, FaPhone } from 'react-icons/fa';
+import { FaPlus, FaQrcode, FaEdit, FaTrash, FaUsers, FaPhone, FaEye } from 'react-icons/fa';
 import { ClientSearch } from '@/components/ui/ClientSearch';
 import { Pagination } from '@/components/ui/Pagination';
 import { ClientForm } from '@/components/ui/ClientForm';
@@ -221,6 +221,13 @@ export default function ClientsPage() {
       </div>
       
       <div className="flex justify-end space-x-2">
+        <a
+          href={`/admin/clients/${client._id}/view`}
+          className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded transition-colors"
+          title="View Profile"
+        >
+          <FaEye className="w-4 h-4" />
+        </a>
         <button
           onClick={() => handleEditClient(client)}
           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
@@ -272,6 +279,13 @@ export default function ClientsPage() {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <div className="flex justify-end space-x-2">
+          <a
+            href={`/admin/clients/${client._id}/view`}
+            className="text-purple-600 hover:text-purple-900"
+            title="View Profile"
+          >
+            <FaEye className="w-4 h-4" />
+          </a>
           <button
             onClick={() => handleEditClient(client)}
             className="text-blue-600 hover:text-blue-900"

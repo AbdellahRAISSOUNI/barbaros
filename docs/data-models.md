@@ -351,37 +351,71 @@ interface IReward extends Document {
 
 ## Indexes
 
-### Admin Model
+Database indexes are implemented for optimal query performance:
 
-- `username`: Unique index
-- `email`: Unique index
+### Client Collection Indexes
+- `firstName, lastName, phoneNumber, clientId`: Text search index for full-text search
+- `phoneNumber, isActive`: Compound index for phone lookup with status filtering
+- `clientId`: Unique index for client ID lookup
+- `lastName, firstName`: Compound index for name-based sorting and search
+- `createdAt`: Descending index for recently created clients
+- `isActive, createdAt`: Compound index for active clients by creation date
 
-### Client Model
+### Visit Collection Indexes
+- `clientId, visitDate`: Compound index for client visit history (descending date)
+- `visitDate`: Descending index for date-based analytics queries
+- `barber, visitDate`: Compound index for barber performance analytics
+- `createdAt`: Descending index for recent visits
+- `clientId, createdAt`: Compound index for client timeline queries
 
-- `clientId`: Unique index
-- `email`: Unique index
-- `lastName`, `firstName`: Compound index for sorting
+### Service Collection Indexes
+- `categoryId`: Index for category-based queries and filtering
+- `popularityScore`: Descending index for sorting by popularity
+- `isActive`: Index for filtering active/inactive services
 
-### Visit Model
+### BarberAchievement Collection Indexes
+- `barberId, month, year`: Compound index for monthly barber statistics
+- `totalVisits`: Descending index for leaderboard sorting by visit count
+- `month, year, totalVisits`: Compound index for monthly leaderboards with performance sorting
 
-- `clientId`, `visitDate`: Compound index for client visit history
-- `visitDate`: Index for date-based queries
-- `barber`: Index for barber-specific queries
-
-### Service Model
-
-- `categoryId`: Index for category-based queries
-- `popularityScore`: Index for sorting by popularity
-- `isActive`: Index for filtering active services
-
-### ServiceCategory Model
-
+### ServiceCategory Collection Indexes
 - `displayOrder`: Index for sorting by display order
+- `name`: Unique index for enforcing unique category names
 
-### Reward Model
+### Performance Considerations
 
-- `visitsRequired`: Index for sorting by visits required
-- `isActive`: Index for filtering active rewards
+All indexes are created with the following optimizations:
+
+1. **Background Creation**: Indexes are created with `background: true` to prevent blocking operations
+2. **Named Indexes**: All indexes have descriptive names for better maintenance
+3. **Compound Index Order**: Field order in compound indexes follows query patterns
+4. **Selective Indexing**: Only frequently queried fields are indexed to balance performance and storage
+
+```javascript
+// Example index creation
+ClientSchema.index(
+  { firstName: 'text', lastName: 'text', phoneNumber: 'text', clientId: 'text' },
+  { background: true, name: 'client_text_search' }
+);
+
+ClientSchema.index(
+  { phoneNumber: 1, isActive: 1 },
+  { background: true, name: 'phone_active_lookup' }
+);
+
+VisitSchema.index(
+  { clientId: 1, visitDate: -1 },
+  { background: true, name: 'client_visit_history' }
+);
+```
+
+### Query Performance Guidelines
+
+1. **Use Covered Queries**: Ensure queries can be satisfied entirely by index data
+2. **Avoid Regex on Large Collections**: Use text search indexes instead of regex for text searches
+3. **Limit Result Sets**: Always use `.limit()` for pagination
+4. **Sort by Indexed Fields**: Ensure sort operations use indexed fields
+5. **Monitor Query Performance**: Use MongoDB's explain() to analyze query performance
 
 ## Data Validation
 

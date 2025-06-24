@@ -69,6 +69,26 @@ ClientSchema.virtual('fullName').get(function(this: IClient) {
   return `${this.firstName} ${this.lastName}`;
 });
 
+// CRITICAL PERFORMANCE INDEXES - Phase 1 Fix
+// Text search index for efficient client search
+ClientSchema.index({ 
+  firstName: 'text', 
+  lastName: 'text', 
+  phoneNumber: 'text',
+  clientId: 'text'
+}, { 
+  background: true,
+  name: 'client_search_text'
+});
+
+// Compound indexes for common query patterns
+ClientSchema.index({ lastName: 1, firstName: 1 }, { background: true });
+ClientSchema.index({ phoneNumber: 1 }, { background: true }); // Already unique, but explicit
+ClientSchema.index({ clientId: 1 }, { background: true }); // Already unique, but explicit
+ClientSchema.index({ accountActive: 1, dateCreated: -1 }, { background: true });
+ClientSchema.index({ loyaltyStatus: 1, totalLifetimeVisits: -1 }, { background: true });
+ClientSchema.index({ lastVisit: -1 }, { background: true, sparse: true });
+
 // Method to compare password
 ClientSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   try {
@@ -82,14 +102,6 @@ ClientSchema.methods.comparePassword = async function(candidatePassword: string)
 ClientSchema.statics.findByPhone = async function(phoneNumber: string): Promise<IClient | null> {
   return this.findOne({ phoneNumber });
 };
-
-// Add indexes for better performance
-ClientSchema.index({ firstName: 'text', lastName: 'text', phoneNumber: 'text' });
-ClientSchema.index({ phoneNumber: 1 });
-ClientSchema.index({ clientId: 1 });
-ClientSchema.index({ loyaltyStatus: 1 });
-ClientSchema.index({ totalLifetimeVisits: -1 });
-ClientSchema.index({ lastVisit: -1 });
 
 // Check if the model exists before creating it
 const Client = mongoose.models.Client as IClientModel || mongoose.model<IClient, IClientModel>('Client', ClientSchema);

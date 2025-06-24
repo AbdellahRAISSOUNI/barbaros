@@ -24,6 +24,52 @@ const response = await fetch('/api/admin/endpoint', {
 });
 ```
 
+## Security and Performance
+
+### Rate Limiting
+All API endpoints are protected by rate limiting to prevent abuse:
+
+- **Limit**: 1000 requests per minute per IP address
+- **Window**: 60 seconds
+- **Response**: HTTP 429 Too Many Requests when limit exceeded
+
+```json
+{
+  "error": "Too many requests, please try again later."
+}
+```
+
+### Input Validation
+All endpoints implement comprehensive input validation:
+
+- **Data Types**: Strict type checking for all parameters
+- **Length Limits**: Maximum input lengths to prevent abuse
+- **NoSQL Injection**: Protection against NoSQL injection attacks
+- **Sanitization**: Automatic sanitization of search queries and user input
+
+### Caching
+Expensive analytics operations are cached to improve performance:
+
+- **Analytics Overview**: 10-minute cache duration
+- **Dashboard Metrics**: 5-minute cache duration
+- **Search Results**: 2-minute cache duration for repeated queries
+
+Cache headers are included in responses:
+```
+Cache-Control: public, max-age=600
+X-Cache-Status: HIT|MISS
+```
+
+### Security Headers
+All API responses include security headers:
+
+```
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
 ## Error Responses
 
 All endpoints return standardized error responses:
@@ -45,6 +91,7 @@ All endpoints return standardized error responses:
 - `403` - Forbidden
 - `404` - Not Found
 - `422` - Validation Error
+- `429` - Too Many Requests
 - `500` - Internal Server Error
 
 ## Analytics Endpoints

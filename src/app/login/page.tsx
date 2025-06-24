@@ -85,9 +85,17 @@ export default function LoginPage() {
         return;
       }
       
-      // Redirect based on user type - middleware will handle specific role redirects
+      // Get the session to determine the correct redirect
+      const sessionResponse = await fetch('/api/auth/session');
+      const sessionData = await sessionResponse.json();
+      
       if (data.userType === 'admin') {
-        router.push('/admin'); // Middleware will redirect barbers to /barber
+        // Redirect based on actual role from session
+        if (sessionData?.user?.role === 'barber') {
+          router.push('/barber');
+        } else {
+          router.push('/admin');
+        }
       } else {
         router.push('/client');
       }

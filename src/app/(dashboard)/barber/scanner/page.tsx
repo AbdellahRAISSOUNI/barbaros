@@ -1,31 +1,74 @@
 'use client';
 
-import { useState } from 'react';
-import { FaCamera, FaUpload, FaSearch, FaQrcode, FaTimes, FaCheckCircle, FaExclamationCircle, FaUser, FaPlus, FaHistory } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaCamera, FaUpload, FaSearch, FaQrcode, FaTimes, FaCheckCircle, FaExclamationCircle, FaUser, FaPlus, FaHistory, FaEye, FaGift, FaCut, FaCrown, FaCalendarAlt, FaArrowRight, FaSpinner } from 'react-icons/fa';
 import { QRCodeScanner } from '@/components/ui/QRCodeScanner';
 import { ClientLookup } from '@/components/ui/ClientLookup';
-import { ClientInfoCard } from '@/components/ui/ClientInfoCard';
-import RewardRedemptionInterface from '@/components/ui/RewardRedemptionInterface';
 import { VisitRecordingForm } from '@/components/ui/VisitRecordingForm';
 import { parseQRCodeData } from '@/lib/utils/qrcode';
+import RewardRedemptionInterface from '@/components/ui/RewardRedemptionInterface';
 import jsQR from 'jsqr';
+import toast from 'react-hot-toast';
 
 type ScanMode = 'camera' | 'upload' | 'manual';
-type PageMode = 'scanner' | 'visit' | 'rewards';
+type ViewMode = 'scanner' | 'client-overview' | 'visit-recording' | 'rewards' | 'history';
+
+interface ClientInfo {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  visitCount: number;
+  rewardsEarned: number;
+  rewardsRedeemed: number;
+  totalLifetimeVisits: number;
+  currentProgressVisits: number;
+  loyaltyStatus: string;
+  lastVisit?: string;
+  accountActive: boolean;
+}
+
+interface LoyaltyStatus {
+  client: any;
+  selectedReward?: any;
+  eligibleRewards: any[];
+  visitsToNextReward: number;
+  progressPercentage: number;
+  canRedeem: boolean;
+  totalVisits: number;
+  currentProgressVisits: number;
+  rewardsRedeemed: number;
+  milestoneReached: boolean;
+}
+
+interface RecentVisit {
+  _id: string;
+  visitDate: string;
+  services: Array<{
+    name: string;
+    price: number;
+  }>;
+  totalPrice: number;
+  barber: string;
+}
 
 export default function BarberScannerPage() {
   const [scanMode, setScanMode] = useState<ScanMode>('camera');
-  const [pageMode, setPageMode] = useState<PageMode>('scanner');
+  const [viewMode, setViewMode] = useState<ViewMode>('scanner');
   const [foundClientId, setFoundClientId] = useState<string | null>(null);
+  const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
+  const [loyaltyStatus, setLoyaltyStatus] = useState<LoyaltyStatus | null>(null);
+  const [recentVisits, setRecentVisits] = useState<RecentVisit[]>([]);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleClientFound = (clientId: string) => {
     setFoundClientId(clientId);
     setScanError(null);
-    setSuccessMessage('Client found successfully!');
-    setTimeout(() => setSuccessMessage(null), 3000);
+    setViewMode('client-overview');
   };
 
   const handleScanError = (error: string) => {
@@ -35,11 +78,73 @@ export default function BarberScannerPage() {
 
   const handleReset = () => {
     setFoundClientId(null);
+    setClientInfo(null);
+    setLoyaltyStatus(null);
+    setRecentVisits([]);
     setScanError(null);
     setSuccessMessage(null);
     setIsScanning(false);
-    setPageMode('scanner');
+    setIsLoadingClient(false);
+    setViewMode('scanner');
   };
+
+  const handleVisitSuccess = () => {
+    setViewMode('client-overview');
+    // Refresh client data
+    if (foundClientId) {
+      fetchClientData(foundClientId);
+    }
+  };
+
+  // Fetch comprehensive client data
+  const fetchClientData = async (clientId: string) => {
+    try {
+      setIsLoadingClient(true);
+      setScanError(null);
+      
+      const [clientResponse, loyaltyResponse, visitsResponse] = await Promise.all([
+        fetch(`/api/clients/${clientId}`),
+        fetch(`/api/loyalty/${clientId}`),
+        fetch(`/api/clients/${clientId}/visits?limit=3`)
+      ]);
+      
+      if (!clientResponse.ok) {
+        throw new Error('Failed to fetch client information');
+      }
+      
+      const clientData = await clientResponse.json();
+      setClientInfo(clientData);
+
+      // Fetch loyalty status
+      if (loyaltyResponse.ok) {
+        const loyaltyData = await loyaltyResponse.json();
+        if (loyaltyData.success) {
+          setLoyaltyStatus(loyaltyData.loyaltyStatus);
+        }
+      }
+
+      // Fetch recent visits
+      if (visitsResponse.ok) {
+        const visitsData = await visitsResponse.json();
+        setRecentVisits(visitsData.visits || []);
+      }
+
+    } catch (err) {
+      console.error('Error fetching client info:', err);
+      setScanError('Failed to load client information');
+      setFoundClientId(null);
+      setViewMode('scanner');
+    } finally {
+      setIsLoadingClient(false);
+    }
+  };
+
+  // Fetch client information when clientId is found
+  useEffect(() => {
+    if (foundClientId) {
+      fetchClientData(foundClientId);
+    }
+  }, [foundClientId]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -122,6 +227,29 @@ export default function BarberScannerPage() {
     }
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Never';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const getLoyaltyStatusBadge = (status: string) => {
+    const badges = {
+      'new': { color: 'bg-blue-100 text-black', icon: FaUser, text: 'New Member' },
+      'active': { color: 'bg-green-100 text-black', icon: FaCut, text: 'Active Member' },
+      'milestone_reached': { color: 'bg-purple-100 text-black', icon: FaCrown, text: 'VIP Member' },
+      'inactive': { color: 'bg-gray-100 text-black', icon: FaUser, text: 'Inactive' }
+    };
+    return badges[status as keyof typeof badges] || badges.new;
+  };
+
   const ScanModeButton = ({ mode, icon: Icon, title, description, active }: {
     mode: ScanMode;
     icon: any;
@@ -131,114 +259,450 @@ export default function BarberScannerPage() {
   }) => (
     <button
       onClick={() => setScanMode(mode)}
-      className={`w-full p-4 rounded-xl border-2 transition-all duration-200 ${
+      className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 ${
         active 
-          ? 'border-black bg-black text-white shadow-lg' 
-          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-md'
+          ? 'bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg scale-105' 
+          : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-102'
       }`}
     >
-      <div className="flex flex-col items-center text-center">
-        <Icon className={`h-8 w-8 mb-3 ${active ? 'text-white' : 'text-gray-600'}`} />
-        <h3 className={`font-semibold mb-1 ${active ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-        <p className={`text-sm ${active ? 'text-gray-200' : 'text-gray-500'}`}>{description}</p>
+      <div className="relative z-10">
+        <Icon className={`h-8 w-8 mb-4 mx-auto ${active ? 'text-white' : 'text-blue-600'}`} />
+        <h3 className={`font-bold text-lg mb-2 ${active ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+        <p className={`text-sm ${active ? 'text-blue-100' : 'text-gray-600'}`}>{description}</p>
       </div>
+      {active && (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-2xl"></div>
+      )}
     </button>
   );
 
-  // If client is found, show actions
-  if (foundClientId) {
+  // Scanner View
+  if (viewMode === 'scanner') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {pageMode === 'visit' ? 'Record Visit' : 
-               pageMode === 'rewards' ? 'Client Rewards' : 'Client Found'}
-            </h1>
-            <button
-              onClick={handleReset}
-              className="p-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-colors"
-            >
-              <FaTimes className="h-5 w-5" />
-            </button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 rounded-full mb-6 shadow-lg">
+              <FaQrcode className="h-10 w-10 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Client Scanner</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Scan QR codes, upload images, or search manually to find clients and manage their visits
+            </p>
           </div>
 
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-              <FaCheckCircle className="h-5 w-5 text-green-600 mr-3" />
-              <span className="text-green-800">{successMessage}</span>
+          {/* Scan Error */}
+          {scanError && (
+            <div className="mb-8 max-w-2xl mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start">
+                <FaExclamationCircle className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-red-800 mb-1">Scan Error</h4>
+                  <p className="text-red-700">{scanError}</p>
+                </div>
+              </div>
             </div>
           )}
 
-          {pageMode === 'scanner' && (
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={() => setPageMode('visit')}
-                className="p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center">
-                  <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <FaPlus className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Record New Visit</h3>
-                    <p className="text-gray-600">Add services and record a visit for this client</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setPageMode('rewards')}
-                className="p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center">
-                  <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                    <FaUser className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900">View Rewards</h3>
-                    <p className="text-gray-600">Check loyalty status and redeem rewards</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          )}
-
-          <div className="mb-6">
-            <ClientInfoCard clientId={foundClientId} />
+          {/* Scan Mode Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <ScanModeButton
+              mode="camera"
+              icon={FaCamera}
+              title="Live Camera"
+              description="Real-time QR code scanning with device camera"
+              active={scanMode === 'camera'}
+            />
+            <ScanModeButton
+              mode="upload"
+              icon={FaUpload}
+              title="Upload Image"
+              description="Upload an image containing a QR code"
+              active={scanMode === 'upload'}
+            />
+            <ScanModeButton
+              mode="manual"
+              icon={FaSearch}
+              title="Manual Search"
+              description="Search clients by name, phone, or ID"
+              active={scanMode === 'manual'}
+            />
           </div>
 
-          {pageMode === 'visit' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <VisitRecordingForm
-                clientInfo={{
-                  id: foundClientId,
-                  name: '',
-                  email: '',
-                  phoneNumber: '',
-                  loyaltyPoints: 0,
-                  totalVisits: 0,
-                  lastVisit: null,
-                  qrCode: ''
-                }}
-                onSuccess={() => {
-                  setSuccessMessage('Visit recorded successfully!');
-                  setTimeout(() => handleReset(), 2000);
-                }}
-                onCancel={() => setPageMode('scanner')}
-              />
-            </div>
-          )}
+          {/* Scan Interface */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+              {scanMode === 'camera' && (
+                <div className="p-8">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                      <FaCamera className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Camera Scanner</h3>
+                    <p className="text-gray-600">Position the client's QR code within the camera frame below</p>
+                  </div>
+                  <QRCodeScanner
+                    onScanSuccess={(data) => {
+                      const parsedData = parseQRCodeData(data);
+                      if (parsedData && parsedData.id && parsedData.type === 'barbaros-client') {
+                        handleClientFound(parsedData.id);
+                      } else {
+                        if (/^[0-9a-fA-F]{24}$/.test(data) || /^C[A-Za-z0-9]{8}$/.test(data)) {
+                          handleClientFound(data);
+                        } else {
+                          handleScanError('Invalid QR code format. Please scan a valid client QR code.');
+                        }
+                      }
+                    }}
+                    onScanError={handleScanError}
+                  />
+                </div>
+              )}
 
-          {pageMode === 'rewards' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <RewardRedemptionInterface 
-                clientId={foundClientId}
-                onRedemption={() => {
-                  setSuccessMessage('Reward redeemed successfully!');
-                  setTimeout(() => setPageMode('scanner'), 2000);
-                }}
-              />
+              {scanMode === 'upload' && (
+                <div className="p-8">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                      <FaUpload className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload QR Code Image</h3>
+                    <p className="text-gray-600">Select an image file containing a QR code to scan</p>
+                  </div>
+                  
+                  <div className="max-w-md mx-auto">
+                    <label className="group flex flex-col items-center justify-center w-full h-48 border-3 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {isScanning ? (
+                          <>
+                            <FaSpinner className="h-8 w-8 text-blue-600 animate-spin mb-3" />
+                            <p className="text-blue-600 font-medium">Scanning image...</p>
+                          </>
+                        ) : (
+                          <>
+                            <FaUpload className="h-10 w-10 text-gray-400 mb-4 group-hover:text-gray-500 transition-colors" />
+                            <p className="text-lg font-medium text-gray-700 mb-2">
+                              <span className="text-blue-600">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-sm text-gray-500">PNG, JPG, JPEG (MAX. 10MB)</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isScanning}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {scanMode === 'manual' && (
+                <div className="p-8">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                      <FaSearch className="h-8 w-8 text-green-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Manual Client Search</h3>
+                    <p className="text-gray-600">Search for clients by name, phone number, or client ID</p>
+                  </div>
+                  <ClientLookup
+                    onClientFound={(clientId) => {
+                      handleClientFound(clientId);
+                    }}
+                    onError={handleScanError}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Client Overview (after finding client)
+  if (viewMode === 'client-overview') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleReset}
+                className="p-3 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 hover:shadow-md transition-all"
+              >
+                <FaTimes className="h-5 w-5" />
+              </button>
+              {clientInfo && (
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {clientInfo.firstName} {clientInfo.lastName}
+                  </h1>
+                  <p className="text-gray-600">Client Overview & Actions</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isLoadingClient ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <FaSpinner className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
+                <p className="text-xl text-gray-600">Loading client information...</p>
+              </div>
+            </div>
+          ) : clientInfo ? (
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+              {/* Client Info Card */}
+              <div className="xl:col-span-2 space-y-6">
+                {/* Main Client Info */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-700 p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                          <FaUser className="h-8 w-8 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-white">{clientInfo.firstName} {clientInfo.lastName}</h2>
+                          <p className="text-blue-100">{clientInfo.email}</p>
+                          {clientInfo.phoneNumber && (
+                            <p className="text-blue-100">{clientInfo.phoneNumber}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {(() => {
+                          const badge = getLoyaltyStatusBadge(clientInfo.loyaltyStatus);
+                          const Icon = badge.icon;
+                          return (
+                            <div className="bg-white bg-opacity-20 rounded-full px-4 py-2 flex items-center space-x-2">
+                              <Icon className="h-4 w-4" />
+                              <span className="font-medium">{badge.text}</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <FaCut className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-gray-900">{clientInfo.visitCount}</p>
+                        <p className="text-sm text-gray-600">Total Visits</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <FaGift className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-gray-900">{clientInfo.rewardsEarned}</p>
+                        <p className="text-sm text-gray-600">Rewards Earned</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <FaCheckCircle className="h-6 w-6 text-green-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-gray-900">{clientInfo.rewardsRedeemed}</p>
+                        <p className="text-sm text-gray-600">Redeemed</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <FaCalendarAlt className="h-6 w-6 text-yellow-600" />
+                        </div>
+                        <p className="text-sm font-bold text-gray-900">{formatDate(clientInfo.lastVisit)}</p>
+                        <p className="text-sm text-gray-600">Last Visit</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Loyalty Progress */}
+                {loyaltyStatus && (
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-900">Loyalty Progress</h3>
+                      <div className="text-sm text-gray-600">
+                        {loyaltyStatus.currentProgressVisits} / {loyaltyStatus.selectedReward?.visitsRequired || 'No goal'} visits
+                      </div>
+                    </div>
+                    
+                    {loyaltyStatus.selectedReward ? (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-gray-700">Progress to next reward</span>
+                          <span className="text-sm font-medium text-blue-600">
+                            {Math.round(loyaltyStatus.progressPercentage)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                          <div 
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
+                            style={{ width: `${Math.min(loyaltyStatus.progressPercentage, 100)}%` }}
+                          ></div>
+                        </div>
+                        <div className="bg-purple-50 rounded-xl p-4">
+                          <h4 className="font-semibold text-purple-900 mb-1">Next Reward: {loyaltyStatus.selectedReward.name}</h4>
+                          <p className="text-purple-700 text-sm">{loyaltyStatus.selectedReward.description}</p>
+                          {loyaltyStatus.visitsToNextReward > 0 && (
+                            <p className="text-purple-600 text-sm mt-2 font-medium">
+                              {loyaltyStatus.visitsToNextReward} more visit{loyaltyStatus.visitsToNextReward > 1 ? 's' : ''} needed
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <FaGift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600">No reward goal selected</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Recent Visits */}
+                {recentVisits.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-900">Recent Visits</h3>
+                      <button
+                        onClick={() => setViewMode('history')}
+                        className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center space-x-1"
+                      >
+                        <span>View All</span>
+                        <FaArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      {recentVisits.map((visit) => (
+                        <div key={visit._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <FaCut className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{visit.services.map(s => s.name).join(', ')}</p>
+                              <p className="text-sm text-gray-600">by {visit.barber} • {formatDate(visit.visitDate)}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-gray-900">${visit.totalPrice}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Panel */}
+              <div className="space-y-6">
+                {/* Quick Actions */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => setViewMode('visit-recording')}
+                      className="w-full group bg-gradient-to-r from-blue-600 to-purple-700 text-white p-4 rounded-xl hover:from-blue-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <FaPlus className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold">Record New Visit</p>
+                            <p className="text-sm text-blue-100">Add services and complete visit</p>
+                          </div>
+                        </div>
+                        <FaArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setViewMode('rewards')}
+                      className="w-full group bg-white border-2 border-purple-200 text-gray-700 p-4 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                            <FaGift className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold">Manage Rewards</p>
+                            <p className="text-sm text-gray-600">Redeem available rewards</p>
+                          </div>
+                        </div>
+                        <FaArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setViewMode('history')}
+                      className="w-full group bg-white border-2 border-gray-200 text-gray-700 p-4 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                            <FaHistory className="h-5 w-5 text-gray-600" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold">Visit History</p>
+                            <p className="text-sm text-gray-600">View all past visits</p>
+                          </div>
+                        </div>
+                        <FaArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Available Rewards */}
+                {loyaltyStatus && loyaltyStatus.eligibleRewards.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Available Rewards</h3>
+                    <div className="space-y-3">
+                      {loyaltyStatus.eligibleRewards.slice(0, 3).map((reward: any, index: number) => (
+                        <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+                          <div className="flex items-center space-x-2">
+                            <FaGift className="h-4 w-4 text-yellow-600" />
+                            <p className="font-semibold text-yellow-800 text-sm">{reward.name}</p>
+                          </div>
+                          <p className="text-yellow-700 text-xs mt-1">{reward.description}</p>
+                        </div>
+                      ))}
+                      {loyaltyStatus.eligibleRewards.length > 3 && (
+                        <button
+                          onClick={() => setViewMode('rewards')}
+                          className="w-full text-center text-blue-600 hover:text-blue-700 font-medium text-sm py-2"
+                        >
+                          View {loyaltyStatus.eligibleRewards.length - 3} more rewards
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <FaExclamationCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Client Not Found</h2>
+              <p className="text-gray-600 mb-6">Unable to load client information</p>
+              <button
+                onClick={handleReset}
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                Back to Scanner
+              </button>
             </div>
           )}
         </div>
@@ -246,127 +710,135 @@ export default function BarberScannerPage() {
     );
   }
 
-  // Main scanner interface
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Scanner</h1>
-          <p className="text-gray-600">Scan QR codes, upload images, or search manually to find clients</p>
-        </div>
-
-        {scanError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-            <FaExclamationCircle className="h-5 w-5 text-red-600 mr-3 flex-shrink-0" />
-            <div>
-              <p className="text-red-800">{scanError}</p>
+  // Visit Recording View
+  if (viewMode === 'visit-recording' && clientInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setViewMode('client-overview')}
+                className="p-3 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 hover:shadow-md transition-all"
+              >
+                <FaTimes className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Record New Visit</h1>
+                <p className="text-gray-600">{clientInfo.firstName} {clientInfo.lastName}</p>
+              </div>
             </div>
           </div>
-        )}
-
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <ScanModeButton
-            mode="camera"
-            icon={FaCamera}
-            title="Camera Scan"
-            description="Use your device camera to scan QR codes in real-time"
-            active={scanMode === 'camera'}
+          <VisitRecordingForm
+            clientInfo={clientInfo}
+            onVisitCreated={handleVisitSuccess}
+            onCancel={() => setViewMode('client-overview')}
           />
-          <ScanModeButton
-            mode="upload"
-            icon={FaUpload}
-            title="Upload Image"
-            description="Upload an image containing a QR code"
-            active={scanMode === 'upload'}
-          />
-          <ScanModeButton
-            mode="manual"
-            icon={FaSearch}
-            title="Manual Search"
-            description="Search for clients by name, phone, or ID"
-            active={scanMode === 'manual'}
-          />
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {scanMode === 'camera' && (
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <FaQrcode className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Camera Scanner</h3>
-                <p className="text-gray-600">Position the client's QR code within the camera frame</p>
-              </div>
-              <QRCodeScanner
-                onScanSuccess={(data) => {
-                  const parsedData = parseQRCodeData(data);
-                  if (parsedData && parsedData.id && parsedData.type === 'barbaros-client') {
-                    handleClientFound(parsedData.id);
-                  } else {
-                    if (/^[0-9a-fA-F]{24}$/.test(data) || /^C[A-Za-z0-9]{8}$/.test(data)) {
-                      handleClientFound(data);
-                    } else {
-                      handleScanError('Invalid QR code format. Please scan a valid client QR code.');
-                    }
-                  }
-                }}
-                onScanError={handleScanError}
-              />
-            </div>
-          )}
-
-          {scanMode === 'upload' && (
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <FaUpload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload QR Code Image</h3>
-                <p className="text-gray-600">Select an image file containing a QR code to scan</p>
-              </div>
-              
-              <div className="max-w-md mx-auto">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <FaUpload className="h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, JPEG (MAX. 10MB)</p>
-                  </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={isScanning}
-                  />
-                </label>
-                
-                {isScanning && (
-                  <div className="mt-4 text-center">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
-                    <p className="text-sm text-gray-600 mt-2">Scanning image for QR code...</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {scanMode === 'manual' && (
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <FaSearch className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Manual Client Search</h3>
-                <p className="text-gray-600">Search for clients by name, phone number, or client ID</p>
-              </div>
-              <ClientLookup
-                onClientSelect={(client) => {
-                  handleClientFound(client.id);
-                }}
-                onError={handleScanError}
-              />
-            </div>
-          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Rewards View
+  if (viewMode === 'rewards' && foundClientId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setViewMode('client-overview')}
+                className="p-3 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 hover:shadow-md transition-all"
+              >
+                <FaTimes className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Rewards & Loyalty</h1>
+                <p className="text-gray-600">{clientInfo?.firstName} {clientInfo?.lastName}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <RewardRedemptionInterface
+              clientId={foundClientId}
+              barberName="Current Barber" // TODO: Get from session
+              onRedemptionComplete={() => {
+                setViewMode('client-overview');
+                if (foundClientId) {
+                  fetchClientData(foundClientId);
+                }
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // History View
+  if (viewMode === 'history' && clientInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setViewMode('client-overview')}
+                className="p-3 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 hover:shadow-md transition-all"
+              >
+                <FaTimes className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Visit History</h1>
+                <p className="text-gray-600">{clientInfo.firstName} {clientInfo.lastName}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            {recentVisits.length > 0 ? (
+              <div className="space-y-4">
+                {recentVisits.map((visit, index) => (
+                  <div key={visit._id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-bold">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{formatDate(visit.visitDate)}</h3>
+                          <p className="text-sm text-gray-600">by {visit.barber}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900">${visit.totalPrice}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-700">Services:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {visit.services.map((service, serviceIndex) => (
+                          <div key={serviceIndex} className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                            <span className="text-gray-900">{service.name}</span>
+                            <span className="font-medium text-gray-700">${service.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FaHistory className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Visit History</h3>
+                <p className="text-gray-600">This client hasn't had any visits yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
