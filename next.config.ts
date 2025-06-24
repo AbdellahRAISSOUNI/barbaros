@@ -3,10 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  env: {
-    MONGODB_URI: process.env.MONGODB_URI,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  distDir: '.next',
+  experimental: {
+    // Disable features that might cause issues
+    typedRoutes: false,
+    // Enable modern features
+    serverActions: {
+      bodySizeLimit: '2mb'
+    },
   },
   eslint: {
     // Completely disable ESLint during builds
@@ -16,10 +20,26 @@ const nextConfig: NextConfig = {
     // Completely disable TypeScript type checking during builds
     ignoreBuildErrors: true,
   },
-  // Additional experimental features for deployment
-  experimental: {
-    // Disable build-time type checking
-    typedRoutes: false,
+  // Configure image optimization
+  images: {
+    unoptimized: process.env.NODE_ENV === 'development',
+  },
+  // Ensure environment variables are available
+  env: {
+    MONGODB_URI: process.env.MONGODB_URI,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  },
+  // Disable powered by header
+  poweredByHeader: false,
+  // Configure server components
+  compiler: {
+    // Disable React server components trace
+    reactRemoveProperties: true,
+  },
+  // Configure build
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
   },
 };
 

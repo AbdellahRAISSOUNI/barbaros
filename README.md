@@ -72,27 +72,27 @@ src/
 ## 💻 Local Development
 
 1. **Clone the repository**:
-   ```bash
+```bash
    git clone https://github.com/your-username/barbaros-app.git
-   cd barbaros-app
-   ```
+cd barbaros-app
+```
 
 2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 3. **Set up environment variables**:
-   ```bash
+```bash
    # Copy and configure environment variables
    cp .env.example .env.local
    # Edit .env.local with your values
-   ```
+```
 
 4. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
 5. **Open your browser**:
    Navigate to [http://localhost:3000](http://localhost:3000)
