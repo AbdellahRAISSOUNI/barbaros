@@ -86,8 +86,8 @@ export function CollapsibleSidebar({
     
     return (
       <div className="flex flex-col h-full">
-        {/* Main Navigation Items */}
-        <div className={`flex-1 ${mobile ? 'px-4' : isCollapsed ? 'px-2' : 'px-4'} space-y-0.5`}>
+        {/* Main Navigation Items - Remove flex-1 to prevent unnecessary expansion */}
+        <div className={`${mobile ? 'px-4' : isCollapsed ? 'px-2' : 'px-4'} space-y-0.5`}>
           {allItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.href, item.exactMatch);
@@ -162,6 +162,13 @@ export function CollapsibleSidebar({
             );
           })}
         </div>
+        
+        {/* Responsive spacer based on number of navigation items */}
+        <div className={`${
+          allItems.length <= 7 ? 'flex-shrink-0 h-8' : // Small gap for client/barber (7 items or less)
+          allItems.length <= 10 ? 'flex-shrink-0 h-6' : // Medium gap for moderate lists
+          'flex-shrink-0 h-4' // Minimal gap for admin (12+ items)
+        }`}></div>
         
         {/* Logout Button at Bottom */}
         <div className={`${mobile ? 'px-4 pb-8' : isCollapsed ? 'px-2 pb-4' : 'px-4 pb-6'} border-t border-gray-100 pt-4`}>
