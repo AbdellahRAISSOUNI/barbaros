@@ -8,10 +8,11 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const category = await getServiceCategoryById(params.id);
+    const { id } = await params;
+    const category = await getServiceCategoryById(id);
     
     if (!category) {
       return NextResponse.json(
@@ -35,9 +36,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, description, displayOrder, isActive } = body;
 
@@ -55,7 +57,7 @@ export async function PUT(
       isActive
     };
 
-    const category = await updateServiceCategory(params.id, updateData);
+    const category = await updateServiceCategory(id, updateData);
     
     if (!category) {
       return NextResponse.json(
@@ -88,10 +90,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await deleteServiceCategory(params.id);
+    const { id } = await params;
+    await deleteServiceCategory(id);
     return NextResponse.json({
       success: true,
       message: 'Service category deleted successfully'
@@ -107,14 +110,15 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
 
     if (action === 'toggle-status') {
-      const category = await toggleServiceCategoryStatus(params.id);
+      const category = await toggleServiceCategoryStatus(id);
       return NextResponse.json({
         success: true,
         message: 'Category status updated successfully',

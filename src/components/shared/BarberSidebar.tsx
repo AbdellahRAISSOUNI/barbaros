@@ -14,18 +14,18 @@ import {
 export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (collapsed: boolean) => void }) {
   const sections = [
     {
-      title: 'Dashboard',
+      title: 'Navigation',
       items: [
         {
           href: '/barber',
           icon: FaChartLine,
-          label: 'Overview',
+          label: 'Dashboard',
           exactMatch: true
         },
         {
           href: '/barber/scanner',
           icon: FaQrcode,
-          label: 'QR Scanner'
+          label: 'Scanner'
         },
         {
           href: '/barber/visits',
@@ -35,17 +35,7 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
         {
           href: '/barber/history',
           icon: FaHistory,
-          label: 'Work History'
-        }
-      ]
-    },
-    {
-      title: 'Profile',
-      items: [
-        {
-          href: '/barber/profile',
-          icon: FaUser,
-          label: 'My Profile'
+          label: 'History'
         },
         {
           href: '/barber/achievements',
@@ -56,6 +46,11 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
           href: '/barber/leaderboard',
           icon: FaMedal,
           label: 'Leaderboard'
+        },
+        {
+          href: '/barber/profile',
+          icon: FaUser,
+          label: 'Profile'
         }
       ]
     }

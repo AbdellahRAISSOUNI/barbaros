@@ -5,12 +5,13 @@ import { Reservation } from '@/lib/db/models';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    const reservation = await Reservation.findById(params.id)
+    const reservation = await Reservation.findById(id)
       .populate('clientId', 'firstName lastName email phoneNumber')
       .populate('contactedBy', 'name email');
     
@@ -33,10 +34,11 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
     const session = await getServerSession();
     if (!session || !session.user) {
@@ -49,7 +51,7 @@ export async function PATCH(
     const body = await request.json();
     const { status, isRead, adminNotes, action } = body;
     
-    const reservation = await Reservation.findById(params.id);
+    const reservation = await Reservation.findById(id);
     if (!reservation) {
       return NextResponse.json(
         { error: 'Reservation not found' },
@@ -75,7 +77,7 @@ export async function PATCH(
       // If marking as contacted, track who contacted and when
       if (status === 'contacted') {
         reservation.contactedAt = new Date();
-        reservation.contactedBy = session.user.id;
+        reservation.contactedBy = (session.user as any).id;
       }
     } else {
       // General update
@@ -115,10 +117,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
     const session = await getServerSession();
     if (!session || !session.user) {
@@ -128,7 +131,7 @@ export async function DELETE(
       );
     }
     
-    const reservation = await Reservation.findByIdAndDelete(params.id);
+    const reservation = await Reservation.findByIdAndDelete(id);
     if (!reservation) {
       return NextResponse.json(
         { error: 'Reservation not found' },

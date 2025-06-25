@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 export interface IClient extends Document {
   clientId: string;
@@ -19,7 +19,7 @@ export interface IClient extends Document {
   qrCodeUrl?: string;
   lastVisit?: Date;
   // Loyalty Program Fields
-  selectedReward?: string; // ID of the reward they're working towards
+  selectedReward?: mongoose.Types.ObjectId; // ID of the reward they're working towards
   selectedRewardStartVisits?: number; // Visit count when they selected this reward
   totalLifetimeVisits: number; // Total visits ever (doesn't reset)
   currentProgressVisits: number; // Visits since last reward redemption

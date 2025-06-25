@@ -11,13 +11,15 @@ import {
   FaUserTie,
   FaTrophy,
   FaMedal,
-  FaCalendarCheck
+  FaCalendarCheck,
+  FaHistory,
+  FaFileAlt
 } from 'react-icons/fa';
 
 export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (collapsed: boolean) => void }) {
   const sections = [
     {
-      title: 'Management',
+      title: 'Navigation',
       items: [
         {
           href: '/admin',
@@ -26,59 +28,59 @@ export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (colla
           exactMatch: true
         },
         {
-          href: '/admin/reservations',
-          icon: FaCalendarCheck,
-          label: 'Reservations'
+          href: '/admin/scanner',
+          icon: FaQrcode,
+          label: 'QR Scanner'
         },
         {
           href: '/admin/clients',
           icon: FaUsers,
-          label: 'Clients'
+          label: 'Client Management'
         },
         {
           href: '/admin/barbers',
           icon: FaUserTie,
-          label: 'Barbers'
+          label: 'Barber Management'
+        },
+        {
+          href: '/admin/reservations',
+          icon: FaCalendarCheck,
+          label: 'Booking System'
         },
         {
           href: '/admin/services',
           icon: FaCut,
-          label: 'Services'
+          label: 'Service Management'
         },
         {
           href: '/admin/rewards',
           icon: FaGift,
-          label: 'Rewards'
+          label: 'Loyalty Rewards'
         },
         {
           href: '/admin/achievements',
           icon: FaTrophy,
-          label: 'Achievements'
+          label: 'Achievement System'
         },
         {
           href: '/admin/leaderboard',
           icon: FaMedal,
-          label: 'Leaderboard'
+          label: 'Performance Board'
         },
         {
-          href: '/admin/scanner',
-          icon: FaQrcode,
-          label: 'Scanner'
+          href: '/admin/history',
+          icon: FaHistory,
+          label: 'Visit Records'
         },
         {
           href: '/admin/reports',
-          icon: FaChartLine,
-          label: 'Reports'
-        }
-      ]
-    },
-    {
-      title: 'Settings',
-      items: [
+          icon: FaFileAlt,
+          label: 'Analytics & Reports'
+        },
         {
           href: '/admin/settings',
           icon: FaCog,
-          label: 'Settings'
+          label: 'System Settings'
         }
       ]
     }

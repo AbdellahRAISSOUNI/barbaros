@@ -14,7 +14,7 @@ import {
 export function ClientSidebar({ onCollapsedChange }: { onCollapsedChange?: (collapsed: boolean) => void }) {
   const sections = [
     {
-      title: 'Client Services',
+      title: 'Navigation',
       items: [
         {
           href: '/client',
@@ -25,33 +25,28 @@ export function ClientSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
         {
           href: '/client/reservations',
           icon: FaCalendarAlt,
-          label: 'My Reservations'
+          label: 'Reservations'
         },
         {
           href: '/client/reservations/new',
           icon: FaCalendarPlus,
-          label: 'New Reservation'
-        },
-        {
-          href: '/client/history',
-          icon: FaHistory,
-          label: 'Visit History'
+          label: 'New Booking'
         },
         {
           href: '/client/qrcode',
           icon: FaQrcode,
-          label: 'My QR Code'
+          label: 'QR Code'
+        },
+        {
+          href: '/client/history',
+          icon: FaHistory,
+          label: 'History'
         },
         {
           href: '/client/rewards',
           icon: FaGift,
           label: 'Rewards'
-        }
-      ]
-    },
-    {
-      title: 'Account',
-      items: [
+        },
         {
           href: '/client/profile',
           icon: FaUser,

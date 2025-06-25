@@ -77,176 +77,211 @@ export function CollapsibleSidebar({
     setIsMobileMenuOpen(false);
   };
   
-  const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
-    <>
-      {sections.map((section, sectionIndex) => (
-        <div key={section.title} className={`px-2 lg:px-4 py-2 ${sectionIndex > 0 ? 'mt-8' : ''}`}>
-          <p className={`text-xs uppercase tracking-wider text-gray-500 transition-all duration-300 ${
-            isCollapsed && !mobile ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'
-          }`}>
-            {section.title}
-          </p>
-          <div className={`space-y-1 transition-all duration-300 ${
-            isCollapsed && !mobile ? 'mt-2' : 'mt-3'
-          }`}>
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href, item.exactMatch);
-              
-              return (
-                <Link 
-                  key={item.href}
-                  href={item.href}
-                  className={`group relative flex items-center rounded-xl transition-all duration-200 ${
-                    isCollapsed && !mobile 
-                      ? 'px-3 py-3 justify-center' 
-                      : 'px-4 py-3'
-                  } ${
-                    active
-                      ? 'bg-gradient-to-r from-black to-gray-800 text-white shadow-lg' 
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                  onClick={closeMobileMenu}
-                  title={isCollapsed && !mobile ? item.label : undefined}
-                >
-                  <Icon className={`transition-all duration-200 flex-shrink-0 ${
-                    isCollapsed && !mobile 
-                      ? 'text-xl' 
-                      : 'mr-3 text-lg'
-                  } ${
-                    active ? 'text-white' : 'text-gray-600 group-hover:text-gray-900'
-                  }`} />
-                  
-                  <span className={`font-medium transition-all duration-300 ${
-                    isCollapsed && !mobile 
-                      ? 'opacity-0 w-0 overflow-hidden' 
-                      : 'opacity-100'
-                  }`}>
+  const NavItems = ({ mobile = false }: { mobile?: boolean }) => {
+    // Flatten all items for better organization and eliminate scrolling
+    const allItems = sections.flatMap(section => section.items);
+    
+    // Define priority items that should have enhanced visual treatment based on the first few items
+    const priorityItems = allItems.slice(0, 4).map(item => item.label);
+    
+    return (
+      <div className="flex flex-col h-full">
+        {/* Main Navigation Items */}
+        <div className={`flex-1 ${mobile ? 'px-4' : isCollapsed ? 'px-2' : 'px-4'} space-y-0.5`}>
+          {allItems.map((item, index) => {
+            const Icon = item.icon;
+            const active = isActive(item.href, item.exactMatch);
+            const isPriority = priorityItems.includes(item.label);
+            
+            return (
+              <Link 
+                key={item.href}
+                href={item.href}
+                className={`group relative flex items-center transition-all duration-200 rounded-xl ${
+                  isCollapsed && !mobile 
+                    ? 'p-3 justify-center mx-1' 
+                    : mobile 
+                      ? 'px-4 py-3.5'
+                      : 'px-3 py-2.5'
+                } ${
+                  active
+                    ? isPriority
+                      ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-lg ring-1 ring-gray-900/20' 
+                      : 'bg-gray-900 text-white shadow-sm ring-1 ring-gray-900/10'
+                    : isPriority
+                      ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-150 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100'
+                }`}
+                onClick={closeMobileMenu}
+                title={isCollapsed && !mobile ? item.label : undefined}
+              >
+                <Icon className={`transition-all duration-200 flex-shrink-0 ${
+                  isCollapsed && !mobile 
+                    ? 'text-lg' 
+                    : mobile
+                      ? 'mr-4 text-lg'
+                      : 'mr-3 text-base'
+                } ${
+                  active 
+                    ? 'text-white' 
+                    : isPriority
+                      ? 'text-gray-600 group-hover:text-gray-800'
+                      : 'text-gray-500 group-hover:text-gray-700'
+                }`} />
+                
+                <span className={`font-medium transition-all duration-300 ${
+                  mobile ? 'text-sm' : 'text-sm'
+                } ${
+                  isPriority && !active ? 'font-semibold' : 'font-medium'
+                } ${
+                  isCollapsed && !mobile 
+                    ? 'opacity-0 w-0 overflow-hidden' 
+                    : 'opacity-100'
+                }`}>
+                  {item.label}
+                </span>
+                
+                {/* Priority indicator for important functions */}
+                {isPriority && !active && mobile && (
+                  <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full opacity-60"></div>
+                )}
+                
+                {/* Active indicator for mobile */}
+                {active && mobile && (
+                  <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full"></div>
+                )}
+                
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && !mobile && (
+                  <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
                     {item.label}
-                  </span>
-                  
-                  {/* Tooltip for collapsed state */}
-                  {isCollapsed && !mobile && (
-                    <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
-                      {item.label}
-                      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-900"></div>
-                    </div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+                    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-900"></div>
+                  </div>
+                )}
+              </Link>
+            );
+          })}
         </div>
-      ))}
-      
-      {/* Logout Button */}
-      <div className={`px-2 lg:px-4 py-2 mt-8 border-t border-gray-200 ${
-        isCollapsed && !mobile ? 'pt-4' : 'pt-6'
-      }`}>
-        <button 
-          onClick={handleSignOut}
-          className={`group relative w-full flex items-center rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 ${
-            isCollapsed && !mobile 
-              ? 'px-3 py-3 justify-center' 
-              : 'px-4 py-3'
-          }`}
-          title={isCollapsed && !mobile ? 'Logout' : undefined}
-        >
-          <FaSignOutAlt className={`transition-all duration-200 flex-shrink-0 ${
-            isCollapsed && !mobile 
-              ? 'text-xl' 
-              : 'mr-3 text-lg'
-          } text-gray-600 group-hover:text-red-600`} />
-          
-          <span className={`font-medium transition-all duration-300 ${
-            isCollapsed && !mobile 
-              ? 'opacity-0 w-0 overflow-hidden' 
-              : 'opacity-100'
-          }`}>
-            Logout
-          </span>
-          
-          {/* Tooltip for collapsed state */}
-          {isCollapsed && !mobile && (
-            <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
+        
+        {/* Logout Button at Bottom */}
+        <div className={`${mobile ? 'px-4 pb-8' : isCollapsed ? 'px-2 pb-4' : 'px-4 pb-6'} border-t border-gray-100 pt-4`}>
+          <button 
+            onClick={handleSignOut}
+            className={`group relative w-full flex items-center transition-all duration-200 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 active:bg-red-100 ${
+              isCollapsed && !mobile 
+                ? 'p-3 justify-center mx-1' 
+                : mobile
+                  ? 'px-4 py-3.5'
+                  : 'px-3 py-2.5'
+            }`}
+            title={isCollapsed && !mobile ? 'Logout' : undefined}
+          >
+            <FaSignOutAlt className={`transition-all duration-200 flex-shrink-0 ${
+              isCollapsed && !mobile 
+                ? 'text-lg' 
+                : mobile
+                  ? 'mr-4 text-lg'
+                  : 'mr-3 text-base'
+            } text-gray-500 group-hover:text-red-600`} />
+            
+            <span className={`font-medium text-sm transition-all duration-300 ${
+              isCollapsed && !mobile 
+                ? 'opacity-0 w-0 overflow-hidden' 
+                : 'opacity-100'
+            }`}>
               Logout
-              <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-900"></div>
-            </div>
-          )}
-        </button>
+            </span>
+            
+            {/* Tooltip for collapsed state */}
+            {isCollapsed && !mobile && (
+              <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
+                Logout
+                <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-900"></div>
+              </div>
+            )}
+          </button>
+        </div>
       </div>
-    </>
-  );
+    );
+  };
   
   return (
     <>
       {/* Mobile menu toggle button */}
       <button 
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 w-11 h-11 rounded-xl bg-white shadow-md border border-gray-200 hover:bg-gray-50 hover:shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center"
         onClick={toggleMobileMenu}
         aria-label="Toggle menu"
       >
-        {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+        {isMobileMenuOpen ? (
+          <FaTimes size={18} className="text-gray-700" />
+        ) : (
+          <FaBars size={18} className="text-gray-700" />
+        )}
       </button>
       
-      {/* Mobile sidebar overlay */}
-      <div 
-        className={`lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300 ${
-          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={toggleMobileMenu}
-      />
+      {/* Mobile sidebar overlay - Only show when mobile menu is actually open */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-25 transition-opacity duration-300"
+          onClick={toggleMobileMenu}
+          aria-hidden="true"
+        />
+      )}
       
       {/* Desktop collapse toggle button */}
       <button 
-        className="hidden lg:block fixed top-4 z-30 p-2 rounded-r-xl bg-white shadow-lg border border-l-0 border-gray-200 hover:bg-gray-50 transition-all duration-300"
+        className="hidden lg:flex fixed top-4 z-30 w-9 h-9 rounded-r-xl bg-white shadow-md border border-l-0 border-gray-200 hover:bg-gray-50 hover:shadow-lg active:scale-95 transition-all duration-300 items-center justify-center backdrop-blur-sm"
         style={{ 
-          left: isCollapsed ? '73px' : '249px',
-          transform: 'translateX(0)'
+          left: isCollapsed ? '64px' : '240px'
         }}
         onClick={toggleCollapsed}
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? (
-          <FaChevronRight size={16} className="text-gray-600" />
+          <FaChevronRight size={14} className="text-gray-600" />
         ) : (
-          <FaChevronLeft size={16} className="text-gray-600" />
+          <FaChevronLeft size={14} className="text-gray-600" />
         )}
       </button>
       
       {/* Sidebar */}
       <aside 
-        className={`fixed lg:static inset-y-0 left-0 z-40 bg-white shadow-xl border-r border-gray-200 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 bg-white shadow-sm border-r border-gray-200 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } ${
-          isCollapsed ? 'lg:w-20' : 'lg:w-64'
-        } w-64`}
+          isCollapsed ? 'lg:w-16' : 'lg:w-60'
+        } w-80 sm:w-72`}
       >
-        {/* Header */}
-        <div className={`p-6 border-b border-gray-200 transition-all duration-300 ${
-          isCollapsed ? 'lg:p-4 lg:text-center' : ''
+        {/* Logo/Brand Section - Minimal */}
+        <div className={`h-16 sm:h-14 border-b border-gray-100 flex items-center transition-all duration-300 ${
+          isCollapsed ? 'lg:px-2 lg:justify-center' : 'px-6 lg:px-4'
         }`}>
-          <div className={`transition-all duration-300 ${
-            isCollapsed ? 'lg:opacity-0 lg:h-0 lg:overflow-hidden' : 'opacity-100'
-          }`}>
-            <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-          </div>
-          
-          {/* Collapsed logo */}
-          <div className={`transition-all duration-300 ${
-            isCollapsed ? 'lg:opacity-100 lg:block' : 'lg:opacity-0 lg:hidden'
-          } hidden lg:flex lg:justify-center lg:items-center`}>
-            <div className="w-8 h-8 bg-gradient-to-r from-black to-gray-800 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">{title.charAt(0)}</span>
+          {isCollapsed ? (
+            <div className="hidden lg:flex w-8 h-8 bg-gray-900 rounded-lg items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-sm">{title.charAt(0)}</span>
             </div>
+          ) : (
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shadow-sm">
+                <span className="text-white font-bold text-sm">{title.charAt(0)}</span>
+              </div>
+              <div className="lg:block hidden">
+                <span className="font-semibold text-gray-900 text-sm tracking-tight">{title}</span>
+              </div>
+            </div>
+          )}
+          {/* Mobile always shows full logo */}
+          <div className="lg:hidden flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-sm">{title.charAt(0)}</span>
+            </div>
+            <span className="font-semibold text-gray-900 text-sm tracking-tight">{title}</span>
           </div>
         </div>
         
-        {/* Navigation */}
-        <nav className={`mt-6 pb-24 lg:pb-6 transition-all duration-300 ${
-          isCollapsed ? 'lg:overflow-visible' : 'overflow-y-auto'
-        }`}>
+        {/* Navigation - Non-scrollable, fixed height with better responsiveness */}
+        <nav className="h-[calc(100vh-64px)] sm:h-[calc(100vh-56px)] flex flex-col py-6 sm:py-4 overflow-hidden">
           <NavItems mobile={isMobileMenuOpen} />
         </nav>
       </aside>

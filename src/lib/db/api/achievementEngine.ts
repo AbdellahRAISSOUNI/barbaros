@@ -1,5 +1,6 @@
 import connectToDatabase from '../mongodb';
 import { Achievement, BarberAchievement, Admin, BarberStats, Visit } from '../models';
+import type { MonthlyStats } from '../models/barberStats';
 import mongoose from 'mongoose';
 
 export interface AchievementProgress {
@@ -58,7 +59,7 @@ async function calculateVisitProgress(barberId: string, achievement: any): Promi
   switch (timeframe) {
     case 'monthly':
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const monthStats = barberStats.monthlyStats.find(m => m.month === currentMonth);
+      const monthStats = barberStats.monthlyStats?.find((m: any) => m.month === currentMonth);
       return monthStats?.visitsCount || 0;
     
     case 'weekly':
@@ -103,11 +104,11 @@ async function calculateClientProgress(barberId: string, achievement: any): Prom
   switch (timeframe) {
     case 'monthly':
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const monthStats = barberStats.monthlyStats.find(m => m.month === currentMonth);
+      const monthStats = barberStats.monthlyStats?.find((m: any) => m.month === currentMonth);
       return monthStats?.uniqueClients || 0;
     
     default: // all-time
-      return barberStats.uniqueClientsServed.length;
+      return barberStats.uniqueClientsServed?.length || 0;
   }
 }
 

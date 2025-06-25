@@ -267,6 +267,45 @@ export default function AdminDashboard() {
                 </div>
               </Link>
             </div>
+
+            {/* Additional Quick Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+              <Link href="/admin/history" className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-indigo-300 transition-all duration-200">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white group-hover:from-indigo-600 group-hover:to-indigo-700 transition-all">
+                    <FaDatabase className="text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="font-semibold text-gray-900">Visit History</p>
+                    <p className="text-sm text-gray-600">Complete visit records</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/admin/reports" className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-pink-300 transition-all duration-200">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white group-hover:from-pink-600 group-hover:to-pink-700 transition-all">
+                    <FaChartLine className="text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="font-semibold text-gray-900">Analytics</p>
+                    <p className="text-sm text-gray-600">Business insights</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/admin/achievements" className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white group-hover:from-yellow-600 group-hover:to-yellow-700 transition-all">
+                    <FaBell className="text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="font-semibold text-gray-900">Achievements</p>
+                    <p className="text-sm text-gray-600">Barber rewards</p>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
 
           {/* Quick Analytics Preview */}

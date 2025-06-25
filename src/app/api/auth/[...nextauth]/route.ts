@@ -41,7 +41,7 @@ const client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:2
 const clientPromise = client.connect();
 
 // Auth options
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({

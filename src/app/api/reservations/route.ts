@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Get request metadata
-    const headersList = headers();
+    const headersList = await headers();
     const ipAddress = headersList.get('x-forwarded-for') || 
                      headersList.get('x-real-ip') || 
                      'unknown';
