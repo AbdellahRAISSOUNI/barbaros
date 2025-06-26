@@ -45,11 +45,14 @@ export async function GET(
       );
     }
     
-    return NextResponse.json(client);
+    return NextResponse.json({
+      success: true,
+      client
+    });
   } catch (error: any) {
     console.error('Error fetching client:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch client' },
+      { success: false, message: error.message || 'Failed to fetch client' },
       { status: 500 }
     );
   }

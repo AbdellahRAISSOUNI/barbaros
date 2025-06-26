@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaDownload, FaFileExport, FaDatabase, FaChartBar, FaHistory, FaGift, FaUserShield } from 'react-icons/fa';
+import { FaDownload, FaFileExport, FaDatabase, FaChartBar, FaHistory, FaGift, FaUserShield, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 interface DataExportCenterProps {
@@ -234,184 +234,63 @@ export default function DataExportCenter({ clientId }: DataExportCenterProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
-          <FaFileExport className="w-5 h-5 text-white" />
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Data Export Center</h2>
-          <p className="text-sm text-gray-600">Download your personal data in various formats</p>
+          <h3 className="font-medium text-gray-900">Visit History</h3>
+          <p className="text-sm text-gray-600">Download your complete visit history</p>
         </div>
-      </div>
-
-      {/* Privacy Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-start gap-3">
-          <FaUserShield className="w-5 h-5 text-blue-600 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-blue-900 mb-1">Data Privacy & Rights</h3>
-            <p className="text-sm text-blue-800">
-              You have the right to access, export, and manage your personal data. All exports are generated in real-time 
-              and contain only your personal information. Downloaded files should be stored securely.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Individual Export Options */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Visit History */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <FaHistory className="w-5 h-5 text-blue-600" />
-            <h3 className="font-medium text-gray-900">Visit History</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">Complete record of all your appointments, services, and payments</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportVisitHistory('csv')}
-              disabled={isExporting}
-              className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={() => exportVisitHistory('json')}
-              disabled={isExporting}
-              className="flex-1 px-3 py-2 border border-blue-600 text-blue-600 text-sm rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
-            >
-              Export JSON
-            </button>
-          </div>
-        </div>
-
-        {/* Loyalty Data */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <FaGift className="w-5 h-5 text-purple-600" />
-            <h3 className="font-medium text-gray-900">Loyalty & Rewards</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">Your loyalty status, progress, and reward redemption history</p>
-          <button
-            onClick={exportLoyaltyData}
-            disabled={isExporting}
-            className="w-full px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-          >
-            Export JSON
-          </button>
-        </div>
-
-        {/* Service Analytics */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <FaChartBar className="w-5 h-5 text-green-600" />
-            <h3 className="font-medium text-gray-900">Service Analytics</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">Your service preferences, usage patterns, and spending insights</p>
-          <button
-            onClick={exportServiceAnalytics}
-            disabled={isExporting}
-            className="w-full px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-          >
-            Export JSON
-          </button>
-        </div>
-
-        {/* Profile Data */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <FaDatabase className="w-5 h-5 text-orange-600" />
-            <h3 className="font-medium text-gray-900">Profile Data</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">Your account information, contact details, and preferences</p>
-          <button
-            onClick={exportProfileData}
-            disabled={isExporting}
-            className="w-full px-3 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
-          >
-            Export JSON
-          </button>
-        </div>
-      </div>
-
-      {/* Complete Export Section */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Complete Data Export</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Download all your data in a single file. Choose which data types to include:
-        </p>
-
-        {/* Export Options */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={exportOptions.visits}
-              onChange={() => handleOptionChange('visits')}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Visit History</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={exportOptions.loyalty}
-              onChange={() => handleOptionChange('loyalty')}
-              className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Loyalty Data</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={exportOptions.analytics}
-              onChange={() => handleOptionChange('analytics')}
-              className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Analytics</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={exportOptions.profile}
-              onChange={() => handleOptionChange('profile')}
-              className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Profile Data</span>
-          </label>
-        </div>
-
-        {/* Export All Button */}
         <button
-          onClick={exportAllData}
-          disabled={isExporting || !Object.values(exportOptions).some(Boolean)}
-          className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => exportVisitHistory('csv')}
+          disabled={isExporting}
+          className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
         >
-          <FaDownload className="w-5 h-5" />
-          {isExporting ? 'Exporting...' : 'Export Selected Data'}
+          {isExporting ? (
+            <>
+              <FaSpinner className="h-4 w-4 animate-spin" />
+              <span>Exporting...</span>
+            </>
+          ) : (
+            <>
+              <FaDownload className="h-4 w-4" />
+              <span>Export CSV</span>
+            </>
+          )}
         </button>
-
-        {!Object.values(exportOptions).some(Boolean) && (
-          <p className="text-sm text-gray-500 text-center mt-2">
-            Please select at least one data type to export
-          </p>
-        )}
       </div>
 
-      {/* Export Info */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Export Information</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• CSV files can be opened in Excel or Google Sheets</li>
-          <li>• JSON files contain complete data and can be imported into other systems</li>
-          <li>• All exports include timestamps and are generated in real-time</li>
-          <li>• Your data remains secure and is only downloaded to your device</li>
-        </ul>
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+          <h3 className="font-medium text-gray-900">Loyalty History</h3>
+          <p className="text-sm text-gray-600">Download your loyalty program history</p>
+        </div>
+        <button
+          onClick={() => toast.success('Coming soon!')}
+          className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
+          <FaDownload className="h-4 w-4" />
+          <span>Coming Soon</span>
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+          <h3 className="font-medium text-gray-900">Account Data</h3>
+          <p className="text-sm text-gray-600">Request a copy of all your account data</p>
+        </div>
+        <button
+          onClick={() => toast.success('Coming soon!')}
+          className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
+          <FaDownload className="h-4 w-4" />
+          <span>Coming Soon</span>
+        </button>
+      </div>
+
+      <div className="mt-6 text-sm text-gray-500">
+        <p>• Exports are generated in CSV format for easy viewing in spreadsheet applications</p>
+        <p>• Data exports may take a few moments to generate</p>
+        <p>• All data is encrypted during transfer</p>
       </div>
     </div>
   );
