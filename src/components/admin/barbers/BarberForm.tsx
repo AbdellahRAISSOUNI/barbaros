@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { FaTimes, FaUpload, FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
+import { FaUpload, FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { AdminModal } from '@/components/ui/AdminModal';
 
 interface Barber {
   _id: string;
@@ -176,23 +177,14 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {isEditing ? 'Edit Barber' : 'Add New Barber'}
-          </h2>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <FaTimes size={24} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+    <AdminModal
+      isOpen={true}
+      onClose={onCancel}
+      title={isEditing ? 'Edit Barber' : 'Add New Barber'}
+      maxWidth="2xl"
+    >
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="p-4 sm:p-6">
           <div className="space-y-6">
             
             {/* Profile Picture */}
@@ -216,7 +208,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                           onClick={handleRemoveImage}
                           className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                         >
-                          <FaTimes size={12} />
+                          ×
                         </button>
                       </>
                     ) : (
@@ -258,7 +250,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
               </h3>
               
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   <FaUser className="inline mr-2" />
                   Full Name *
                 </label>
@@ -268,14 +260,14 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="text"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
                   placeholder="Enter full name"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
                   <FaPhone className="inline mr-2" />
                   Phone Number *
                 </label>
@@ -285,14 +277,14 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
                   placeholder="Enter phone number"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   <FaEnvelope className="inline mr-2" />
                   Email Address (optional)
                 </label>
@@ -302,7 +294,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
                   placeholder="Enter email address (optional)"
                 />
               </div>
@@ -376,24 +368,23 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-gradient-to-r from-black to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
+              className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-black to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg text-sm sm:text-base"
             >
               {loading ? 'Saving...' : (isEditing ? 'Update Barber' : 'Create Barber')}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModal>
   );
 } 

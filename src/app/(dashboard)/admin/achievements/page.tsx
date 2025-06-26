@@ -444,20 +444,27 @@ export default function AdminAchievementsPage() {
 
         {/* Achievement Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {editingAchievement ? 'Edit Achievement' : 'Create New Achievement'}
-                  </h2>
-                  <button
-                    onClick={resetForm}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <FaTimes />
-                  </button>
-                </div>
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                resetForm();
+              }
+            }}
+          >
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                  {editingAchievement ? 'Edit Achievement' : 'Create New Achievement'}
+                </h2>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              <div className="p-4 sm:p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Basic Information */}

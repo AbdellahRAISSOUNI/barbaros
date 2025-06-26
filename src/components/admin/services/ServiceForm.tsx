@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { FaTimes, FaUpload, FaImage } from 'react-icons/fa';
+import { FaUpload, FaImage } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { AdminModal } from '@/components/ui/AdminModal';
 
 interface Service {
   _id: string;
@@ -159,23 +160,14 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {service ? 'Edit Service' : 'Add New Service'}
-          </h2>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <AdminModal
+      isOpen={true}
+      onClose={onCancel}
+      title={service ? 'Edit Service' : 'Add New Service'}
+      maxWidth="2xl"
+    >
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -190,13 +182,13 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
                     alt="Service preview"
                     className="w-full h-full object-cover"
                   />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    <FaTimes size={12} />
-                  </button>
+                                      <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      ×
+                    </button>
                 </div>
               )}
 
@@ -229,15 +221,15 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Service Name *
             </label>
-            <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              placeholder="e.g., Regular Haircut"
-              required
-            />
+                          <input
+                type="text"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+                placeholder="e.g., Regular Haircut"
+                required
+              />
           </div>
 
           {/* Description */}
@@ -329,25 +321,24 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 mt-6">
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full sm:flex-1 px-4 py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
               disabled={loading}
             >
               {loading ? 'Saving...' : service ? 'Update Service' : 'Create Service'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModal>
   );
 } 

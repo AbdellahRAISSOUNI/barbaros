@@ -502,14 +502,22 @@ export default function ClientsPage() {
 
       {/* Client Form Modal */}
       {showClientForm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowClientForm(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
             <ClientForm
-              client={selectedClient}
+              client={selectedClient || undefined}
               onSubmit={handleClientSubmit}
               onCancel={() => setShowClientForm(false)}
               isSubmitting={isSubmitting}
               error={formError}
+              className="shadow-none rounded-none"
             />
           </div>
         </div>
