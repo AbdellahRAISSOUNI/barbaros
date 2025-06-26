@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaCamera, FaUpload, FaSearch, FaQrcode, FaTimes, FaCheckCircle, FaExclamationCircle, FaUser, FaPlus, FaHistory, FaEye, FaGift, FaCut, FaCrown, FaCalendarAlt, FaArrowRight, FaSpinner } from 'react-icons/fa';
-import { QRCodeScanner } from '@/components/ui/QRCodeScanner';
+import { FaUpload, FaSearch, FaQrcode, FaTimes, FaCheckCircle, FaExclamationCircle, FaUser, FaPlus, FaHistory, FaEye, FaGift, FaCut, FaCrown, FaCalendarAlt, FaArrowRight, FaSpinner, FaCamera } from 'react-icons/fa';
 import { ClientLookup } from '@/components/ui/ClientLookup';
 import { VisitRecordingForm } from '@/components/ui/VisitRecordingForm';
 import { parseQRCodeData } from '@/lib/utils/qrcode';
 import RewardRedemptionInterface from '@/components/ui/RewardRedemptionInterface';
+import { QRCodeScanner } from '@/components/ui/QRCodeScanner';
 import jsQR from 'jsqr';
 import toast from 'react-hot-toast';
 
@@ -266,7 +266,7 @@ export default function BarberScannerPage() {
       }`}
     >
       <div className="relative z-10">
-        <Icon className={`h-8 w-8 mb-4 mx-auto ${active ? 'text-white' : 'text-blue-600'}`} />
+        <Icon className={`h-8 w-8 mb-4 mx-auto ${active ? 'text-white' : 'text-purple-600'}`} />
         <h3 className={`font-bold text-lg mb-2 ${active ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
         <p className={`text-sm ${active ? 'text-blue-100' : 'text-gray-600'}`}>{description}</p>
       </div>
@@ -288,7 +288,7 @@ export default function BarberScannerPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Client Scanner</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Scan QR codes, upload images, or search manually to find clients and manage their visits
+              Upload QR code images or search manually to find clients and manage their visits
             </p>
           </div>
 
@@ -306,12 +306,12 @@ export default function BarberScannerPage() {
           )}
 
           {/* Scan Mode Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-5xl mx-auto">
             <ScanModeButton
               mode="camera"
               icon={FaCamera}
-              title="Live Camera"
-              description="Real-time QR code scanning with device camera"
+              title="Camera Scan"
+              description="Scan QR codes using your camera"
               active={scanMode === 'camera'}
             />
             <ScanModeButton
@@ -335,27 +335,10 @@ export default function BarberScannerPage() {
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               {scanMode === 'camera' && (
                 <div className="p-8">
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                      <FaCamera className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Camera Scanner</h3>
-                    <p className="text-gray-600">Position the client's QR code within the camera frame below</p>
-                  </div>
                   <QRCodeScanner
-                    onScanSuccess={(data) => {
-                      const parsedData = parseQRCodeData(data);
-                      if (parsedData && parsedData.id && parsedData.type === 'barbaros-client') {
-                        handleClientFound(parsedData.id);
-                      } else {
-                        if (/^[0-9a-fA-F]{24}$/.test(data) || /^C[A-Za-z0-9]{8}$/.test(data)) {
-                          handleClientFound(data);
-                        } else {
-                          handleScanError('Invalid QR code format. Please scan a valid client QR code.');
-                        }
-                      }
-                    }}
+                    onScanSuccess={handleClientFound}
                     onScanError={handleScanError}
+                    onManualEntry={() => setScanMode('manual')}
                   />
                 </div>
               )}

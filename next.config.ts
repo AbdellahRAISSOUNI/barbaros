@@ -41,6 +41,24 @@ const nextConfig: NextConfig = {
   generateBuildId: async () => {
     return 'build-' + Date.now();
   },
+  // Add security headers for camera permissions
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(self)',
+          },
+          {
+            key: 'Feature-Policy',
+            value: "camera 'self'",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

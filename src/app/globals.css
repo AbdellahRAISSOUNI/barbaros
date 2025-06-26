@@ -27,6 +27,51 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Mobile Bottom Navigation Improvements */
+.mobile-nav-backdrop {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.mobile-nav-shadow {
+  box-shadow: 0 -2px 20px rgba(15, 23, 42, 0.08);
+}
+
+.mobile-nav-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Safe area support for devices with notches/home indicator */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Ensure navigation stays within screen bounds */
+@media (max-width: 320px) {
+  .mobile-nav-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .mobile-nav-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 376px) {
+  .mobile-nav-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* Line clamp utilities for text truncation */
 .line-clamp-1 {
   overflow: hidden;

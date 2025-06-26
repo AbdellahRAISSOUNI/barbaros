@@ -27,7 +27,7 @@ export default function BarberDashboardLayout({
         >
           <BarberHeader />
           <main 
-            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-20 lg:pt-8 transition-all duration-300`}
+            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-8 lg:pt-8 pb-20 lg:pb-8 transition-all duration-300`}
           >
             {children}
           </main>

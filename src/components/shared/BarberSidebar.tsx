@@ -1,10 +1,10 @@
 'use client';
 
 import { CollapsibleSidebar } from './CollapsibleSidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { 
   FaChartLine, 
   FaQrcode, 
-  FaCut,
   FaHistory,
   FaUser,
   FaTrophy,
@@ -27,11 +27,7 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
           icon: FaQrcode,
           label: 'Scanner'
         },
-        {
-          href: '/barber/visits',
-          icon: FaCut,
-          label: 'My Visits'
-        },
+
         {
           href: '/barber/history',
           icon: FaHistory,
@@ -57,11 +53,14 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
   ];
 
   return (
+    <>
     <CollapsibleSidebar 
       title="Barbaros"
       subtitle="Barber Dashboard"
       sections={sections}
       onCollapsedChange={onCollapsedChange}
     />
+      <MobileBottomNav userType="barber" />
+    </>
   );
 } 

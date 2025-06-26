@@ -1,6 +1,7 @@
 'use client';
 
 import { CollapsibleSidebar } from './CollapsibleSidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { 
   FaUser, 
   FaHistory, 
@@ -57,12 +58,15 @@ export function ClientSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
   ];
 
   return (
+    <>
     <CollapsibleSidebar 
       title="Barbaros"
       subtitle="Client Portal"
       sections={sections}
       onCollapsedChange={onCollapsedChange}
     />
+      <MobileBottomNav userType="client" />
+    </>
   );
 }
 

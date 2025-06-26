@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseQRCodeData } from '@/lib/utils/qrcode';
-import { FaCamera, FaStop, FaSearch, FaCog, FaSpinner } from 'react-icons/fa';
+import { FaCamera, FaStop, FaSearch, FaCog, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 import jsQR from 'jsqr';
 
 interface QRCodeScannerProps {
@@ -22,7 +22,9 @@ export function QRCodeScanner({
   const [error, setError] = useState<string | null>(null);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [isInitializing, setIsInitializing] = useState<boolean>(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,106 +32,111 @@ export function QRCodeScanner({
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
 
-  // Initialize camera devices
+  // Clean up function
+  const cleanup = useCallback(() => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
   useEffect(() => {
     isMountedRef.current = true;
     
-    const initializeCameras = async () => {
+    return () => {
+      isMountedRef.current = false;
+      cleanup();
+    };
+  }, [cleanup]);
+
+  // Initialize cameras after user interaction
+  const initializeCameras = async () => {
+    try {
+      setIsInitializing(true);
+      setError(null);
+
+      // Check if we're in a secure context
+      if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+        setError('Camera access requires HTTPS. Please use HTTPS or localhost.');
+        setHasPermission(false);
+        return;
+      }
+
+      // Check if mediaDevices is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError('Camera is not supported in this browser.');
+        setHasPermission(false);
+        return;
+      }
+
+      console.log('Requesting camera permission...');
+      
+      // Request permission with a very simple constraint
       try {
-        setIsInitializing(true);
-        setError(null);
-
-        // Check if we're in a secure context (HTTPS or localhost)
-        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-          setError('Camera access requires HTTPS or localhost. Please use HTTPS for camera functionality.');
-          return;
-        }
-
-        // Check if navigator.mediaDevices is supported
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setError('Camera is not supported in this browser. Please use a modern browser like Chrome, Firefox, or Safari.');
-          return;
-        }
-
-        console.log('Checking camera permissions...');
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         
-        // Check permission state first if supported
-        if (navigator.permissions) {
-          try {
-            const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-            console.log('Camera permission state:', cameraPermission.state);
-            
-            if (cameraPermission.state === 'denied') {
-              setError('Camera permission is permanently denied. Please enable camera access in your browser settings and refresh the page.');
-              return;
-            }
-          } catch (permissionQueryError) {
-            console.log('Permission query not supported, will try direct access');
-          }
-        }
+        // Success! We have permission
+        console.log('Camera permission granted');
+        setHasPermission(true);
         
-        // Test basic camera access
-        try {
-          const testStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' }
-          });
-          testStream.getTracks().forEach(track => track.stop());
-          console.log('Camera permission granted');
-        } catch (permissionError: any) {
-          console.error('Camera permission error:', permissionError);
-          if (permissionError.name === 'NotAllowedError') {
-            setError('Camera permission denied. Please allow camera access in your browser and refresh the page. Check your browser\'s permission settings if the camera icon shows as blocked.');
-          } else if (permissionError.name === 'NotFoundError') {
-            setError('No camera found. Please ensure your device has a camera.');
-          } else if (permissionError.name === 'NotReadableError') {
-            setError('Camera is being used by another application. Please close other applications and try again.');
-          } else {
-            setError(`Camera access failed: ${permissionError.message}. Please check your browser permissions.`);
-          }
-          return;
-        }
-
-        // Get available cameras
+        // Stop this test stream
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Now get the list of cameras
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         
         if (videoDevices.length > 0) {
-          console.log('Available cameras:', videoDevices);
-          if (isMountedRef.current) {
-            setCameras(videoDevices);
-            
-            // Prefer back camera if available
-            const backCamera = videoDevices.find(device => 
-              device.label.toLowerCase().includes('back') || 
-              device.label.toLowerCase().includes('rear') ||
-              device.label.toLowerCase().includes('environment')
-            );
-            
-            setSelectedCamera(backCamera?.deviceId || videoDevices[0].deviceId);
-          }
+          console.log('Found cameras:', videoDevices);
+          setCameras(videoDevices);
+          
+          // Prefer back camera
+          const backCamera = videoDevices.find(device => 
+            device.label.toLowerCase().includes('back') || 
+            device.label.toLowerCase().includes('rear') ||
+            device.label.toLowerCase().includes('environment')
+          );
+          
+          setSelectedCamera(backCamera?.deviceId || videoDevices[0].deviceId);
+          setError(null);
         } else {
-          setError('No cameras found. Please ensure your device has a camera and permissions are granted.');
+          setError('No cameras found on this device.');
+          setHasPermission(false);
         }
+        
       } catch (err: any) {
-        console.error('Error getting cameras:', err);
-        if (isMountedRef.current) {
-          setError(`Failed to access camera: ${err.message || 'Unknown error'}`);
-        }
-      } finally {
-        if (isMountedRef.current) {
-          setIsInitializing(false);
+        console.error('Camera permission error:', err);
+        setHasPermission(false);
+        
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setError('Camera permission was denied. Please allow camera access in your browser settings and refresh the page.');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          setError('No camera found. Please ensure your device has a camera.');
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          setError('Camera is already in use by another application.');
+        } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+          setError('Camera constraints could not be satisfied.');
+        } else {
+          setError(`Camera error: ${err.message || 'Unknown error'}`);
         }
       }
-    };
-
-    initializeCameras();
-
-    // Cleanup function
-    return () => {
-      isMountedRef.current = false;
-      stopScanning();
-    };
-  }, []);
+      
+    } catch (err: any) {
+      console.error('Initialization error:', err);
+      setError('Failed to initialize camera.');
+      setHasPermission(false);
+    } finally {
+      setIsInitializing(false);
+      setIsFirstLoad(false);
+    }
+  };
 
   const scanQRCode = useCallback(() => {
     const video = videoRef.current;
@@ -168,33 +175,24 @@ export function QRCodeScanner({
         onScanSuccess(parsedData.id);
       } else {
         // Try to handle raw text as client ID (fallback)
-        console.log('Not a Barbaros QR code format, trying raw data:', qrCode.data);
-        
-        // Check if it looks like a MongoDB ObjectId (24 hex characters)
         if (/^[0-9a-fA-F]{24}$/.test(qrCode.data)) {
           console.log('Detected MongoDB ObjectId format:', qrCode.data);
           stopScanning();
           onScanSuccess(qrCode.data);
-        } 
-        // Check if it looks like a client ID (starts with C and has numbers/letters)
-        else if (/^C[A-Za-z0-9]{8}$/.test(qrCode.data)) {
+        } else if (/^C[A-Za-z0-9]{8}$/.test(qrCode.data)) {
           console.log('Detected client ID format:', qrCode.data);
           stopScanning();
           onScanSuccess(qrCode.data);
-        }
-        // Try any text that looks like an ID
-        else if (qrCode.data && qrCode.data.length >= 5) {
+        } else if (qrCode.data && qrCode.data.length >= 5) {
           console.log('Trying raw text as client identifier:', qrCode.data);
           stopScanning();
           onScanSuccess(qrCode.data);
         } else {
-          console.log('QR code data does not match expected format:', qrCode.data);
-          setError('This QR code does not appear to be a valid Barbaros client code. Please scan a client\'s QR code or try the manual search.');
-          if (onScanError) onScanError('Invalid QR code format');
+          console.log('Invalid QR code format:', qrCode.data);
         }
       }
     }
-  }, [onScanSuccess, onScanError]);
+  }, [onScanSuccess]);
 
   const startScanning = async () => {
     if (!selectedCamera || !videoRef.current) {
@@ -211,101 +209,66 @@ export function QRCodeScanner({
         streamRef.current.getTracks().forEach(track => track.stop());
       }
 
-      // Get camera stream
-      const constraints = {
+      console.log('Starting camera stream...');
+      
+      // Use very simple constraints for better compatibility
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          deviceId: { exact: selectedCamera },
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          deviceId: selectedCamera ? { ideal: selectedCamera } : undefined
         }
-      };
-
-      console.log('Starting camera with constraints:', constraints);
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      });
       
       streamRef.current = stream;
-      videoRef.current.srcObject = stream;
       
-      // Wait for video to be ready
-      await new Promise<void>((resolve, reject) => {
-        if (!videoRef.current) {
-          reject(new Error('Video element not available'));
-          return;
-        }
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
         
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play()
-            .then(() => {
-              console.log('Video stream started successfully');
-              resolve();
-            })
-            .catch(reject);
-        };
+        // Wait for video to be ready
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play().then(resolve).catch(console.error);
+            };
+          }
+        });
         
-        videoRef.current.onerror = () => {
-          reject(new Error('Failed to load video stream'));
-        };
-      });
-
-      // Start QR code scanning interval
-      scanIntervalRef.current = setInterval(scanQRCode, 300); // Scan every 300ms
+        console.log('Camera started successfully');
+        
+        // Start scanning
+        scanIntervalRef.current = setInterval(scanQRCode, 300);
+      }
       
-      console.log('Camera started successfully');
     } catch (err: any) {
       console.error('Error starting camera:', err);
-      setError(`Failed to start camera: ${err.message || 'Please check camera permissions and try again.'}`);
       setIsScanning(false);
-      if (onScanError) onScanError('Failed to start scanner');
+      
+      if (err.name === 'NotAllowedError') {
+        setError('Camera permission denied. Please refresh the page and allow camera access.');
+      } else if (err.name === 'NotFoundError') {
+        setError('Camera not found. Please check your camera connection.');
+      } else {
+        setError(`Failed to start camera: ${err.message || 'Unknown error'}`);
+      }
     }
   };
 
   const stopScanning = () => {
-    // Stop scanning interval
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-      scanIntervalRef.current = null;
-    }
-
-    // Stop video stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
-    // Clear video element
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
+    cleanup();
     setIsScanning(false);
-    console.log('Scanner stopped successfully');
+    console.log('Scanner stopped');
   };
 
-  const handleCameraChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCameraChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCameraId = e.target.value;
-    
     if (isScanning) {
       stopScanning();
     }
-    
     setSelectedCamera(newCameraId);
   };
 
-  if (isInitializing) {
-    return (
-      <div className={`${className}`}>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="flex flex-col items-center justify-center">
-            <FaSpinner className="animate-spin h-8 w-8 text-gray-400 mb-4" />
-            <p className="text-gray-600">Initializing camera...</p>
-            <p className="text-sm text-gray-500 mt-2">Please allow camera permissions if prompted</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Don't auto-initialize on mount for Chromium compatibility
+  // Wait for user interaction instead
+  
   return (
     <div className={`${className}`}>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -318,139 +281,181 @@ export function QRCodeScanner({
         </div>
 
         <div className="p-6">
-          {/* Camera selection */}
-          {cameras.length > 1 && (
-            <div className="mb-6">
-              <label htmlFor="camera-select" className="block text-sm font-medium text-gray-700 mb-2">
-                <FaCog className="inline h-4 w-4 mr-1" />
-                Select Camera ({cameras.length} available)
-              </label>
-              <select
-                id="camera-select"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                value={selectedCamera || ''}
-                onChange={handleCameraChange}
-                disabled={isScanning}
+          {/* Initial state - request permission */}
+          {isFirstLoad && hasPermission === null && !isInitializing && (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <FaCamera className="h-8 w-8 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Camera Permission Required</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Click the button below to enable camera access. Your browser will ask for permission to use your camera.
+              </p>
+              <button
+                onClick={initializeCameras}
+                className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 font-medium transition-all shadow-sm"
               >
-                {cameras.map((camera) => (
-                  <option key={camera.deviceId} value={camera.deviceId}>
-                    {camera.label || `Camera ${camera.deviceId.slice(0, 8)}`}
-                  </option>
-                ))}
-              </select>
+                Enable Camera Access
+              </button>
             </div>
           )}
 
-          {/* Scanner container */}
-          <div className="relative mb-6">
-            <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden relative"
-                 style={{ minHeight: '300px', maxHeight: '500px' }}>
-              
-              {/* Video element */}
-              <video
-                ref={videoRef}
-                className="w-full h-full object-cover"
-                playsInline
-                muted
-                style={{ display: isScanning ? 'block' : 'none' }}
-              />
-              
-              {/* Hidden canvas for QR processing */}
-              <canvas
-                ref={canvasRef}
-                className="hidden"
-              />
-              
-              {/* Placeholder when not scanning */}
-              {!isScanning && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                  <div className="text-center">
-                    <FaCamera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium">Camera Preview</p>
-                    <p className="text-sm text-gray-500 mt-1">Click "Start Scanning" to begin</p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Scan overlay when active */}
-              {isScanning && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-4 left-4 w-8 h-8 border-l-4 border-t-4 border-white rounded-tl-lg"></div>
-                  <div className="absolute top-4 right-4 w-8 h-8 border-r-4 border-t-4 border-white rounded-tr-lg"></div>
-                  <div className="absolute bottom-4 left-4 w-8 h-8 border-l-4 border-b-4 border-white rounded-bl-lg"></div>
-                  <div className="absolute bottom-4 right-4 w-8 h-8 border-r-4 border-b-4 border-white rounded-br-lg"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50"></div>
-                  </div>
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg">
-                    <p className="text-sm">Point camera at QR code</p>
-                  </div>
-                </div>
-              )}
+          {/* Loading state */}
+          {isInitializing && (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin h-8 w-8 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Initializing camera...</p>
+              <p className="text-sm text-gray-500 mt-2">Please allow camera access when prompted</p>
             </div>
-          </div>
+          )}
+
+          {/* Camera ready state */}
+          {!isFirstLoad && hasPermission && !isInitializing && (
+            <>
+              {/* Camera selection */}
+              {cameras.length > 1 && (
+                <div className="mb-6">
+                  <label htmlFor="camera-select" className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaCog className="inline h-4 w-4 mr-1" />
+                    Select Camera ({cameras.length} available)
+                  </label>
+                  <select
+                    id="camera-select"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                    value={selectedCamera || ''}
+                    onChange={handleCameraChange}
+                    disabled={isScanning}
+                  >
+                    {cameras.map((camera) => (
+                      <option key={camera.deviceId} value={camera.deviceId}>
+                        {camera.label || `Camera ${camera.deviceId.slice(0, 8)}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Scanner container */}
+              <div className="relative mb-6">
+                <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden relative"
+                     style={{ minHeight: '300px', maxHeight: '500px' }}>
+                  
+                  {/* Video element */}
+                  <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover"
+                    playsInline
+                    muted
+                    autoPlay
+                    style={{ display: isScanning ? 'block' : 'none' }}
+                  />
+                  
+                  {/* Hidden canvas for QR processing */}
+                  <canvas
+                    ref={canvasRef}
+                    className="hidden"
+                  />
+                  
+                  {/* Placeholder when not scanning */}
+                  {!isScanning && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <div className="text-center">
+                        <FaCamera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">Camera Preview</p>
+                        <p className="text-sm text-gray-500 mt-1">Click "Start Scanning" to begin</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Scan overlay when active */}
+                  {isScanning && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute top-4 left-4 w-8 h-8 border-l-4 border-t-4 border-white rounded-tl-lg"></div>
+                      <div className="absolute top-4 right-4 w-8 h-8 border-r-4 border-t-4 border-white rounded-tr-lg"></div>
+                      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-4 border-b-4 border-white rounded-bl-lg"></div>
+                      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-4 border-b-4 border-white rounded-br-lg"></div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50"></div>
+                      </div>
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg">
+                        <p className="text-sm">Point camera at QR code</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {!isScanning ? (
+                  <button
+                    onClick={startScanning}
+                    disabled={!selectedCamera}
+                    className={`flex-1 flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all ${
+                      !selectedCamera
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-black text-white hover:bg-gray-800 shadow-sm'
+                    }`}
+                  >
+                    <FaCamera className="h-4 w-4 mr-2" />
+                    Start Scanning
+                  </button>
+                ) : (
+                  <button
+                    onClick={stopScanning}
+                    className="flex-1 flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-all shadow-sm"
+                  >
+                    <FaStop className="h-4 w-4 mr-2" />
+                    Stop Scanning
+                  </button>
+                )}
+
+                {onManualEntry && (
+                  <button
+                    onClick={onManualEntry}
+                    className="flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 font-medium transition-all"
+                  >
+                    <FaSearch className="h-4 w-4 mr-2" />
+                    Manual Entry
+                  </button>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Error message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 text-sm font-medium">Scanner Error</p>
-              <p className="text-red-700 text-sm mt-1">{error}</p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-              >
-                Reload page to try again
-              </button>
+              <div className="flex items-start">
+                <FaExclamationCircle className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-red-800 text-sm font-medium">Scanner Error</p>
+                  <p className="text-red-700 text-sm mt-1">{error}</p>
+                  {hasPermission === false && (
+                    <button 
+                      onClick={initializeCameras} 
+                      className="mt-3 text-sm text-red-600 hover:text-red-800 underline font-medium"
+                    >
+                      Try again
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {!isScanning ? (
-              <button
-                onClick={startScanning}
-                disabled={!selectedCamera}
-                className={`flex-1 flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all ${
-                  !selectedCamera
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-black text-white hover:bg-gray-800 shadow-sm'
-                }`}
-              >
-                <FaCamera className="h-4 w-4 mr-2" />
-                Start Scanning
-              </button>
-            ) : (
-              <button
-                onClick={stopScanning}
-                className="flex-1 flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-all shadow-sm"
-              >
-                <FaStop className="h-4 w-4 mr-2" />
-                Stop Scanning
-              </button>
-            )}
-
-            {onManualEntry && (
-              <button
-                onClick={onManualEntry}
-                className="flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 font-medium transition-all"
-              >
-                <FaSearch className="h-4 w-4 mr-2" />
-                Manual Entry
-              </button>
-            )}
-          </div>
-
           {/* Instructions */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Scanning Tips:</h4>
-            <div className="text-sm text-blue-800 space-y-1">
-              <p>• Hold your device steady and ensure good lighting</p>
-              <p>• Keep the QR code centered in the scanning area</p>
-              <p>• Make sure the QR code is clearly visible and not damaged</p>
-              <p>• The scanner will automatically detect valid QR codes</p>
-              <p>• If scanning fails, try refreshing the page and granting camera permissions</p>
+          {hasPermission && !error && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Scanning Tips:</h4>
+              <div className="text-sm text-blue-800 space-y-1">
+                <p>• Hold your device steady and ensure good lighting</p>
+                <p>• Keep the QR code centered in the scanning area</p>
+                <p>• Make sure the QR code is clearly visible and not damaged</p>
+                <p>• The scanner will automatically detect valid QR codes</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

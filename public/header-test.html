@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Headers Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .warning {
+            color: orange;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Security Headers Test</h1>
+        <p>This page shows the security headers being sent by the server and checks camera permission policy.</p>
+        
+        <h2>Current Headers Analysis</h2>
+        <div id="headerAnalysis"></div>
+        
+        <h2>Camera Permission Test</h2>
+        <button onclick="testCameraPermission()">Test Camera Permission</button>
+        <div id="cameraResult"></div>
+        
+        <h2>Technical Details</h2>
+        <div id="technicalInfo"></div>
+    </div>
+
+    <script>
+        function analyzeHeaders() {
+            const analysis = document.getElementById('headerAnalysis');
+            
+            // Check if we can detect permissions policy from document
+            let permissionsPolicy = 'Unknown';
+            try {
+                if (document.featurePolicy) {
+                    const cameraAllowed = document.featurePolicy.allowsFeature('camera');
+                    permissionsPolicy = cameraAllowed ? 'Camera ALLOWED' : 'Camera BLOCKED';
+                }
+            } catch (e) {
+                permissionsPolicy = 'Feature Policy API not available';
+            }
+            
+            analysis.innerHTML = `
+                <div class="result">
+                    <h3>Permissions Policy Status</h3>
+                    <p class="${permissionsPolicy.includes('ALLOWED') ? 'success' : permissionsPolicy.includes('BLOCKED') ? 'error' : 'warning'}">
+                        ${permissionsPolicy}
+                    </p>
+                </div>
+                <div class="result">
+                    <h3>Security Context</h3>
+                    <p class="${window.isSecureContext ? 'success' : 'error'}">
+                        Secure Context: ${window.isSecureContext ? 'YES' : 'NO'}
+                    </p>
+                    <p>Protocol: ${window.location.protocol}</p>
+                    <p>Hostname: ${window.location.hostname}</p>
+                </div>
+            `;
+        }
+        
+        async function testCameraPermission() {
+            const result = document.getElementById('cameraResult');
+            result.innerHTML = '<p>Testing camera permission...</p>';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                result.innerHTML = '<p class="success">✓ Camera permission GRANTED! Headers are working correctly.</p>';
+            } catch (error) {
+                result.innerHTML = `
+                    <p class="error">✗ Camera permission DENIED</p>
+                    <p>Error: ${error.name} - ${error.message}</p>
+                    <p>This indicates the Permissions-Policy header is still blocking camera access.</p>
+                `;
+            }
+        }
+        
+        function showTechnicalInfo() {
+            const info = document.getElementById('technicalInfo');
+            info.innerHTML = `
+                <h3>Browser Information</h3>
+                <pre>${JSON.stringify({
+                    userAgent: navigator.userAgent,
+                    isSecureContext: window.isSecureContext,
+                    protocol: window.location.protocol,
+                    hostname: window.location.hostname,
+                    mediaDevicesSupported: !!navigator.mediaDevices,
+                    getUserMediaSupported: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                    permissionsAPISupported: !!navigator.permissions
+                }, null, 2)}</pre>
+                
+                <h3>Expected Headers</h3>
+                <pre>Permissions-Policy: camera=(self), microphone=(), geolocation=()
+Feature-Policy: camera 'self'</pre>
+                
+                <h3>How to Check Headers</h3>
+                <p>1. Open Developer Tools (F12)</p>
+                <p>2. Go to Network tab</p>
+                <p>3. Refresh this page</p>
+                <p>4. Click on the main document request</p>
+                <p>5. Check Response Headers for Permissions-Policy</p>
+            `;
+        }
+        
+        // Run analysis on page load
+        window.onload = function() {
+            analyzeHeaders();
+            showTechnicalInfo();
+        };
+    </script>
+</body>
+</html> 

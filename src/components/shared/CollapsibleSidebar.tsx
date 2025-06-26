@@ -230,7 +230,7 @@ export function CollapsibleSidebar({
       {/* Mobile sidebar overlay - Only show when mobile menu is actually open */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-25 transition-opacity duration-300"
+          className="lg:hidden fixed inset-0 z-30 bg-black/10 backdrop-blur-[2px] transition-opacity duration-300"
           onClick={toggleMobileMenu}
           aria-hidden="true"
         />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaEdit, FaSave, FaTimes, FaUpload, FaCamera } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaEdit, FaSave, FaTimes, FaUpload } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 interface BarberProfile {
@@ -208,7 +208,7 @@ export default function BarberProfilePage() {
                 </div>
                 {isEditing && (
                   <label className="absolute -bottom-2 -right-2 p-2 bg-white text-gray-700 rounded-full cursor-pointer hover:bg-gray-50 transition-colors shadow-lg">
-                    <FaCamera size={12} />
+                    <FaUpload size={12} />
                     <input
                       type="file"
                       accept="image/*"
@@ -375,10 +375,10 @@ export default function BarberProfilePage() {
               className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left group"
             >
               <div className="flex items-center">
-                <FaCamera className="h-5 w-5 text-gray-600 group-hover:text-gray-900 mr-3" />
+                <FaUpload className="h-5 w-5 text-gray-600 group-hover:text-gray-900 mr-3" />
                 <div>
                   <h4 className="font-medium text-gray-900">Scanner</h4>
-                  <p className="text-sm text-gray-600">Scan client QR codes</p>
+                  <p className="text-sm text-gray-600">Upload QR or search clients</p>
                 </div>
               </div>
             </button>

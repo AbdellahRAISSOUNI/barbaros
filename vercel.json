@@ -4,5 +4,20 @@
     "SKIP_TYPE_CHECK": "true",
     "DISABLE_ESLINT_PLUGIN": "true",
     "NEXT_TELEMETRY_DISABLED": "1"
-  }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self)"
+        },
+        {
+          "key": "Feature-Policy",
+          "value": "camera 'self'"
+        }
+      ]
+    }
+  ]
 } 

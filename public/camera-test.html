@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Permission Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #333;
+        }
+        #video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            background: #000;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fee;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+            margin: 10px 0;
+            padding: 10px;
+            background: #efe;
+            border-radius: 5px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Camera Permission Test</h1>
+        
+        <div class="info">
+            <h3>Browser Information:</h3>
+            <pre id="browserInfo"></pre>
+        </div>
+
+        <div>
+            <h3>Test Camera Access:</h3>
+            <button onclick="testSimpleCamera()">Test Simple Camera</button>
+            <button onclick="testWithConstraints()">Test With Constraints</button>
+            <button onclick="testPermissionAPI()">Check Permission API</button>
+            <button onclick="stopCamera()">Stop Camera</button>
+        </div>
+
+        <div id="status"></div>
+        
+        <video id="video" autoplay playsinline muted></video>
+
+        <div class="info">
+            <h3>Debug Log:</h3>
+            <pre id="log"></pre>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const status = document.getElementById('status');
+        const logElement = document.getElementById('log');
+        const browserInfo = document.getElementById('browserInfo');
+        let currentStream = null;
+
+        // Display browser info
+        browserInfo.textContent = JSON.stringify({
+            userAgent: navigator.userAgent,
+            isSecureContext: window.isSecureContext,
+            protocol: window.location.protocol,
+            hostname: window.location.hostname,
+            mediaDevicesSupported: !!navigator.mediaDevices,
+            getUserMediaSupported: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+        }, null, 2);
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logElement.textContent += logEntry;
+            console.log(message);
+        }
+
+        function showStatus(message, type = 'info') {
+            status.className = type;
+            status.textContent = message;
+        }
+
+        async function testSimpleCamera() {
+            try {
+                log('Testing simple camera access...');
+                stopCamera();
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                currentStream = stream;
+                video.srcObject = stream;
+                
+                log('✓ Camera access granted!');
+                showStatus('Camera is working!', 'success');
+                
+                // List cameras
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cameras = devices.filter(d => d.kind === 'videoinput');
+                log(`Found ${cameras.length} camera(s):`);
+                cameras.forEach((cam, i) => {
+                    log(`  ${i + 1}. ${cam.label || 'Unnamed camera'} (${cam.deviceId})`);
+                });
+                
+            } catch (error) {
+                log(`✗ Error: ${error.name} - ${error.message}`, 'error');
+                showStatus(`Camera error: ${error.name} - ${error.message}`, 'error');
+            }
+        }
+
+        async function testWithConstraints() {
+            try {
+                log('Testing camera with constraints...');
+                stopCamera();
+                
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment'
+                    }
+                };
+                
+                log('Constraints: ' + JSON.stringify(constraints));
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = stream;
+                video.srcObject = stream;
+                
+                log('✓ Camera with constraints working!');
+                showStatus('Camera with constraints is working!', 'success');
+                
+            } catch (error) {
+                log(`✗ Constraints error: ${error.name} - ${error.message}`, 'error');
+                
+                // Try fallback
+                log('Trying fallback to simple video...');
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    currentStream = stream;
+                    video.srcObject = stream;
+                    log('✓ Fallback successful');
+                    showStatus('Fallback camera is working!', 'success');
+                } catch (fallbackError) {
+                    log(`✗ Fallback error: ${fallbackError.name} - ${fallbackError.message}`, 'error');
+                    showStatus(`All camera access failed: ${fallbackError.message}`, 'error');
+                }
+            }
+        }
+
+        async function testPermissionAPI() {
+            try {
+                log('Testing Permission API...');
+                
+                if (!navigator.permissions) {
+                    log('Permission API not supported');
+                    showStatus('Permission API not supported in this browser', 'error');
+                    return;
+                }
+                
+                const result = await navigator.permissions.query({ name: 'camera' });
+                log(`Camera permission state: ${result.state}`);
+                showStatus(`Camera permission state: ${result.state}`, 
+                    result.state === 'granted' ? 'success' : 
+                    result.state === 'denied' ? 'error' : 'info');
+                
+                // Listen for changes
+                result.onchange = () => {
+                    log(`Permission state changed to: ${result.state}`);
+                };
+                
+            } catch (error) {
+                log(`Permission API error: ${error.message}`, 'error');
+                showStatus(`Permission API error: ${error.message}`, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+                video.srcObject = null;
+                log('Camera stopped');
+                showStatus('Camera stopped', 'info');
+            }
+        }
+
+        // Test on load
+        window.onload = () => {
+            log('Page loaded, ready for testing');
+            if (!window.isSecureContext) {
+                showStatus('Warning: Not in secure context (HTTPS required for camera)', 'error');
+            }
+        };
+    </script>
+</body>
+</html> 
