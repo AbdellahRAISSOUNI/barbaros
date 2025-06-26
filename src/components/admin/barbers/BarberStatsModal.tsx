@@ -149,22 +149,22 @@ export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStat
 
   return (
     <div 
-      className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-4 z-50"
+      className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white sticky top-0 z-10">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full overflow-hidden bg-gray-100 ring-2 ring-gray-200">
               {barber.profilePicture ? (
                 <img
                   src={barber.profilePicture}
                   alt={barber.name}
-                  className="h-12 w-12 sm:h-16 sm:w-16 object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="h-12 w-12 sm:h-16 sm:w-16 flex items-center justify-center">
+                <div className="h-full w-full flex items-center justify-center">
                   <FaUser className="text-gray-400 text-lg sm:text-2xl" />
                 </div>
               )}
@@ -179,10 +179,10 @@ export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStat
             {onEdit && (
               <button
                 onClick={onEdit}
-                className="flex items-center gap-2 px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors text-sm font-medium"
               >
                 <FaUser size={14} />
-                <span className="hidden sm:inline">Edit Barber</span>
+                <span className="hidden sm:inline">Edit Profile</span>
               </button>
             )}
             <button
@@ -208,7 +208,7 @@ export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStat
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
                   onClick={fetchBarberStats}
-                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                  className="px-4 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors"
                 >
                   Retry
                 </button>
@@ -223,7 +223,7 @@ export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStat
                 <StatCard
                   icon={FaCut}
                   title="Total Visits"
-                  value={stats.totalVisits}
+                  value={stats.totalVisits.toLocaleString()}
                   subtitle={`${stats.averageVisitsPerDay.toFixed(1)} per day avg`}
                   color="blue"
                 />
@@ -237,146 +237,136 @@ export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStat
                 <StatCard
                   icon={FaUsers}
                   title="Unique Clients"
-                  value={stats.uniqueClientsServed.length}
-                  subtitle={`${stats.clientRetentionRate.toFixed(1)}% retention rate`}
+                  value={stats.uniqueClientsServed.length.toLocaleString()}
+                  subtitle={`${stats.clientRetentionRate.toFixed(1)}% retention`}
                   color="purple"
                 />
-                <StatCard
-                  icon={FaCalendarAlt}
-                  title="Work Period"
-                  value={getWorkDurationText(stats.workDaysSinceJoining)}
-                  subtitle={`${stats.workDaysSinceJoining} days total`}
-                  color="orange"
-                />
-              </div>
-
-              {/* Performance Metrics */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-                {/* Recent Monthly Performance */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaChartLine className="mr-2" />
-                    Recent Monthly Performance
-                  </h3>
-                  <div className="space-y-3">
-                    {getRecentMonthlyStats().map((month, index) => (
-                      <div key={month.month} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {new Date(month.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {month.uniqueClients} unique clients
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">{month.visitsCount} visits</div>
-                          <div className="text-sm text-green-600">{formatCurrency(month.revenue)}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Top Services */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaTrophy className="mr-2" />
-                    Top Services
-                  </h3>
-                  <div className="space-y-3">
-                    {getTopServices().map((service, index) => (
-                      <div key={service.serviceId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                            index === 0 ? 'bg-yellow-500' : 
-                            index === 1 ? 'bg-gray-400' : 
-                            index === 2 ? 'bg-orange-500' : 'bg-blue-500'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div className="ml-3">
-                            <div className="font-medium text-gray-900">{service.serviceName}</div>
-                            <div className="text-sm text-gray-500">{service.count} times performed</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-green-600">{formatCurrency(service.revenue)}</div>
-                          <div className="text-sm text-gray-500">
-                            {formatCurrency(service.revenue / Math.max(service.count, 1))} avg
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                 <StatCard
                   icon={FaClock}
                   title="Avg Service Time"
                   value={`${Math.round(stats.averageServiceTime)} min`}
-                  subtitle="Per visit duration"
-                  color="blue"
-                />
-                <StatCard
-                  icon={FaUsers}
-                  title="Client Retention"
-                  value={`${stats.clientRetentionRate.toFixed(1)}%`}
-                  subtitle="Repeat customers"
-                  color="green"
-                />
-                <StatCard
-                  icon={FaTrophy}
-                  title="Peak Hours"
-                  value={stats.busyHours.length > 0 ? `${stats.busyHours.length} hours` : 'N/A'}
-                  subtitle={stats.busyHours.length > 0 ? `Most active: ${Math.max(...stats.busyHours)}:00` : 'No data yet'}
-                  color="purple"
+                  subtitle="per visit"
+                  color="orange"
                 />
               </div>
 
-              {/* Achievements Section */}
-              {stats.totalVisits > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaTrophy className="mr-2 text-yellow-500" />
-                    Achievements
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {stats.totalVisits >= 100 && (
-                      <div className="bg-white rounded-lg p-4 border border-yellow-200">
-                        <div className="text-center">
-                          <div className="text-2xl mb-2">🏆</div>
-                          <div className="font-semibold text-gray-900">Century Club</div>
-                          <div className="text-sm text-gray-600">100+ visits completed</div>
+              {/* Monthly Performance */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Monthly Performance</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getRecentMonthlyStats().map((month, index) => (
+                    <div
+                      key={month.month}
+                      className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-600">{month.month}</span>
+                        <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-full border border-gray-200">
+                          {index === 0 ? 'Current' : `${index + 1} months ago`}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Visits</span>
+                          <span className="text-sm font-medium text-gray-900">{month.visitsCount}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Revenue</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(month.revenue)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Clients</span>
+                          <span className="text-sm font-medium text-gray-900">{month.uniqueClients}</span>
                         </div>
                       </div>
-                    )}
-                    
-                    {stats.workDaysSinceJoining >= 365 && (
-                      <div className="bg-white rounded-lg p-4 border border-blue-200">
-                        <div className="text-center">
-                          <div className="text-2xl mb-2">📅</div>
-                          <div className="font-semibold text-gray-900">One Year Strong</div>
-                          <div className="text-sm text-gray-600">1+ year with the team</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Services */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Top Services</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getTopServices().map((service, index) => (
+                    <div
+                      key={service.serviceId}
+                      className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                            index === 1 ? 'bg-gray-100 text-gray-600' :
+                            index === 2 ? 'bg-orange-100 text-orange-600' :
+                            'bg-blue-100 text-blue-600'
+                          }`}>
+                            <FaTrophy className={index < 3 ? 'h-4 w-4' : 'h-3 w-3'} />
+                          </div>
+                          <span className="ml-2 text-sm font-medium text-gray-900 line-clamp-1">{service.serviceName}</span>
+                        </div>
+                        <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-full border border-gray-200">
+                          #{index + 1}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Times Provided</span>
+                          <span className="text-sm font-medium text-gray-900">{service.count}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Revenue</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(service.revenue)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Avg Revenue</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(service.revenue / service.count)}</span>
                         </div>
                       </div>
-                    )}
-                    
-                    {stats.clientRetentionRate >= 50 && (
-                      <div className="bg-white rounded-lg p-4 border border-green-200">
-                        <div className="text-center">
-                          <div className="text-2xl mb-2">💯</div>
-                          <div className="font-semibold text-gray-900">Client Favorite</div>
-                          <div className="text-sm text-gray-600">High retention rate</div>
-                        </div>
-                      </div>
-                    )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Busy Hours */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Peak Hours</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      Last 30 days
+                    </span>
                   </div>
                 </div>
-              )}
+                <div className="grid grid-cols-6 sm:grid-cols-12 gap-1 sm:gap-2">
+                  {stats.busyHours.map((count, hour) => {
+                    const maxCount = Math.max(...stats.busyHours);
+                    const height = Math.max((count / maxCount) * 100, 10);
+                    const isHighTraffic = count > maxCount * 0.7;
+                    const isMediumTraffic = count > maxCount * 0.4;
+
+                    return (
+                      <div key={hour} className="flex flex-col items-center">
+                        <div className="w-full h-24 sm:h-32 flex items-end mb-1">
+                          <div
+                            className={`w-full rounded-t-lg transition-all ${
+                              isHighTraffic
+                                ? 'bg-blue-500'
+                                : isMediumTraffic
+                                ? 'bg-blue-400'
+                                : 'bg-blue-300'
+                            }`}
+                            style={{ height: `${height}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          {hour % 12 || 12}{hour < 12 ? 'am' : 'pm'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
