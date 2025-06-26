@@ -14,7 +14,7 @@ interface Service {
   categoryId: {
     _id: string;
     name: string;
-  };
+  } | null;
   isActive: boolean;
 }
 
@@ -38,7 +38,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
     description: service?.description || '',
     price: service?.price || 0,
     durationMinutes: service?.durationMinutes || 30,
-    categoryId: service?.categoryId._id || '',
+    categoryId: service?.categoryId?._id || '',
     isActive: service?.isActive !== undefined ? service.isActive : true,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
