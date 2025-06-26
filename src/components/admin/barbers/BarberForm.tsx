@@ -195,24 +195,44 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
               <div className="space-y-4">
                 {/* Image Preview */}
                 <div className="flex justify-center">
-                  <div className="relative w-32 h-32 bg-gray-100 rounded-full overflow-hidden border-4 border-gray-200">
+                  <div className="relative w-32 h-32 bg-gray-100 rounded-full border-4 border-gray-200 group">
                     {imagePreview ? (
                       <>
-                        <img
-                          src={imagePreview}
-                          alt="Profile preview"
-                          className="w-full h-full object-cover"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Create a modal to view the image in full size
+                            const modal = document.createElement('div');
+                            modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4';
+                            modal.onclick = () => modal.remove();
+                            modal.innerHTML = `
+                              <div class="relative max-w-2xl max-h-[90vh]">
+                                <img src="${imagePreview}" alt="Profile preview" class="w-full h-full object-contain rounded-lg shadow-2xl">
+                                <button class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors">×</button>
+                              </div>
+                            `;
+                            document.body.appendChild(modal);
+                          }}
+                          className="w-full h-full rounded-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                          title="Click to view full size"
+                        >
+                          <img
+                            src={imagePreview}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
                         <button
                           type="button"
                           onClick={handleRemoveImage}
-                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                          className="absolute -top-1 -right-1 bg-red-500 text-white w-6 h-6 rounded-full hover:bg-red-600 transition-colors flex items-center justify-center text-sm font-bold shadow-lg"
+                          title="Remove image"
                         >
                           ×
                         </button>
                       </>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center rounded-full">
                         <FaUser className="text-gray-400 text-4xl" />
                       </div>
                     )}

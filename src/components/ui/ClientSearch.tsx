@@ -70,11 +70,13 @@ export function ClientSearch({
     setSearchTerm(value);
     setSelectedIndex(-1);
     
-    // Trigger real-time search
-    debouncedSearch(value);
-    
-    // Also call the parent's onSearch for immediate filtering
+    // Only call parent's onSearch for immediate filtering, not server search
     onSearch(value);
+    
+    // Trigger real-time server search only if showDropdown is true
+    if (showDropdown) {
+      debouncedSearch(value);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {

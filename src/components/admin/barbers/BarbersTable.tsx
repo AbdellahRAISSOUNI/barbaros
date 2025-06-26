@@ -143,7 +143,11 @@ export default function BarbersTable({ barbers, onEdit, onRefresh, onViewStats }
               <tr key={barber._id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    <button
+                      onClick={() => onViewStats(barber)}
+                      className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all duration-200 cursor-pointer"
+                      title="View Performance Statistics"
+                    >
                       {barber.profilePicture ? (
                         <img
                           src={barber.profilePicture}
@@ -155,10 +159,16 @@ export default function BarbersTable({ barbers, onEdit, onRefresh, onViewStats }
                           <FaUser className="text-gray-400 text-xl" />
                         </div>
                       )}
-                    </div>
+                    </button>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{barber.name}</div>
-                      <div className="text-sm text-gray-500">@{barber.username}</div>
+                      <button
+                        onClick={() => onViewStats(barber)}
+                        className="text-left hover:text-blue-600 transition-colors cursor-pointer"
+                        title="View Performance Statistics"
+                      >
+                        <div className="text-sm font-medium text-gray-900 hover:text-blue-600">{barber.name}</div>
+                        <div className="text-sm text-gray-500">@{barber.username}</div>
+                      </button>
                     </div>
                   </div>
                 </td>
@@ -241,94 +251,108 @@ export default function BarbersTable({ barbers, onEdit, onRefresh, onViewStats }
       </div>
 
       {/* Mobile Cards */}
-      <div className="lg:hidden divide-y divide-gray-200">
-        {barbers.map((barber) => (
-          <div key={barber._id} className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center">
-                <div className="h-14 w-14 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                  {barber.profilePicture ? (
-                    <img
-                      src={barber.profilePicture}
-                      alt={barber.name}
-                      className="h-14 w-14 object-cover"
-                    />
-                  ) : (
-                    <div className="h-14 w-14 flex items-center justify-center">
-                      <FaUser className="text-gray-400 text-xl" />
-                    </div>
-                  )}
+      <div className="lg:hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {barbers.map((barber) => (
+            <div key={barber._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all duration-200 hover:border-gray-300">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center">
+                  <button
+                    onClick={() => onViewStats(barber)}
+                    className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all duration-200 cursor-pointer"
+                    title="View Performance Statistics"
+                  >
+                    {barber.profilePicture ? (
+                      <img
+                        src={barber.profilePicture}
+                        alt={barber.name}
+                        className="h-12 w-12 object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 flex items-center justify-center">
+                        <FaUser className="text-gray-400 text-lg" />
+                      </div>
+                    )}
+                  </button>
+                  <div className="ml-3 min-w-0 flex-1">
+                    <button
+                      onClick={() => onViewStats(barber)}
+                      className="text-left hover:text-blue-600 transition-colors cursor-pointer w-full"
+                      title="View Performance Statistics"
+                    >
+                      <div className="text-sm font-semibold text-gray-900 hover:text-blue-600 truncate">{barber.name}</div>
+                      <div className="text-xs text-gray-500 truncate">@{barber.username}</div>
+                    </button>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <div className="text-lg font-medium text-gray-900">{barber.name}</div>
-                  <div className="text-sm text-gray-500">@{barber.username}</div>
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                    barber.active 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {barber.active ? 'Active' : 'Inactive'}
-                  </span>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                  barber.active 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {barber.active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center text-xs text-gray-600 truncate">
+                  <FaEnvelope className="text-gray-400 mr-2 flex-shrink-0" size={12} />
+                  <span className="truncate">{barber.email}</span>
+                </div>
+                {barber.phoneNumber && (
+                  <div className="flex items-center text-xs text-gray-600 truncate">
+                    <FaPhone className="text-gray-400 mr-2 flex-shrink-0" size={12} />
+                    <span className="truncate">{barber.phoneNumber}</span>
+                  </div>
+                )}
+                <div className="flex items-center text-xs text-gray-600">
+                  <FaCalendarAlt className="text-gray-400 mr-2 flex-shrink-0" size={12} />
+                  <span className="truncate">Joined {formatDate(barber.joinDate)}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center text-sm text-gray-600">
-                <FaEnvelope className="text-gray-400 mr-3" size={14} />
-                {barber.email}
-              </div>
-              {barber.phoneNumber && (
-                <div className="flex items-center text-sm text-gray-600">
-                  <FaPhone className="text-gray-400 mr-3" size={14} />
-                  {barber.phoneNumber}
-                </div>
-              )}
-              <div className="flex items-center text-sm text-gray-600">
-                <FaCalendarAlt className="text-gray-400 mr-3" size={14} />
-                Joined {formatDate(barber.joinDate)} ({calculateWorkDays(barber.joinDate)} days)
-              </div>
-            </div>
-
-
-
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => onViewStats(barber)}
-                className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors text-sm"
-              >
-                <FaChartLine size={14} />
-                Stats
-              </button>
-              <button
-                onClick={() => onEdit(barber)}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors text-sm"
-              >
-                <FaEdit size={14} />
-                Edit
-              </button>
-              {barber.active ? (
+              <div className="flex items-center justify-end gap-1 pt-3 border-t border-gray-100">
                 <button
-                  onClick={() => handleDeactivate(barber._id, barber.name)}
-                  disabled={deletingId === barber._id}
-                  className="flex items-center gap-2 px-3 py-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-colors text-sm disabled:opacity-50"
+                  onClick={() => onViewStats(barber)}
+                  className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors text-xs font-medium"
+                  title="View Statistics"
                 >
-                  <FaBan size={14} />
-                  Deactivate
+                  <FaChartLine size={12} />
+                  <span className="hidden sm:inline">Stats</span>
                 </button>
-              ) : (
                 <button
-                  onClick={() => handlePermanentDelete(barber._id, barber.name)}
-                  disabled={deletingId === barber._id}
-                  className="flex items-center gap-2 px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors text-sm disabled:opacity-50"
+                  onClick={() => onEdit(barber)}
+                  className="flex items-center gap-1 px-2 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors text-xs font-medium"
+                  title="Edit Barber"
                 >
-                  <FaTrash size={14} />
-                  Delete
+                  <FaEdit size={12} />
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
-              )}
+                {barber.active ? (
+                  <button
+                    onClick={() => handleDeactivate(barber._id, barber.name)}
+                    disabled={deletingId === barber._id}
+                    className="flex items-center gap-1 px-2 py-1.5 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-colors text-xs font-medium disabled:opacity-50"
+                    title="Deactivate Barber"
+                  >
+                    <FaBan size={12} />
+                    <span className="hidden sm:inline">Disable</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handlePermanentDelete(barber._id, barber.name)}
+                    disabled={deletingId === barber._id}
+                    className="flex items-center gap-1 px-2 py-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors text-xs font-medium disabled:opacity-50"
+                    title="Permanently Delete Barber"
+                  >
+                    <FaTrash size={12} />
+                    <span className="hidden sm:inline">Delete</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

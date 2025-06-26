@@ -42,9 +42,10 @@ interface BarberStats {
 interface BarberStatsModalProps {
   barber: Barber;
   onClose: () => void;
+  onEdit?: () => void;
 }
 
-export default function BarberStatsModal({ barber, onClose }: BarberStatsModalProps) {
+export default function BarberStatsModal({ barber, onClose, onEdit }: BarberStatsModalProps) {
   const [stats, setStats] = useState<BarberStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,64 +118,84 @@ export default function BarberStatsModal({ barber, onClose }: BarberStatsModalPr
     color?: string;
   }) => {
     const colorClasses = {
-      blue: 'bg-blue-100 text-blue-600 border-blue-200',
-      green: 'bg-green-100 text-green-600 border-green-200',
-      purple: 'bg-purple-100 text-purple-600 border-purple-200',
-      orange: 'bg-orange-100 text-orange-600 border-orange-200',
-      red: 'bg-red-100 text-red-600 border-red-200',
+      blue: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 border-blue-200',
+      green: 'bg-gradient-to-br from-green-50 to-green-100 text-green-600 border-green-200',
+      purple: 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 border-purple-200',
+      orange: 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600 border-orange-200',
+      red: 'bg-gradient-to-br from-red-50 to-red-100 text-red-600 border-red-200',
     };
 
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
-          <div className={`p-3 rounded-lg border ${colorClasses[color as keyof typeof colorClasses]}`}>
-            <Icon className="h-6 w-6" />
+          <div className={`p-2 sm:p-3 rounded-lg border ${colorClasses[color as keyof typeof colorClasses]}`}>
+            <Icon className="h-4 w-4 sm:h-6 sm:w-6" />
           </div>
         </div>
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        <div className="mt-3 sm:mt-4">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600">{title}</h3>
+          <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{value}</p>
+          {subtitle && <p className="text-xs sm:text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>
       </div>
     );
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <div className="h-16 w-16 rounded-full overflow-hidden bg-gray-100">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full overflow-hidden bg-gray-100 ring-2 ring-gray-200">
               {barber.profilePicture ? (
                 <img
                   src={barber.profilePicture}
                   alt={barber.name}
-                  className="h-16 w-16 object-cover"
+                  className="h-12 w-12 sm:h-16 sm:w-16 object-cover"
                 />
               ) : (
-                <div className="h-16 w-16 flex items-center justify-center">
-                  <FaUser className="text-gray-400 text-2xl" />
+                <div className="h-12 w-12 sm:h-16 sm:w-16 flex items-center justify-center">
+                  <FaUser className="text-gray-400 text-lg sm:text-2xl" />
                 </div>
               )}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{barber.name}</h2>
-              <p className="text-gray-600">Performance Statistics</p>
-              <p className="text-sm text-gray-500">Joined {formatDate(barber.joinDate)}</p>
+              <h2 className="text-lg sm:text-2xl font-bold text-gray-900">{barber.name}</h2>
+              <p className="text-sm sm:text-base text-gray-600">Performance Statistics</p>
+              <p className="text-xs sm:text-sm text-gray-500">Joined {formatDate(barber.joinDate)}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-2"
-          >
-            <FaTimes size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="flex items-center gap-2 px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+              >
+                <FaUser size={14} />
+                <span className="hidden sm:inline">Edit Barber</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <FaTimes size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-100px)]">
           {loading && (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
@@ -198,7 +219,7 @@ export default function BarberStatsModal({ barber, onClose }: BarberStatsModalPr
           {stats && (
             <div className="space-y-8">
               {/* Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <StatCard
                   icon={FaCut}
                   title="Total Visits"
@@ -230,7 +251,7 @@ export default function BarberStatsModal({ barber, onClose }: BarberStatsModalPr
               </div>
 
               {/* Performance Metrics */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
                 {/* Recent Monthly Performance */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -292,7 +313,7 @@ export default function BarberStatsModal({ barber, onClose }: BarberStatsModalPr
               </div>
 
               {/* Additional Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                 <StatCard
                   icon={FaClock}
                   title="Avg Service Time"

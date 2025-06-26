@@ -222,7 +222,7 @@ export default function AdminReservationsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className={`bg-white rounded-xl shadow-sm border-2 p-6 transition-all duration-200 hover:shadow-lg ${
+        className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-6 transition-all duration-200 hover:shadow-lg ${
           isNew ? 'border-yellow-300 bg-yellow-50 shadow-lg' : 'border-gray-200'
         }`}
       >
@@ -241,40 +241,40 @@ export default function AdminReservationsPage() {
           </div>
         )}
 
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-lg font-semibold text-gray-900">{reservation.displayName}</h3>
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${statusColors[reservation.status]}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">{reservation.displayName}</h3>
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border self-start ${statusColors[reservation.status]}`}>
                 <StatusIcon className="h-3 w-3" />
                 {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
               </span>
             </div>
             
-            <div className="space-y-1 text-sm text-gray-600 mb-4">
+            <div className="space-y-2 text-sm text-gray-600 mb-3">
               <div className="flex items-center gap-2">
-                <FaCalendarAlt className="h-4 w-4" />
-                <span>{reservation.formattedDateTime}</span>
+                <FaCalendarAlt className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">{reservation.formattedDateTime}</span>
               </div>
               <div className="flex items-center gap-2">
-                {reservation.source === 'guest' ? <FaUser className="h-4 w-4" /> : <FaUsers className="h-4 w-4" />}
-                <span>{reservation.contactInfo}</span>
-                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">
+                {reservation.source === 'guest' ? <FaUser className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" /> : <FaUsers className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />}
+                <span className="text-xs sm:text-sm truncate">{reservation.contactInfo}</span>
+                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full flex-shrink-0">
                   {reservation.source === 'guest' ? 'Guest' : 'Account'}
                 </span>
               </div>
             </div>
 
             {reservation.notes && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700">
+              <div className="mb-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs sm:text-sm text-gray-700">
                   <strong>Notes:</strong> {reservation.notes}
                 </p>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2 sm:ml-4 justify-end sm:justify-start">
             <button
               onClick={() => updateReservationStatus(reservation._id, reservation.isRead ? 'mark_unread' : 'mark_read')}
               className={`p-2 rounded-lg transition-colors ${
@@ -284,7 +284,7 @@ export default function AdminReservationsPage() {
               }`}
               title={reservation.isRead ? 'Mark as unread' : 'Mark as read'}
             >
-              {reservation.isRead ? <FaEyeSlash /> : <FaEye />}
+              {reservation.isRead ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
             </button>
             
             <button
@@ -295,7 +295,7 @@ export default function AdminReservationsPage() {
               className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
               title="View details"
             >
-              <FaSearch />
+              <FaSearch className="h-4 w-4" />
             </button>
             
             <button
@@ -303,17 +303,17 @@ export default function AdminReservationsPage() {
               className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete reservation"
             >
-              <FaTrash />
+              <FaTrash className="h-4 w-4" />
             </button>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
           {reservation.status === 'pending' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'contacted')}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-3 py-1.5 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
             >
               Mark Contacted
             </button>
@@ -321,7 +321,7 @@ export default function AdminReservationsPage() {
           {reservation.status === 'contacted' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'confirmed')}
-              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+              className="px-3 py-1.5 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 transition-colors flex-shrink-0"
             >
               Confirm
             </button>
@@ -329,7 +329,7 @@ export default function AdminReservationsPage() {
           {['pending', 'contacted'].includes(reservation.status) && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'cancelled')}
-              className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+              className="px-3 py-1.5 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors flex-shrink-0"
             >
               Cancel
             </button>
@@ -337,7 +337,7 @@ export default function AdminReservationsPage() {
           {reservation.status === 'confirmed' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'completed')}
-              className="px-3 py-1 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-3 py-1.5 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors flex-shrink-0"
             >
               Complete
             </button>
@@ -391,83 +391,88 @@ export default function AdminReservationsPage() {
 
           {/* Stats Cards */}
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-gray-900">{stats.overview.total}</div>
-                <div className="text-sm text-gray-600">Total</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+              <div className="bg-gradient-to-br from-gray-50 to-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900">{stats.overview.total}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Total</div>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-yellow-600">{stats.overview.pending}</div>
-                <div className="text-sm text-gray-600">Pending</div>
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-3 sm:p-4 rounded-xl shadow-sm border border-yellow-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-yellow-700">{stats.overview.pending}</div>
+                <div className="text-xs sm:text-sm text-yellow-600 font-medium">Pending</div>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-blue-600">{stats.overview.contacted}</div>
-                <div className="text-sm text-gray-600">Contacted</div>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 sm:p-4 rounded-xl shadow-sm border border-blue-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-blue-700">{stats.overview.contacted}</div>
+                <div className="text-xs sm:text-sm text-blue-600 font-medium">Contacted</div>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-green-600">{stats.overview.confirmed}</div>
-                <div className="text-sm text-gray-600">Confirmed</div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl shadow-sm border border-green-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-green-700">{stats.overview.confirmed}</div>
+                <div className="text-xs sm:text-sm text-green-600 font-medium">Confirmed</div>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-purple-600">{stats.overview.today}</div>
-                <div className="text-sm text-gray-600">Today</div>
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-3 sm:p-4 rounded-xl shadow-sm border border-purple-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-purple-700">{stats.overview.today}</div>
+                <div className="text-xs sm:text-sm text-purple-600 font-medium">Today</div>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-2xl font-bold text-indigo-600">{stats.overview.upcoming}</div>
-                <div className="text-sm text-gray-600">Upcoming</div>
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-200 hover:shadow-md transition-shadow">
+                <div className="text-lg sm:text-2xl font-bold text-indigo-700">{stats.overview.upcoming}</div>
+                <div className="text-xs sm:text-sm text-indigo-600 font-medium">Upcoming</div>
               </div>
             </div>
           )}
 
           {/* Filters */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex flex-wrap items-center gap-4">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
               <div className="flex items-center gap-2">
                 <FaFilter className="text-gray-500" />
-                <span className="font-medium text-gray-700">Filters:</span>
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Filters:</span>
               </div>
               
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="contacted">Contacted</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
-              </select>
+              <div className="grid grid-cols-2 sm:flex gap-3 sm:gap-4">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
 
-              <select
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Sources</option>
-                <option value="guest">Guest Bookings</option>
-                <option value="client_account">Account Bookings</option>
-              </select>
+                <select
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="all">All Sources</option>
+                  <option value="guest">Guest Bookings</option>
+                  <option value="client_account">Account Bookings</option>
+                </select>
+              </div>
 
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showUnreadOnly}
                   onChange={(e) => setShowUnreadOnly(e.target.checked)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Unread only</span>
+                <span className="text-sm text-gray-700 select-none">Unread only</span>
               </label>
 
-              <div className="flex-1 max-w-xs">
-                <input
-                  type="text"
-                  placeholder="Search reservations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                  <input
+                    type="text"
+                    placeholder="Search reservations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
               </div>
             </div>
           </div>
