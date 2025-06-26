@@ -109,8 +109,12 @@ export async function getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
       const hasMinimumCurrentProgress = client.currentProgressVisits >= selectedReward.visitsRequired;
       const hasNonZeroVisits = client.totalLifetimeVisits > 0 && client.currentProgressVisits > 0;
       
-      visitsToNextReward = hasEarnedEnoughVisits ? 0 : selectedReward.visitsRequired - visitsEarnedSinceSelection;
-      progressPercentage = Math.min(100, (visitsEarnedSinceSelection / selectedReward.visitsRequired) * 100);
+      // FIXED CALCULATION: Use current progress visits directly since they reset after each reward redemption
+      const actualVisitsForReward = client.currentProgressVisits;
+      const visitsNeeded = Math.max(0, selectedReward.visitsRequired - actualVisitsForReward);
+      
+      visitsToNextReward = visitsNeeded;
+      progressPercentage = Math.min(100, (actualVisitsForReward / selectedReward.visitsRequired) * 100);
       
       // Check if reward has expired
       let isExpired = false;
@@ -128,10 +132,8 @@ export async function getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
         hasReachedMaxRedemptions = previousRedemptions.length >= selectedReward.maxRedemptions;
       }
       
-      // STRICT VALIDATION: All conditions must be met
-      canRedeem = hasEarnedEnoughVisits && 
-                  hasMinimumTotalVisits && 
-                  hasMinimumCurrentProgress && 
+      // SIMPLIFIED VALIDATION: Focus on actual progress visits
+      canRedeem = actualVisitsForReward >= selectedReward.visitsRequired && 
                   hasNonZeroVisits && 
                   !isExpired && 
                   !hasReachedMaxRedemptions;
@@ -191,9 +193,9 @@ export async function selectReward(clientId: string, rewardId: string): Promise<
       throw new Error('Reward not found or inactive');
     }
 
-    // Update client's selected reward
-    client.selectedReward = rewardId;
-    client.selectedRewardStartVisits = client.totalLifetimeVisits;
+    // Update client's selected reward - Reset progress when selecting new reward
+    client.selectedReward = reward._id;
+    client.selectedRewardStartVisits = client.currentProgressVisits; // Track where they started
     client.loyaltyStatus = 'active';
     
     if (!client.loyaltyJoinDate) {

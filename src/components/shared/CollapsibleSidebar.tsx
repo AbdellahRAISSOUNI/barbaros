@@ -66,6 +66,17 @@ export function CollapsibleSidebar({
     if (exactMatch) {
       return pathname === href;
     }
+    
+    // Special handling for reservations to avoid conflicts
+    if (href === '/client/reservations' && pathname === '/client/reservations/new') {
+      return false; // Don't highlight parent when on new booking page
+    }
+    
+    if (href === '/client/reservations/new') {
+      return pathname === '/client/reservations/new';
+    }
+    
+    // For other routes, use standard logic
     return pathname === href || pathname?.startsWith(href + '/');
   };
   
