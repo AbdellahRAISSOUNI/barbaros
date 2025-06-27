@@ -68,6 +68,8 @@ export default function BarberScannerPage() {
   const handleClientFound = (clientId: string) => {
     setFoundClientId(clientId);
     setScanError(null);
+    setSuccessMessage('Client found! Loading information...');
+    setIsLoadingClient(true);
     setViewMode('client-overview');
   };
 
@@ -279,7 +281,24 @@ export default function BarberScannerPage() {
   // Scanner View
   if (viewMode === 'scanner') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+      <div className="relative min-h-screen bg-gray-50 pb-20">
+        {/* Loading Overlay */}
+        {isLoadingClient && (
+          <>
+            {/* Blur backdrop */}
+            <div className="fixed inset-0 backdrop-blur-sm bg-white/30 z-50" />
+            {/* Content */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl text-center max-w-sm mx-4 border border-gray-200/50">
+                <FaSpinner className="animate-spin text-4xl text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Loading Client Data</h3>
+                <p className="text-gray-600">Please wait while we fetch the client's information...</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Main Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-12">

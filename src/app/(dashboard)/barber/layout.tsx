@@ -25,9 +25,12 @@ export default function BarberDashboardLayout({
             sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'
           }`}
         >
-          <BarberHeader />
+          {/* Header only on desktop */}
+          <div className="hidden lg:block">
+            <BarberHeader />
+          </div>
           <main 
-            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-8 lg:pt-8 pb-20 lg:pb-8 transition-all duration-300`}
+            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8 pb-20 lg:pb-8 transition-all duration-300`}
           >
             {children}
           </main>

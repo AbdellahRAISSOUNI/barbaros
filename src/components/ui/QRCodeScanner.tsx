@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseQRCodeData } from '@/lib/utils/qrcode';
-import { FaCamera, FaStop, FaSearch, FaCog, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+import { FaCamera, FaStop, FaSearch, FaCog, FaSpinner, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import jsQR from 'jsqr';
 
 interface QRCodeScannerProps {
@@ -25,6 +25,7 @@ export function QRCodeScanner({
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
+  const [scanSuccess, setScanSuccess] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -138,6 +139,17 @@ export function QRCodeScanner({
     }
   };
 
+  const handleSuccessfulScan = (clientId: string) => {
+    setScanSuccess(true);
+    stopScanning();
+    // Wait a moment to show success message before calling onScanSuccess
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        onScanSuccess(clientId);
+      }
+    }, 1000);
+  };
+
   const scanQRCode = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -171,22 +183,18 @@ export function QRCodeScanner({
       
       if (parsedData && parsedData.id && parsedData.type === 'barbaros-client') {
         console.log('Valid Barbaros QR code found, client ID:', parsedData.id);
-        stopScanning();
-        onScanSuccess(parsedData.id);
+        handleSuccessfulScan(parsedData.id);
       } else {
         // Try to handle raw text as client ID (fallback)
         if (/^[0-9a-fA-F]{24}$/.test(qrCode.data)) {
           console.log('Detected MongoDB ObjectId format:', qrCode.data);
-          stopScanning();
-          onScanSuccess(qrCode.data);
+          handleSuccessfulScan(qrCode.data);
         } else if (/^C[A-Za-z0-9]{8}$/.test(qrCode.data)) {
           console.log('Detected client ID format:', qrCode.data);
-          stopScanning();
-          onScanSuccess(qrCode.data);
+          handleSuccessfulScan(qrCode.data);
         } else if (qrCode.data && qrCode.data.length >= 5) {
           console.log('Trying raw text as client identifier:', qrCode.data);
-          stopScanning();
-          onScanSuccess(qrCode.data);
+          handleSuccessfulScan(qrCode.data);
         } else {
           console.log('Invalid QR code format:', qrCode.data);
         }
@@ -270,7 +278,23 @@ export function QRCodeScanner({
   // Wait for user interaction instead
   
   return (
-    <div className={`${className}`}>
+    <div className={`relative ${className}`}>
+      {/* Success Overlay */}
+      {scanSuccess && (
+        <>
+          {/* Blur backdrop */}
+          <div className="absolute inset-0 backdrop-blur-sm bg-white/30 z-50 rounded-lg" />
+          {/* Content */}
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg">
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl text-center border border-gray-200/50">
+              <FaCheckCircle className="text-5xl text-green-500 mx-auto mb-3" />
+              <h3 className="text-xl font-semibold mb-2">QR Code Scanned!</h3>
+              <p className="text-gray-600">Loading client information...</p>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">

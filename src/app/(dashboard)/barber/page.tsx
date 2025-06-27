@@ -115,9 +115,9 @@ export default function BarberDashboardPage() {
           <p className="text-lg md:text-xl font-bold text-stone-800 leading-tight">{value}</p>
           {subtitle && <p className="text-xs text-stone-500 truncate">{subtitle}</p>}
         </div>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const ActionButton = ({ icon: Icon, title, description, href, gradient }: {
     icon: React.ComponentType<{ className?: string }>;
@@ -137,9 +137,9 @@ export default function BarberDashboardPage() {
             <p className="text-xs md:text-sm text-white/80 mt-1 leading-tight">{description}</p>
           </div>
         </div>
-      </div>
-    </Link>
-  );
+        </div>
+      </Link>
+    );
 
   const recentMonth = getRecentMonth();
 
@@ -156,28 +156,28 @@ export default function BarberDashboardPage() {
             <div>
               <h1 className="text-lg md:text-2xl font-bold leading-tight">
                 Welcome, {session?.user?.name?.split(' ')[0] || 'Barber'}
-              </h1>
+        </h1>
               <p className="text-xs md:text-sm text-emerald-100">Your premium workspace awaits</p>
             </div>
           </div>
-        </div>
+      </div>
 
         {/* Quick Actions - Mobile First */}
-        <div>
+      <div>
           <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <ActionButton
-              icon={FaQrcode}
-              title="Scan Client"
+            icon={FaQrcode}
+            title="Scan Client"
               description="Record new visit"
-              href="/barber/scanner"
+            href="/barber/scanner"
               gradient="bg-gradient-to-r from-emerald-600 to-emerald-500"
-            />
+          />
             <ActionButton
-              icon={FaHistory}
+            icon={FaHistory}
               title="History"
               description="View work history"
-              href="/barber/history"
+            href="/barber/history"
               gradient="bg-gradient-to-r from-amber-600 to-amber-500"
             />
             <ActionButton
@@ -186,99 +186,99 @@ export default function BarberDashboardPage() {
               description="Track progress"
               href="/barber/achievements"
               gradient="bg-gradient-to-r from-stone-600 to-stone-500"
-            />
-          </div>
+          />
         </div>
+      </div>
 
         {/* Performance Metrics */}
-        <div>
+      <div>
           <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1">Performance</h2>
-          
-          {loading && (
+        
+        {loading && (
             <div className="flex items-center justify-center py-12">
               <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
-            </div>
-          )}
+          </div>
+        )}
 
-          {error && (
+        {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
               <p className="text-red-700 text-sm mb-3">{error}</p>
-              <button
-                onClick={fetchBarberStats}
+            <button
+              onClick={fetchBarberStats}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          )}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-          {stats && (
+        {stats && (
             <div className="space-y-4 md:space-y-5">
               {/* Main Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <MetricCard
-                  icon={FaCut}
-                  title="Total Visits"
-                  value={stats.totalVisits}
+                icon={FaCut}
+                title="Total Visits"
+                value={stats.totalVisits}
                   subtitle={`${stats.averageVisitsPerDay?.toFixed(1) || 0}/day avg`}
                   gradient="bg-gradient-to-r from-emerald-600 to-emerald-500"
-                />
+              />
                 <MetricCard
                   icon={FaUsers}
                   title="Clients"
                   value={stats.uniqueClientsServed?.length || 0}
                   subtitle={`${stats.clientRetentionRate?.toFixed(1) || 0}% retention`}
                   gradient="bg-gradient-to-r from-amber-600 to-amber-500"
-                />
+              />
                 <MetricCard
                   icon={FaMedal}
                   title="Achievement Points"
                   value={stats.achievementPoints || 0}
                   subtitle={`${stats.completedAchievements || 0} achievements`}
                   gradient="bg-gradient-to-r from-stone-600 to-stone-500"
-                />
+              />
                 <MetricCard
-                  icon={FaCalendarAlt}
+                icon={FaCalendarAlt}
                   title="Experience"
-                  value={getWorkDurationText(stats.workDaysSinceJoining)}
+                value={getWorkDurationText(stats.workDaysSinceJoining)}
                   subtitle={`${stats.workDaysSinceJoining} days`}
                   gradient="bg-gradient-to-r from-emerald-700 to-emerald-600"
-                />
-              </div>
+              />
+            </div>
 
               {/* Monthly Performance */}
-              {recentMonth && (
+            {recentMonth && (
                 <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 border border-stone-200/60 rounded-xl p-4 md:p-5 shadow-sm">
                   <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
                     <FaChartLine className="w-4 h-4 mr-2 text-emerald-600" />
                     This Month
-                  </h3>
+                </h3>
                   <div className="grid grid-cols-3 gap-3 md:gap-4">
-                    <div className="text-center">
+                  <div className="text-center">
                       <div className="text-xl md:text-2xl font-bold text-emerald-700">{recentMonth.visitsCount}</div>
                       <div className="text-xs md:text-sm text-stone-600 font-medium">Visits</div>
                     </div>
                     <div className="text-center border-l border-stone-200 pl-3">
                       <div className="text-xl md:text-2xl font-bold text-amber-700">{recentMonth.uniqueClients}</div>
                       <div className="text-xs md:text-sm text-stone-600 font-medium">Clients</div>
-                    </div>
+                  </div>
                     <div className="text-center border-l border-stone-200 pl-3">
                       <div className="text-xl md:text-2xl font-bold text-stone-700">{stats.serviceVariety || 0}</div>
                       <div className="text-xs md:text-sm text-stone-600 font-medium">Services</div>
-                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
               {/* Top Services - Compact */}
-              {stats.topServices && stats.topServices.length > 0 && (
+            {stats.topServices && stats.topServices.length > 0 && (
                 <div className="bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-200/60 rounded-xl p-4 md:p-5 shadow-sm">
                   <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
                     <FaAward className="w-4 h-4 mr-2 text-amber-600" />
                     Top Services
-                  </h3>
-                  <div className="space-y-2">
-                    {stats.topServices.slice(0, 3).map((service, index) => (
+                </h3>
+                <div className="space-y-2">
+                  {stats.topServices.slice(0, 3).map((service, index) => (
                       <div key={service} className="flex items-center space-x-3 p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40">
                         <div className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${
                           index === 0 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 
@@ -288,11 +288,11 @@ export default function BarberDashboardPage() {
                           {index + 1}
                         </div>
                         <span className="text-sm md:text-base font-medium text-stone-800 flex-1">{service}</span>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
               {/* Professional Insights */}
               <div className="bg-gradient-to-br from-emerald-50 to-amber-50 border border-emerald-200/60 rounded-xl p-4 md:p-5 shadow-sm">
@@ -305,30 +305,30 @@ export default function BarberDashboardPage() {
                     <div className="text-lg mb-1">📊</div>
                     <div className="text-xs md:text-sm font-semibold text-stone-800">Efficiency</div>
                     <div className="text-xs text-stone-600">{stats.averageVisitsPerDay?.toFixed(1) || 0}/day</div>
-                  </div>
+                    </div>
                   
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
                     <div className="text-lg mb-1">⏱️</div>
                     <div className="text-xs md:text-sm font-semibold text-stone-800">Avg Time</div>
                     <div className="text-xs text-stone-600">{stats.averageServiceTime || 0} min</div>
-                  </div>
+                    </div>
                   
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
                     <div className="text-lg mb-1">🎯</div>
                     <div className="text-xs md:text-sm font-semibold text-stone-800">Retention</div>
                     <div className="text-xs text-stone-600">{stats.clientRetentionRate?.toFixed(0) || 0}%</div>
-                  </div>
+                    </div>
                   
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
                     <div className="text-lg mb-1">🏅</div>
                     <div className="text-xs md:text-sm font-semibold text-stone-800">Variety</div>
                     <div className="text-xs text-stone-600">{stats.serviceVariety || 0} types</div>
-                  </div>
+                    </div>
+                </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
       </div>
     </div>
   );
