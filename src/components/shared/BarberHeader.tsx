@@ -30,16 +30,9 @@ export function BarberHeader() {
 
   return (
     <header className="bg-white shadow-sm fixed w-full lg:static z-20 px-4 py-4 lg:px-8 hidden lg:block">
-      <div className="flex justify-between items-center">
-        <div className="lg:hidden">
-          {/* Space for mobile menu toggle button */}
-          <div className="w-8"></div>
-        </div>
-        
-        <h1 className="text-xl font-semibold text-gray-800 lg:hidden">Barbaros</h1>
-        
+      <div className="flex justify-between items-center">        
         {/* User dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative ml-auto" ref={dropdownRef}>
           <button
             className="flex items-center space-x-2 focus:outline-none"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}

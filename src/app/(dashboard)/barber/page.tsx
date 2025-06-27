@@ -2,29 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FaCut, FaDollarSign, FaUsers, FaCalendarAlt, FaTrophy, FaChartLine, FaQrcode, FaHistory } from 'react-icons/fa';
+import { FaCut, FaUsers, FaCalendarAlt, FaTrophy, FaChartLine, FaQrcode, FaHistory, FaCrown, FaAward, FaMedal, FaFire } from 'react-icons/fa';
 import Link from 'next/link';
 
 interface BarberStats {
   totalVisits: number;
-  totalRevenue: number;
   uniqueClientsServed: string[];
   workDaysSinceJoining: number;
   averageVisitsPerDay: number;
   monthlyStats: Array<{
     month: string;
     visitsCount: number;
-    revenue: number;
     uniqueClients: number;
   }>;
   serviceStats: Array<{
     serviceName: string;
     count: number;
-    revenue: number;
   }>;
   clientRetentionRate: number;
   averageServiceTime: number;
   topServices: string[];
+  achievementPoints?: number;
+  completedAchievements?: number;
+  currentStreak?: number;
+  serviceVariety?: number;
 }
 
 export default function BarberDashboardPage() {
@@ -46,13 +47,36 @@ export default function BarberDashboardPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/admin/barbers/${session.user.id}/stats`);
-      const data = await response.json();
+      // Parallel requests for faster loading
+      const [statsResponse, achievementsResponse] = await Promise.all([
+        fetch(`/api/admin/barbers/${session.user.id}/stats`),
+        fetch(`/api/barber/achievements?barberId=${session.user.id}`)
+      ]);
 
-      if (data.success) {
-        setStats(data.stats);
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData.success) {
+          let enhancedStats = statsData.stats;
+          
+          // Add achievement data if available
+          if (achievementsResponse.ok) {
+            const achievementsData = await achievementsResponse.json();
+            if (achievementsData.success) {
+              const completedAchievements = achievementsData.achievements.filter((a: any) => a.isCompleted);
+              enhancedStats.achievementPoints = completedAchievements.reduce((sum: number, a: any) => sum + a.points, 0);
+              enhancedStats.completedAchievements = completedAchievements.length;
+            }
+          }
+          
+          // Calculate service variety
+          enhancedStats.serviceVariety = enhancedStats.serviceStats?.length || 0;
+          
+          setStats(enhancedStats);
+        } else {
+          setError(statsData.error || 'Failed to load statistics');
+        }
       } else {
-        setError(data.error || 'Failed to load statistics');
+        setError('Failed to load statistics');
       }
     } catch (error) {
       console.error('Error fetching barber stats:', error);
@@ -60,13 +84,6 @@ export default function BarberDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
   };
 
   const getWorkDurationText = (days: number) => {
@@ -81,277 +98,237 @@ export default function BarberDashboardPage() {
       .sort((a, b) => b.month.localeCompare(a.month))[0];
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', href }: {
-    icon: any;
+  const MetricCard = ({ icon: Icon, title, value, subtitle, gradient }: {
+    icon: React.ComponentType<{ className?: string }>;
     title: string;
     value: string | number;
     subtitle?: string;
-    color?: string;
-    href?: string;
-  }) => {
-    const colorClasses = {
-      blue: 'bg-blue-100 text-blue-600 border-blue-200',
-      green: 'bg-green-100 text-green-600 border-green-200',
-      purple: 'bg-purple-100 text-purple-600 border-purple-200',
-      orange: 'bg-orange-100 text-orange-600 border-orange-200',
-    };
-
-    const CardContent = (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between">
-          <div className={`p-3 rounded-xl border ${colorClasses[color as keyof typeof colorClasses]}`}>
-            <Icon className="h-6 w-6" />
-          </div>
+    gradient: string;
+  }) => (
+    <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 backdrop-blur-sm border border-stone-200/60 rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="flex items-center space-x-3">
+        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg ${gradient} flex items-center justify-center shadow-sm`}>
+          <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
         </div>
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs md:text-sm font-medium text-stone-600 truncate">{title}</p>
+          <p className="text-lg md:text-xl font-bold text-stone-800 leading-tight">{value}</p>
+          {subtitle && <p className="text-xs text-stone-500 truncate">{subtitle}</p>}
         </div>
       </div>
-    );
+    </div>
+  );
 
-    return href ? (
-      <Link href={href} className="block">
-        {CardContent}
-      </Link>
-    ) : CardContent;
-  };
-
-  const QuickActionCard = ({ icon: Icon, title, description, href, color }: {
-    icon: any;
+  const ActionButton = ({ icon: Icon, title, description, href, gradient }: {
+    icon: React.ComponentType<{ className?: string }>;
     title: string;
     description: string;
     href: string;
-    color: string;
-  }) => {
-    const colorClasses = {
-      blue: 'bg-blue-500 hover:bg-blue-600',
-      green: 'bg-green-500 hover:bg-green-600',
-      purple: 'bg-purple-500 hover:bg-purple-600',
-    };
-
-    return (
-      <Link href={href}>
-        <div className={`${colorClasses[color as keyof typeof colorClasses]} text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105`}>
-          <div className="flex items-center mb-4">
-            <Icon className="h-8 w-8 mr-3" />
-            <h3 className="text-lg font-semibold">{title}</h3>
+    gradient: string;
+  }) => (
+    <Link href={href} className="block">
+      <div className={`${gradient} text-white rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]`}>
+        <div className="flex items-start space-x-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 flex-shrink-0">
+            <Icon className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <p className="text-blue-100">{description}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm md:text-base font-semibold leading-tight">{title}</h3>
+            <p className="text-xs md:text-sm text-white/80 mt-1 leading-tight">{description}</p>
+          </div>
         </div>
-      </Link>
-    );
-  };
+      </div>
+    </Link>
+  );
 
   const recentMonth = getRecentMonth();
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-8">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {session?.user?.name?.split(' ')[0] || 'Barber'}! 👋
-        </h1>
-        <p className="text-blue-100 text-lg">
-          Here's your performance overview and quick actions for today.
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <QuickActionCard
-            icon={FaQrcode}
-            title="Scan Client"
-            description="Scan a QR code to record a new visit"
-            href="/barber/scanner"
-            color="blue"
-          />
-          <QuickActionCard
-            icon={FaCut}
-            title="View My Visits"
-            description="See all visits you've completed"
-            href="/barber/visits"
-            color="green"
-          />
-          <QuickActionCard
-            icon={FaHistory}
-            title="Work History"
-            description="View your detailed work history"
-            href="/barber/history"
-            color="purple"
-          />
-        </div>
-      </div>
-
-      {/* Statistics Overview */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Performance</h2>
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20">
+      <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
         
-        {loading && (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={fetchBarberStats}
-              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {stats && (
-          <div className="space-y-6">
-            {/* Main Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                icon={FaCut}
-                title="Total Visits"
-                value={stats.totalVisits}
-                subtitle={`${stats.averageVisitsPerDay.toFixed(1)} per day avg`}
-                color="blue"
-                href="/barber/visits"
-              />
-              <StatCard
-                icon={FaDollarSign}
-                title="Total Revenue"
-                value={formatCurrency(stats.totalRevenue)}
-                subtitle={`${formatCurrency(stats.totalRevenue / Math.max(stats.totalVisits, 1))} per visit`}
-                color="green"
-              />
-              <StatCard
-                icon={FaUsers}
-                title="Unique Clients"
-                value={stats.uniqueClientsServed.length}
-                subtitle={`${stats.clientRetentionRate.toFixed(1)}% retention rate`}
-                color="purple"
-              />
-              <StatCard
-                icon={FaCalendarAlt}
-                title="Work Period"
-                value={getWorkDurationText(stats.workDaysSinceJoining)}
-                subtitle={`${stats.workDaysSinceJoining} days total`}
-                color="orange"
-              />
+        {/* Premium Welcome Section */}
+        <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+              <FaCrown className="w-4 h-4 md:w-5 md:h-5 text-amber-200" />
             </div>
+            <div>
+              <h1 className="text-lg md:text-2xl font-bold leading-tight">
+                Welcome, {session?.user?.name?.split(' ')[0] || 'Barber'}
+              </h1>
+              <p className="text-xs md:text-sm text-emerald-100">Your premium workspace awaits</p>
+            </div>
+          </div>
+        </div>
 
-            {/* Recent Month Performance */}
-            {recentMonth && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FaChartLine className="mr-2" />
-                  This Month's Performance
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{recentMonth.visitsCount}</div>
-                    <div className="text-sm text-gray-600">Visits Completed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(recentMonth.revenue)}</div>
-                    <div className="text-sm text-gray-600">Revenue Generated</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{recentMonth.uniqueClients}</div>
-                    <div className="text-sm text-gray-600">Unique Clients</div>
+        {/* Quick Actions - Mobile First */}
+        <div>
+          <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <ActionButton
+              icon={FaQrcode}
+              title="Scan Client"
+              description="Record new visit"
+              href="/barber/scanner"
+              gradient="bg-gradient-to-r from-emerald-600 to-emerald-500"
+            />
+            <ActionButton
+              icon={FaHistory}
+              title="History"
+              description="View work history"
+              href="/barber/history"
+              gradient="bg-gradient-to-r from-amber-600 to-amber-500"
+            />
+            <ActionButton
+              icon={FaTrophy}
+              title="Achievements"
+              description="Track progress"
+              href="/barber/achievements"
+              gradient="bg-gradient-to-r from-stone-600 to-stone-500"
+            />
+          </div>
+        </div>
+
+        {/* Performance Metrics */}
+        <div>
+          <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1">Performance</h2>
+          
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+              <p className="text-red-700 text-sm mb-3">{error}</p>
+              <button
+                onClick={fetchBarberStats}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {stats && (
+            <div className="space-y-4 md:space-y-5">
+              {/* Main Metrics Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                <MetricCard
+                  icon={FaCut}
+                  title="Total Visits"
+                  value={stats.totalVisits}
+                  subtitle={`${stats.averageVisitsPerDay?.toFixed(1) || 0}/day avg`}
+                  gradient="bg-gradient-to-r from-emerald-600 to-emerald-500"
+                />
+                <MetricCard
+                  icon={FaUsers}
+                  title="Clients"
+                  value={stats.uniqueClientsServed?.length || 0}
+                  subtitle={`${stats.clientRetentionRate?.toFixed(1) || 0}% retention`}
+                  gradient="bg-gradient-to-r from-amber-600 to-amber-500"
+                />
+                <MetricCard
+                  icon={FaMedal}
+                  title="Achievement Points"
+                  value={stats.achievementPoints || 0}
+                  subtitle={`${stats.completedAchievements || 0} achievements`}
+                  gradient="bg-gradient-to-r from-stone-600 to-stone-500"
+                />
+                <MetricCard
+                  icon={FaCalendarAlt}
+                  title="Experience"
+                  value={getWorkDurationText(stats.workDaysSinceJoining)}
+                  subtitle={`${stats.workDaysSinceJoining} days`}
+                  gradient="bg-gradient-to-r from-emerald-700 to-emerald-600"
+                />
+              </div>
+
+              {/* Monthly Performance */}
+              {recentMonth && (
+                <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 border border-stone-200/60 rounded-xl p-4 md:p-5 shadow-sm">
+                  <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
+                    <FaChartLine className="w-4 h-4 mr-2 text-emerald-600" />
+                    This Month
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 md:gap-4">
+                    <div className="text-center">
+                      <div className="text-xl md:text-2xl font-bold text-emerald-700">{recentMonth.visitsCount}</div>
+                      <div className="text-xs md:text-sm text-stone-600 font-medium">Visits</div>
+                    </div>
+                    <div className="text-center border-l border-stone-200 pl-3">
+                      <div className="text-xl md:text-2xl font-bold text-amber-700">{recentMonth.uniqueClients}</div>
+                      <div className="text-xs md:text-sm text-stone-600 font-medium">Clients</div>
+                    </div>
+                    <div className="text-center border-l border-stone-200 pl-3">
+                      <div className="text-xl md:text-2xl font-bold text-stone-700">{stats.serviceVariety || 0}</div>
+                      <div className="text-xs md:text-sm text-stone-600 font-medium">Services</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Top Services */}
-            {stats.topServices && stats.topServices.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FaTrophy className="mr-2" />
-                  Your Top Services
-                </h3>
-                <div className="space-y-2">
-                  {stats.topServices.slice(0, 3).map((service, index) => (
-                    <div key={service} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                          index === 0 ? 'bg-yellow-500' : 
-                          index === 1 ? 'bg-gray-400' : 'bg-orange-500'
+              {/* Top Services - Compact */}
+              {stats.topServices && stats.topServices.length > 0 && (
+                <div className="bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-200/60 rounded-xl p-4 md:p-5 shadow-sm">
+                  <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
+                    <FaAward className="w-4 h-4 mr-2 text-amber-600" />
+                    Top Services
+                  </h3>
+                  <div className="space-y-2">
+                    {stats.topServices.slice(0, 3).map((service, index) => (
+                      <div key={service} className="flex items-center space-x-3 p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40">
+                        <div className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${
+                          index === 0 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 
+                          index === 1 ? 'bg-gradient-to-r from-stone-400 to-stone-300' : 
+                          'bg-gradient-to-r from-amber-600 to-amber-500'
                         }`}>
                           {index + 1}
                         </div>
-                        <span className="ml-3 font-medium text-gray-900">{service}</span>
+                        <span className="text-sm md:text-base font-medium text-stone-800 flex-1">{service}</span>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Achievements */}
-            {stats.totalVisits > 0 && (
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FaTrophy className="mr-2 text-yellow-500" />
-                  Your Achievements
+              {/* Professional Insights */}
+              <div className="bg-gradient-to-br from-emerald-50 to-amber-50 border border-emerald-200/60 rounded-xl p-4 md:p-5 shadow-sm">
+                <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
+                  <FaFire className="w-4 h-4 mr-2 text-emerald-600" />
+                  Professional Stats
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {stats.totalVisits >= 10 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">🎯</div>
-                      <div className="font-semibold text-gray-900">Getting Started</div>
-                      <div className="text-sm text-gray-600">10+ visits completed</div>
-                    </div>
-                  )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
+                    <div className="text-lg mb-1">📊</div>
+                    <div className="text-xs md:text-sm font-semibold text-stone-800">Efficiency</div>
+                    <div className="text-xs text-stone-600">{stats.averageVisitsPerDay?.toFixed(1) || 0}/day</div>
+                  </div>
                   
-                  {stats.totalVisits >= 50 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">⭐</div>
-                      <div className="font-semibold text-gray-900">Rising Star</div>
-                      <div className="text-sm text-gray-600">50+ visits completed</div>
-                    </div>
-                  )}
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
+                    <div className="text-lg mb-1">⏱️</div>
+                    <div className="text-xs md:text-sm font-semibold text-stone-800">Avg Time</div>
+                    <div className="text-xs text-stone-600">{stats.averageServiceTime || 0} min</div>
+                  </div>
                   
-                  {stats.totalVisits >= 100 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">🏆</div>
-                      <div className="font-semibold text-gray-900">Century Club</div>
-                      <div className="text-sm text-gray-600">100+ visits completed</div>
-                    </div>
-                  )}
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
+                    <div className="text-lg mb-1">🎯</div>
+                    <div className="text-xs md:text-sm font-semibold text-stone-800">Retention</div>
+                    <div className="text-xs text-stone-600">{stats.clientRetentionRate?.toFixed(0) || 0}%</div>
+                  </div>
                   
-                  {stats.workDaysSinceJoining >= 30 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">📅</div>
-                      <div className="font-semibold text-gray-900">First Month</div>
-                      <div className="text-sm text-gray-600">30+ days with the team</div>
-                    </div>
-                  )}
-                  
-                  {stats.clientRetentionRate >= 30 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">💯</div>
-                      <div className="font-semibold text-gray-900">Client Favorite</div>
-                      <div className="text-sm text-gray-600">High retention rate</div>
-                    </div>
-                  )}
-                  
-                  {stats.workDaysSinceJoining >= 365 && (
-                    <div className="bg-white rounded-lg p-4 border border-yellow-200 text-center">
-                      <div className="text-2xl mb-2">🎖️</div>
-                      <div className="font-semibold text-gray-900">One Year Strong</div>
-                      <div className="text-sm text-gray-600">1+ year with the team</div>
-                    </div>
-                  )}
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
+                    <div className="text-lg mb-1">🏅</div>
+                    <div className="text-xs md:text-sm font-semibold text-stone-800">Variety</div>
+                    <div className="text-xs text-stone-600">{stats.serviceVariety || 0} types</div>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
