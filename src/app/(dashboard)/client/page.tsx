@@ -37,6 +37,8 @@ export default function ClientDashboardPage() {
   const [loyaltyStatus, setLoyaltyStatus] = useState<LoyaltyStatus | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isLoadingLoyalty, setIsLoadingLoyalty] = useState(true);
+  const [recentVisits, setRecentVisits] = useState<any[]>([]);
+  const [isLoadingVisits, setIsLoadingVisits] = useState(true);
   
   // Get greeting based on time
   const getGreeting = () => {
@@ -67,27 +69,39 @@ export default function ClientDashboardPage() {
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
 
-    // Fetch loyalty data
-    const fetchLoyaltyData = async () => {
+    // Fetch loyalty data and recent visits
+    const fetchData = async () => {
       if (!session?.user?.id) return;
       
       try {
         setIsLoadingLoyalty(true);
-        const response = await fetch(`/api/loyalty/${session.user.id}`);
-        const data = await response.json();
+        setIsLoadingVisits(true);
         
-        if (data.success) {
-          setLoyaltyStatus(data.loyaltyStatus);
+        // Fetch loyalty data
+        const loyaltyResponse = await fetch(`/api/loyalty/${session.user.id}`);
+        const loyaltyData = await loyaltyResponse.json();
+        
+        if (loyaltyData.success) {
+          setLoyaltyStatus(loyaltyData.loyaltyStatus);
+        }
+
+        // Fetch recent visits
+        const visitsResponse = await fetch(`/api/clients/${session.user.id}/visits?limit=5`);
+        const visitsData = await visitsResponse.json();
+        
+        if (visitsData.success) {
+          setRecentVisits(visitsData.visits || []);
         }
       } catch (error) {
-        console.error('Error fetching loyalty data:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoadingLoyalty(false);
+        setIsLoadingVisits(false);
       }
     };
     
     if (session?.user?.id) {
-      fetchLoyaltyData();
+      fetchData();
     }
 
     return () => clearInterval(timeInterval);
@@ -126,6 +140,17 @@ export default function ClientDashboardPage() {
   }
 
   const tier = loyaltyStatus ? getLoyaltyTier(loyaltyStatus.totalVisits) : null;
+  
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50">
@@ -381,20 +406,54 @@ export default function ClientDashboardPage() {
                 <h3 className="text-base sm:text-lg font-bold text-amber-900">Recent Activity</h3>
                 <p className="text-amber-700 text-xs sm:text-sm">Your latest visits and rewards</p>
               </div>
-          </div>
+            </div>
             <Link 
               href="/client/history"
               className="flex items-center justify-center sm:justify-start text-amber-700 hover:text-amber-900 font-medium transition-colors text-sm sm:text-base"
             >
               View All
               <FaChevronRight className="ml-1 w-3 h-3 sm:w-4 sm:h-4" />
-        </Link>
-      </div>
-      
-          <div className="text-center py-6 sm:py-8">
-            <FaMagic className="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 mx-auto mb-3" />
-            <p className="text-amber-700 text-sm sm:text-base">Visit us to start building your reward history!</p>
+            </Link>
           </div>
+
+          {isLoadingVisits ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-200 border-t-amber-600"></div>
+            </div>
+          ) : recentVisits.length > 0 ? (
+            <div className="space-y-3">
+              {recentVisits.map((visit) => (
+                <div key={visit._id} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-amber-100/50 hover:border-amber-200/50 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-amber-900">
+                        {formatDate(visit.visitDate)}
+                      </div>
+                      <div className="text-xs text-amber-700 mt-1">
+                        Services: {visit.services.map((s: any) => s.name).join(', ')}
+                      </div>
+                      <div className="text-xs text-amber-600 mt-0.5">
+                        Barber: {visit.barber}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-amber-900">${visit.totalPrice}</div>
+                      {visit.rewardRedeemed && (
+                        <div className="text-xs text-emerald-600 font-medium mt-1">
+                          Reward Used
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 sm:py-8">
+              <FaMagic className="w-10 h-10 sm:w-12 sm:h-12 text-amber-300 mx-auto mb-3" />
+              <p className="text-amber-700 text-sm sm:text-base">Visit us to start building your reward history!</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -17,14 +17,14 @@ export default function ClientLayout({
     <AuthCheck clientOnly>
       <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
         {/* Sidebar - Hidden on mobile */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block lg:fixed lg:inset-y-0 lg:z-50">
           <ClientSidebar onCollapsedChange={setSidebarCollapsed} />
         </div>
 
         {/* Main Content */}
         <div 
           className={`flex-1 flex flex-col transition-all duration-300 ${
-            sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'
+            sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60'
           }`}
         >
           {/* Header - Hidden on mobile */}
