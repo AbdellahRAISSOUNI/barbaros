@@ -165,7 +165,7 @@ export function ClientLookup({
                 <input
                   type="text"
                   id="search-term"
-                  className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-black"
                   placeholder={getSearchPlaceholder()}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

@@ -98,7 +98,7 @@ export function ClientForm({
                   onChange={handleChange}
                   required
                   placeholder="Enter first name"
-                  className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-black placeholder:text-black"
                 />
               </div>
             </div>
@@ -119,7 +119,7 @@ export function ClientForm({
                   onChange={handleChange}
                   required
                   placeholder="Enter last name"
-                  className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-black placeholder:text-black"
                 />
               </div>
             </div>
@@ -142,7 +142,7 @@ export function ClientForm({
                 onChange={handleChange}
                 required
                 placeholder="Enter phone number"
-                className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                className="pl-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-black placeholder:text-black"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export function ClientForm({
                   onChange={handleChange}
                   required={!isEditMode}
                   placeholder="Enter password"
-                  className="pl-10 pr-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  className="pl-10 pr-10 w-full rounded-lg border border-gray-300 py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-black placeholder:text-black"
                 />
                 <button
                   type="button"

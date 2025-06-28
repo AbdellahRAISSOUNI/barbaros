@@ -45,10 +45,7 @@ export async function GET(
       );
     }
     
-    return NextResponse.json({
-      success: true,
-      client
-    });
+    return NextResponse.json(client);
   } catch (error: any) {
     console.error('Error fetching client:', error);
     return NextResponse.json(

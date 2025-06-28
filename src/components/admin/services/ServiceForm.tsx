@@ -226,7 +226,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+                className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400 text-black"
                 placeholder="e.g., Regular Haircut"
                 required
               />
@@ -242,7 +242,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
               placeholder="Describe the service..."
               required
             />
@@ -261,7 +261,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                 placeholder="25.00"
                 required
               />
@@ -277,7 +277,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
                 value={formData.durationMinutes}
                 onChange={(e) => setFormData({ ...formData, durationMinutes: Number(e.target.value) })}
                 min="1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                 placeholder="30"
                 required
               />
@@ -293,7 +293,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
               id="category"
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
               required
             >
               <option value="">Select a category</option>

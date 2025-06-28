@@ -545,9 +545,9 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                         {/* Enhanced Reward Badge */}
                         {isRewardVisit && (
                           <div className="absolute top-2 right-2 z-10">
-                            <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
-                              <FaGift className="w-2 h-2" />
-                              <span className="hidden sm:inline text-xs">REWARD</span>
+                            <div className="bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                              <FaGift className="w-3 h-3" />
+                              <span>Reward Visit</span>
                             </div>
                           </div>
                         )}

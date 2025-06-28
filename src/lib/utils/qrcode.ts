@@ -27,9 +27,9 @@ export const generateQRCodeDataURL = async (
     
     // Default options for optimal scanning
     const defaultOptions: QRCode.QRCodeToDataURLOptions = {
-      errorCorrectionLevel: 'H', // High error correction
-      margin: 2,
-      width: 300,
+      errorCorrectionLevel: 'M', // Medium error correction for faster generation
+      margin: 1,
+      width: 200, // Smaller size for faster generation
       color: {
         dark: '#000000',
         light: '#ffffff'

@@ -26,6 +26,8 @@ export interface IClient extends Document {
   nextRewardEligibleAt?: number; // Visit count when next reward will be eligible
   loyaltyStatus: 'new' | 'active' | 'milestone_reached' | 'inactive';
   loyaltyJoinDate?: Date;
+  totalSpent?: number; // Total amount spent by client
+  averageVisitValue?: number; // Average amount spent per visit
   comparePassword(candidatePassword: string): Promise<boolean>;
   fullName: string; // Virtual property
 }
@@ -61,7 +63,9 @@ const ClientSchema = new Schema<IClient>({
     enum: ['new', 'active', 'milestone_reached', 'inactive'], 
     default: 'new' 
   },
-  loyaltyJoinDate: { type: Date, default: Date.now }
+  loyaltyJoinDate: { type: Date, default: Date.now },
+  totalSpent: { type: Number, default: 0 },
+  averageVisitValue: { type: Number, default: 0 }
 });
 
 // Virtual for client's full name

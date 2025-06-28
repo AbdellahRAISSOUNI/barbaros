@@ -94,7 +94,22 @@ export async function GET(request: NextRequest) {
     
     // General search with pagination (for the client management page)
     if (q !== null && q.length >= 2) { // Minimum search length
-      const result = await searchClients(q, page, limit);
+      // Get additional filter parameters
+      const sortBy = searchParams.get('sortBy') || 'lastName';
+      const sortOrder = searchParams.get('sortOrder') || 'asc';
+      const status = searchParams.get('status');
+      const loyaltyStatus = searchParams.get('loyaltyStatus');
+      const visitRange = searchParams.get('visitRange');
+      const dateRange = searchParams.get('dateRange');
+      
+      const result = await searchClients(q, page, limit, {
+        sortBy,
+        sortOrder,
+        status,
+        loyaltyStatus,
+        visitRange,
+        dateRange
+      });
       
       return NextResponse.json({
         clients: result.clients,

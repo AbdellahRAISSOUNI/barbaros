@@ -188,7 +188,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Loyalty Status Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-sm p-6 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-sm p-6 text-white overflow-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white bg-opacity-20 rounded-full">
@@ -211,7 +211,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
 
       {/* Current Progress */}
       {loyaltyStatus.selectedReward ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
                                 <FaBullseye className="w-5 h-5 text-white" />
@@ -266,28 +266,26 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
         </div>
       ) : (
         /* No Reward Selected */
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="text-center">
-            <div className="p-4 bg-purple-100 rounded-full w-16 h-16 mx-auto mb-4">
-              <FaGift className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Reward Goal</h3>
-            <p className="text-gray-600 mb-4">
-              Select a reward to start working towards and track your progress
-            </p>
-            <button
-              onClick={() => setShowRewardSelection(true)}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md"
-            >
-              Select Reward Goal
-            </button>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden text-center">
+          <div className="p-4 bg-purple-100 rounded-full w-16 h-16 mx-auto mb-4">
+            <FaGift className="w-8 h-8 text-purple-600" />
           </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Reward Goal</h3>
+          <p className="text-gray-600 mb-4">
+            Select a reward to start working towards and track your progress
+          </p>
+          <button
+            onClick={() => setShowRewardSelection(true)}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md"
+          >
+            Select Reward Goal
+          </button>
         </div>
       )}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-100 rounded-lg">
               <FaCalendarAlt className="w-6 h-6 text-blue-600" />
@@ -299,7 +297,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-green-100 rounded-lg">
               <FaTrophy className="w-6 h-6 text-green-600" />
@@ -311,7 +309,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-purple-100 rounded-lg">
               <FaGift className="w-6 h-6 text-purple-600" />
@@ -328,7 +326,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <button
           onClick={() => setShowHistory(true)}
-          className="flex items-center justify-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors overflow-hidden"
         >
           <FaHistory className="w-5 h-5 text-gray-600" />
           <span className="font-medium text-gray-900">View Reward History</span>

@@ -69,7 +69,7 @@ export default function ClientDetailPage() {
       setClientInfo(data);
     } catch (err) {
       console.error('Error fetching client info:', err);
-      setError('Failed to load client information');
+      setError(err instanceof Error ? err.message : 'Failed to load client information');
     } finally {
       setIsLoading(false);
     }

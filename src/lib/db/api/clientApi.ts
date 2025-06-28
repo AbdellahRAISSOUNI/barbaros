@@ -2,6 +2,8 @@ import { Client, IClient } from '../models';
 import connectToDatabase from '../mongodb';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
+import { Visit } from '../models';
 
 /**
  * Create a new client
@@ -120,25 +122,39 @@ export async function deleteClient(id: string) {
 }
 
 /**
- * List all clients with pagination
+ * List all clients with pagination, filtering, and sorting
  */
-export async function listClients(page = 1, limit = 10, filter: any = {}) {
+export async function listClients(page = 1, limit = 10, filter: any = {}, sort: any = { lastName: 1, firstName: 1 }) {
   try {
     await connectToDatabase();
     const skip = (page - 1) * limit;
     
     // PHASE 2 FIX: Use lean queries and select only needed fields
     const clients = await Client.find(filter)
-      .select('clientId firstName lastName phoneNumber visitCount rewardsEarned rewardsRedeemed accountActive lastVisit loyaltyStatus')
-      .sort({ lastName: 1, firstName: 1 })
+      .select('clientId firstName lastName phoneNumber visitCount totalLifetimeVisits currentProgressVisits rewardsEarned rewardsRedeemed accountActive lastVisit loyaltyStatus createdAt updatedAt')
+      .sort(sort)
       .skip(skip)
       .limit(limit)
       .lean(); // Lean for better performance
+    
+    // Calculate total spent and average visit value for each client
+    const clientsWithFinancials = await Promise.all(
+      clients.map(async (client) => {
+        const totalSpent = await calculateClientTotalSpent(client._id.toString());
+        const averageVisitValue = await calculateClientAverageVisitValue(client._id.toString());
+        
+        return {
+          ...client,
+          totalSpent,
+          averageVisitValue
+        };
+      })
+    );
       
     const total = await Client.countDocuments(filter);
     
     return {
-      clients,
+      clients: clientsWithFinancials,
       pagination: {
         total,
         page,
@@ -183,9 +199,9 @@ export async function updateClientVisitCount(clientId: string, increment = 1) {
 }
 
 /**
- * Search clients
+ * Search clients with enhanced filtering and sorting
  */
-export async function searchClients(query: string, page = 1, limit = 10) {
+export async function searchClients(query: string, page = 1, limit = 10, options: any = {}) {
   try {
     await connectToDatabase();
     const skip = (page - 1) * limit;
@@ -236,18 +252,88 @@ export async function searchClients(query: string, page = 1, limit = 10) {
       };
     }
     
+    // Apply additional filters
+    if (options.status && options.status !== 'all') {
+      searchQuery.accountActive = options.status === 'active';
+    }
+    
+    if (options.loyaltyStatus && options.loyaltyStatus !== 'all') {
+      searchQuery.loyaltyStatus = options.loyaltyStatus;
+    }
+    
+    if (options.visitRange && options.visitRange !== 'all') {
+      switch (options.visitRange) {
+        case '0-5':
+          searchQuery.totalLifetimeVisits = { $gte: 0, $lte: 5 };
+          break;
+        case '6-15':
+          searchQuery.totalLifetimeVisits = { $gte: 6, $lte: 15 };
+          break;
+        case '16-30':
+          searchQuery.totalLifetimeVisits = { $gte: 16, $lte: 30 };
+          break;
+        case '30+':
+          searchQuery.totalLifetimeVisits = { $gt: 30 };
+          break;
+      }
+    }
+    
+    if (options.dateRange && options.dateRange !== 'all') {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (options.dateRange) {
+        case '7days':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30days':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case '90days':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case '1year':
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0);
+      }
+      
+      searchQuery.createdAt = { $gte: startDate };
+    }
+    
+    // Apply custom sorting if provided
+    if (options.sortBy && options.sortOrder) {
+      sortOption = {};
+      sortOption[options.sortBy] = options.sortOrder === 'desc' ? -1 : 1;
+    }
+    
     // PHASE 2 FIX: Use lean queries for better performance
     const clients = await Client.find(searchQuery)
-      .select('clientId firstName lastName phoneNumber visitCount rewardsEarned rewardsRedeemed accountActive lastVisit')
+      .select('clientId firstName lastName phoneNumber visitCount totalLifetimeVisits currentProgressVisits rewardsEarned rewardsRedeemed accountActive lastVisit loyaltyStatus createdAt updatedAt')
       .sort(sortOption)
       .skip(skip)
       .limit(limit)
       .lean(); // Lean for better performance
+    
+    // Calculate total spent and average visit value for each client
+    const clientsWithFinancials = await Promise.all(
+      clients.map(async (client) => {
+        const totalSpent = await calculateClientTotalSpent(client._id.toString());
+        const averageVisitValue = await calculateClientAverageVisitValue(client._id.toString());
+        
+        return {
+          ...client,
+          totalSpent,
+          averageVisitValue
+        };
+      })
+    );
       
     const total = await Client.countDocuments(searchQuery);
     
     return {
-      clients,
+      clients: clientsWithFinancials,
       pagination: {
         total,
         page,
@@ -258,5 +344,55 @@ export async function searchClients(query: string, page = 1, limit = 10) {
   } catch (error: any) {
     console.error('Error searching clients:', error);
     throw new Error(`Failed to search clients: ${error.message}`);
+  }
+}
+
+/**
+ * Calculate total spent for a client
+ */
+export async function calculateClientTotalSpent(clientId: string): Promise<number> {
+  try {
+    await connectToDatabase();
+    
+    // Aggregate visits to calculate total spent
+    const result = await Visit.aggregate([
+      { $match: { clientId: new mongoose.Types.ObjectId(clientId) } },
+      { $group: { _id: null, totalSpent: { $sum: '$totalPrice' } } }
+    ]);
+    
+    return result.length > 0 ? result[0].totalSpent : 0;
+  } catch (error: any) {
+    console.error('Error calculating client total spent:', error);
+    return 0;
+  }
+}
+
+/**
+ * Calculate average visit value for a client
+ */
+export async function calculateClientAverageVisitValue(clientId: string): Promise<number> {
+  try {
+    await connectToDatabase();
+    
+    // Aggregate visits to calculate average
+    const result = await Visit.aggregate([
+      { $match: { clientId: new mongoose.Types.ObjectId(clientId) } },
+      { 
+        $group: { 
+          _id: null, 
+          totalSpent: { $sum: '$totalPrice' },
+          visitCount: { $sum: 1 }
+        } 
+      }
+    ]);
+    
+    if (result.length > 0 && result[0].visitCount > 0) {
+      return Math.round((result[0].totalSpent / result[0].visitCount) * 100) / 100;
+    }
+    
+    return 0;
+  } catch (error: any) {
+    console.error('Error calculating client average visit value:', error);
+    return 0;
   }
 }

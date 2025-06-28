@@ -280,7 +280,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="text"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400 text-black"
                   placeholder="Enter full name"
                   required
                 />
@@ -297,7 +297,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400 text-black"
                   placeholder="Enter phone number"
                   required
                 />
@@ -314,7 +314,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+                  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400 text-black"
                   placeholder="Enter email address (optional)"
                 />
               </div>
@@ -337,7 +337,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   type="text"
                   value={formData.username}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                   placeholder="Enter username"
                   required
                   disabled={isEditing} // Don't allow username changes
@@ -360,7 +360,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                       type="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                       placeholder="Enter password"
                       required={!isEditing}
                     />
@@ -377,7 +377,7 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                       type="password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                       placeholder="Confirm password"
                       required={!isEditing && !!formData.password}
                     />

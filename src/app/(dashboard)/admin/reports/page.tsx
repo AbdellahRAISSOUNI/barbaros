@@ -423,7 +423,7 @@ export default function ReportsPage() {
             <select
               value={filters.reportType}
               onChange={(e) => handleFilterChange('reportType', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             >
               {reportTypes.map(type => (
                 <option key={type.value} value={type.value}>{type.label}</option>
@@ -437,7 +437,7 @@ export default function ReportsPage() {
               type="date"
               value={filters.startDate}
               onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             />
           </div>
 
@@ -447,7 +447,7 @@ export default function ReportsPage() {
               type="date"
               value={filters.endDate}
               onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             />
           </div>
 
@@ -456,7 +456,7 @@ export default function ReportsPage() {
             <select
               value={filters.format}
               onChange={(e) => handleFilterChange('format', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             >
               <option value="table">Table View</option>
               <option value="chart">Chart View</option>
@@ -474,7 +474,7 @@ export default function ReportsPage() {
                 <select
                   value={filters.barber || ''}
                   onChange={(e) => handleFilterChange('barber', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 >
                   <option value="">All Barbers</option>
                   {availableBarbers.map(barber => (
@@ -490,7 +490,7 @@ export default function ReportsPage() {
                 <select
                   value={filters.service || ''}
                   onChange={(e) => handleFilterChange('service', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 >
                   <option value="">All Services</option>
                   {availableServices.map(service => (

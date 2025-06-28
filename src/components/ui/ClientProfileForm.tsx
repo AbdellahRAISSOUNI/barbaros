@@ -301,7 +301,7 @@ export default function ClientProfileForm() {
                   id="firstName"
                   value={profileForm.firstName}
                   onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
-                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                     formErrors.firstName ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your first name"
@@ -320,7 +320,7 @@ export default function ClientProfileForm() {
                   id="lastName"
                   value={profileForm.lastName}
                   onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
-                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                     formErrors.lastName ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your last name"
@@ -340,7 +340,7 @@ export default function ClientProfileForm() {
                 id="phoneNumber"
                 value={profileForm.phoneNumber}
                 onChange={(e) => setProfileForm({ ...profileForm, phoneNumber: e.target.value })}
-                className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                   formErrors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                 }`}
                 placeholder="Enter your phone number"
@@ -477,7 +477,7 @@ export default function ClientProfileForm() {
                   id="currentPassword"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                     formErrors.currentPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your current password"
@@ -506,7 +506,7 @@ export default function ClientProfileForm() {
                   id="newPassword"
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                     formErrors.newPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your new password"
@@ -535,7 +535,7 @@ export default function ClientProfileForm() {
                   id="confirmPassword"
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-black ${
                     formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Confirm your new password"

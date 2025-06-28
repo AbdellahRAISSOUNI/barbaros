@@ -149,7 +149,7 @@ export function ClientSearch({
           <input
             ref={inputRef}
             type="text"
-            className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-sm"
+            className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 hover:border-gray-400 text-sm text-black"
             placeholder={placeholder}
             value={searchTerm}
             onChange={handleInputChange}

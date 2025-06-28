@@ -91,7 +91,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
+              className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400 text-black"
               placeholder="e.g., Haircuts"
               required
             />
@@ -107,7 +107,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
               placeholder="Describe the category..."
               required
             />
@@ -124,7 +124,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
               value={formData.displayOrder}
               onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
               placeholder="0"
             />
             <p className="text-xs text-gray-500 mt-1">
