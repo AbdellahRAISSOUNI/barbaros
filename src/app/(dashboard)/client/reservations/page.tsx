@@ -16,6 +16,7 @@ interface Reservation {
   adminNotes?: string;
   createdAt: string;
   contactedAt?: string;
+  contactInfo: string;
 }
 
 export default function ClientReservationsPage() {
@@ -60,12 +61,12 @@ export default function ClientReservationsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return FaClock;
-      case 'contacted': return FaPhone;
-      case 'confirmed': return FaCheck;
-      case 'cancelled': return FaTimes;
-      case 'completed': return FaCheck;
-      default: return FaInfo;
+      case 'pending': return <FaClock className="h-3 w-3" />;
+      case 'contacted': return <FaPhone className="h-3 w-3" />;
+      case 'confirmed': return <FaCheck className="h-3 w-3" />;
+      case 'cancelled': return <FaTimes className="h-3 w-3" />;
+      case 'completed': return <FaCheck className="h-3 w-3" />;
+      default: return <FaInfo className="h-3 w-3" />;
     }
   };
 
@@ -143,7 +144,7 @@ export default function ClientReservationsPage() {
                             {reservation.formattedDateTime}
                           </h3>
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${getStatusColor(reservation.status)}`}>
-                            <StatusIcon className="h-3 w-3" />
+                            {getStatusIcon(reservation.status)}
                             {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
                           </span>
                           {isUpcoming && (
@@ -169,6 +170,13 @@ export default function ClientReservationsPage() {
                               <span>Contacted {formatRelativeTime(reservation.contactedAt)}</span>
                             </div>
                           )}
+                          
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-blue-100 rounded-lg">
+                              <FaPhone className="h-3 w-3 text-blue-600" />
+                            </div>
+                            <span>{reservation.contactInfo}</span>
+                          </div>
                         </div>
 
                         {reservation.notes && (
