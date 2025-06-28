@@ -249,36 +249,22 @@ export default function ClientProfileForm() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
       </div>
     );
   }
 
   if (!clientData) {
     return (
-      <div className="p-6 text-center">
-        <FaUser className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-500 mb-4">Failed to load profile data</p>
-        <button 
-          onClick={fetchClientData}
-          className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          Retry
-        </button>
+      <div className="text-center py-8">
+        <p className="text-gray-600">Failed to load profile data. Please try again later.</p>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50">
       {/* Profile Information */}
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
@@ -287,8 +273,8 @@ export default function ClientProfileForm() {
               <FaUser className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
-              <p className="text-gray-600">Update your basic profile details</p>
+              <h2 className="text-xl font-bold text-gray-900">Profile Information</h2>
+              <p className="text-gray-600">Manage your personal information</p>
             </div>
           </div>
           {!isEditing && (
@@ -304,47 +290,46 @@ export default function ClientProfileForm() {
 
         {isEditing ? (
           <div className="space-y-4">
-            {/* First Name */}
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                value={profileForm.firstName}
-                onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
-                className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
-                  formErrors.firstName ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your first name"
-              />
-              {formErrors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.firstName}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={profileForm.firstName}
+                  onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                    formErrors.firstName ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter your first name"
+                />
+                {formErrors.firstName && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.firstName}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={profileForm.lastName}
+                  onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                    formErrors.lastName ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter your last name"
+                />
+                {formErrors.lastName && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.lastName}</p>
+                )}
+              </div>
             </div>
 
-            {/* Last Name */}
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                value={profileForm.lastName}
-                onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
-                className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
-                  formErrors.lastName ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your last name"
-              />
-              {formErrors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.lastName}</p>
-              )}
-            </div>
-
-            {/* Phone Number */}
             <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number
@@ -393,26 +378,18 @@ export default function ClientProfileForm() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">First Name</label>
-              <p className="text-lg text-gray-900">{clientData.firstName}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50">
+              <p className="text-sm font-medium text-gray-600 mb-1">First Name</p>
+              <p className="text-gray-900">{clientData.firstName}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
-              <p className="text-lg text-gray-900">{clientData.lastName}</p>
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50">
+              <p className="text-sm font-medium text-gray-600 mb-1">Last Name</p>
+              <p className="text-gray-900">{clientData.lastName}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
-              <p className="text-lg text-gray-900">{clientData.phoneNumber}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                clientData.accountActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {clientData.accountActive ? 'Active' : 'Inactive'}
-              </span>
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50 md:col-span-2">
+              <p className="text-sm font-medium text-gray-600 mb-1">Phone Number</p>
+              <p className="text-gray-900">{clientData.phoneNumber}</p>
             </div>
           </div>
         )}
@@ -422,7 +399,7 @@ export default function ClientProfileForm() {
       <div className="p-6">
         <div className="flex items-center space-x-4 mb-6">
           <div className="w-12 h-12 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-xl flex items-center justify-center shadow-lg ring-2 ring-amber-500/20">
-            <FaUser className="h-6 w-6 text-white" />
+            <FaUserShield className="h-6 w-6 text-white" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">Account Information</h2>
@@ -461,6 +438,176 @@ export default function ClientProfileForm() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Password Section */}
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-xl flex items-center justify-center shadow-lg ring-2 ring-amber-500/20">
+              <FaLock className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Password</h2>
+              <p className="text-gray-600">Manage your account password</p>
+            </div>
+          </div>
+          {!isChangingPassword && (
+            <button
+              onClick={() => setIsChangingPassword(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              <FaEdit className="h-4 w-4" />
+              <span>Change Password</span>
+            </button>
+          )}
+        </div>
+
+        {isChangingPassword ? (
+          <div className="space-y-4">
+            {/* Current Password */}
+            <div>
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Current Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPasswords.current ? 'text' : 'password'}
+                  id="currentPassword"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                    formErrors.currentPassword ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter your current password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPasswords.current ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                </button>
+              </div>
+              {formErrors.currentPassword && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.currentPassword}</p>
+              )}
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPasswords.new ? 'text' : 'password'}
+                  id="newPassword"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                    formErrors.newPassword ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter your new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPasswords.new ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                </button>
+              </div>
+              {formErrors.newPassword && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.newPassword}</p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPasswords.confirm ? 'text' : 'password'}
+                  id="confirmPassword"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  className={`w-full px-4 py-2 pr-10 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 ${
+                    formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Confirm your new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPasswords.confirm ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                </button>
+              </div>
+              {formErrors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-4 mt-6">
+              <button
+                onClick={handleCancelPasswordChange}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+              >
+                <FaTimes className="h-4 w-4 mr-2 inline" />
+                Cancel
+              </button>
+              <button
+                onClick={handlePasswordChange}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 shadow-lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <FaCheck className="h-4 w-4 mr-2 inline" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200/50">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg ring-2 ring-amber-500/20">
+                <FaLock className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Password Protected</h3>
+              <p className="text-gray-600 mb-4">
+                Your password is securely encrypted. Click "Change Password" to update it.
+              </p>
+              <div className="inline-flex flex-col gap-1.5 text-sm text-gray-600 bg-white rounded-lg px-4 py-3 border border-gray-200/50">
+                <p className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                  Use at least 6 characters
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                  Include numbers and letters
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                  Avoid common passwords
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
