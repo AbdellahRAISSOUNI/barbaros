@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaGift, FaPercentage, FaCrown, FaUsers, FaTimes, FaCheck } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import LoadingAnimation from './LoadingAnimation';
 
 interface Service {
   _id: string;
@@ -126,12 +127,8 @@ export default function RewardRedemptionInterface({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-        </div>
+      <div className="w-full flex items-center justify-center min-h-[300px]">
+        <LoadingAnimation size="lg" />
       </div>
     );
   }

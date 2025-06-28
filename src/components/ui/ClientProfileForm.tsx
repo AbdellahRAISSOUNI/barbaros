@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FaUser, FaLock, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaUserShield } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import LoadingAnimation from './LoadingAnimation';
 
 interface ClientData {
   _id: string;
@@ -249,8 +250,8 @@ export default function ClientProfileForm() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+      <div className="w-full flex items-center justify-center min-h-[400px]">
+        <LoadingAnimation size="lg" />
       </div>
     );
   }

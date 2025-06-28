@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaPhone, FaEye, FaEyeSlash, FaTrash, FaFilter, FaBell, FaSearch, FaCheckCircle, FaTimesCircle, FaClock, FaUser, FaUsers } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface Reservation {
   _id: string;
@@ -349,8 +350,11 @@ export default function AdminReservationsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 flex justify-center items-center">
+        <div className="text-center">
+          <LoadingAnimation size="lg" className="mb-4" />
+          <p className="text-amber-800 font-medium">Loading reservations...</p>
+        </div>
       </div>
     );
   }

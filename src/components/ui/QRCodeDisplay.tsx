@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { generateQRCodeDataURL, downloadQRCode } from '@/lib/utils/qrcode';
 import { FaDownload, FaShare } from 'react-icons/fa';
+import LoadingAnimation from './LoadingAnimation';
 
 interface QRCodeDisplayProps {
   clientId: string;
@@ -86,7 +87,7 @@ export function QRCodeDisplay({
   if (isLoading) {
     return (
       <div className={`flex justify-center items-center ${className}`} style={{ minHeight: `${size}px` }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <LoadingAnimation size="lg" />
       </div>
     );
   }

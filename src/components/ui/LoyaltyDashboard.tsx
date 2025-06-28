@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaGift, FaTrophy, FaCalendarAlt, FaHistory, FaBullseye, FaUsers, FaCrown, FaFire } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import LoadingAnimation from './LoadingAnimation';
 
 interface Service {
   _id: string;
@@ -159,11 +160,10 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="w-full min-h-[300px] bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 rounded-xl shadow-lg border border-amber-100/50">
+        <div className="flex flex-col items-center justify-center h-full text-center">
+          <LoadingAnimation size="lg" className="mb-4" />
+          <p className="text-amber-800 font-medium">Loading loyalty status...</p>
         </div>
       </div>
     );
@@ -383,97 +383,4 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
                           <span className="text-sm font-medium text-purple-600">
                             {reward.visitsRequired} visits required
                           </span>
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${
-                            reward.rewardType === 'free' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {reward.rewardType === 'free' ? 'Free' : `${reward.discountPercentage}% Off`}
-                          </div>
-                        </div>
-                        {loyaltyStatus.currentProgressVisits >= reward.visitsRequired && (
-                          <div className="mt-2 text-xs text-green-600 font-medium">
-                            ✓ You can redeem this reward now!
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {availableRewards.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4">
-                    <FaGift className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Rewards Available</h3>
-                  <p className="text-gray-600">Check back later for new rewards!</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* History Modal */}
-      {showHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">Reward History</h2>
-                <p className="text-sm text-gray-600">Your redeemed rewards</p>
-              </div>
-              <button
-                onClick={() => setShowHistory(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="p-6">
-              {rewardHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {rewardHistory.map((history) => (
-                    <div key={history.visitId} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium text-gray-900">{history.rewardRedeemed.rewardName}</h3>
-                        <span className="text-sm text-gray-500">
-                          {new Date(history.visitDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>Redeemed by: {history.rewardRedeemed.redeemedBy}</span>
-                        <span>Visit Total: ${history.totalPrice}</span>
-                        <div className={`px-2 py-1 rounded text-xs font-medium ${
-                          history.rewardRedeemed.rewardType === 'free' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {history.rewardRedeemed.rewardType === 'free' 
-                            ? 'Free Service' 
-                            : `${history.rewardRedeemed.discountPercentage}% Discount`
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4">
-                    <FaHistory className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Reward History</h3>
-                  <p className="text-gray-600">You haven&apos;t redeemed any rewards yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-} 
+                          <div className={`

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaClock, FaCut, FaDollarSign, FaUser, FaClipboard, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaGift, FaDownload } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import LoadingAnimation from './LoadingAnimation';
 
 interface ServiceReceived {
   serviceId: string;
@@ -334,9 +335,8 @@ export function VisitHistoryView({
         {/* Visit History */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           {isLoading ? (
-            <div className="p-8 lg:p-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-gray-600 text-lg">Loading visit history...</p>
+            <div className="w-full flex items-center justify-center min-h-[300px]">
+              <LoadingAnimation size="lg" />
             </div>
           ) : visits.length === 0 ? (
             <div className="p-8 lg:p-12 text-center">

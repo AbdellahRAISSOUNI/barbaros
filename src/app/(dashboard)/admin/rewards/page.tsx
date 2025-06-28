@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import RewardForm from '@/components/admin/rewards/RewardForm';
 import RewardsTable from '@/components/admin/rewards/RewardsTable';
 import RewardDetailsModal from '@/components/admin/rewards/RewardDetailsModal';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface Service {
   _id: string;
@@ -247,6 +248,17 @@ export default function RewardsPage() {
             onCancel={handleCancelForm}
             isLoading={formLoading}
           />
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 flex justify-center items-center">
+        <div className="text-center">
+          <LoadingAnimation size="lg" className="mb-4" />
+          <p className="text-amber-800 font-medium">Loading rewards...</p>
         </div>
       </div>
     );

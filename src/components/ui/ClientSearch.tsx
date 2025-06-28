@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaSearch, FaTimes, FaSpinner, FaUser } from 'react-icons/fa';
 import { debounce } from 'lodash';
+import LoadingAnimation from './LoadingAnimation';
 
 interface Client {
   _id: string;
@@ -162,9 +163,9 @@ export function ClientSearch({
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {isLoading ? (
-              <FaSpinner className="h-4 w-4 text-gray-400 animate-spin" />
+              <LoadingAnimation size="sm" />
             ) : (
-            <FaSearch className="h-4 w-4 text-gray-400" />
+              <FaSearch className="h-4 w-4 text-gray-400" />
             )}
           </div>
           {searchTerm && (

@@ -5,6 +5,7 @@ import { FaUser, FaPhone, FaCut, FaGift, FaPlus, FaHistory, FaCrown, FaCheck } f
 import { VisitRecordingForm } from './VisitRecordingForm';
 import { VisitHistoryView } from './VisitHistoryView';
 import RewardRedemptionInterface from './RewardRedemptionInterface';
+import LoadingAnimation from './LoadingAnimation';
 
 interface Visit {
   _id: string;
@@ -233,10 +234,8 @@ export function ClientInfoCard({
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-lg shadow-sm p-6 ${className}`}>
-        <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-        </div>
+      <div className="w-full h-full flex items-center justify-center p-8">
+        <LoadingAnimation size="lg" />
       </div>
     );
   }

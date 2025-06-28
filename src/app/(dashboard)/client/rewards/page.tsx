@@ -21,6 +21,7 @@ import {
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface Reward {
   _id: string;
@@ -151,12 +152,10 @@ export default function RewardsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 md:p-8">
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="relative">
-            <div className="w-12 h-12 border-2 border-amber-200 rounded-full animate-spin border-t-amber-500"></div>
-            <div className="w-12 h-12 border-2 border-amber-300 rounded-full animate-spin border-t-amber-600 absolute top-0 left-0" style={{ animationDelay: '-0.2s' }}></div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 flex justify-center items-center">
+        <div className="text-center">
+          <LoadingAnimation size="lg" className="mb-4" />
+          <p className="text-amber-800 font-medium">Loading your rewards...</p>
         </div>
       </div>
     );

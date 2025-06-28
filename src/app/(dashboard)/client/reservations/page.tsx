@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaCalendarAlt, FaClock, FaPlus, FaPhone, FaCheck, FaTimes, FaInfo, FaHistory, FaChevronRight, FaStar } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface Reservation {
   _id: string;
@@ -84,31 +85,8 @@ export default function ClientReservationsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 flex justify-center items-center">
         <div className="text-center">
-          <div className="relative">
-            {/* Premium Scissor Loading Animation */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="relative">
-                {/* Animated scissors */}
-                <div className="relative w-20 h-20">
-                  {/* Left blade */}
-                  <div className="absolute top-3 left-3 w-4 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transform rotate-45 origin-bottom animate-pulse shadow-lg"></div>
-                  {/* Right blade */}
-                  <div className="absolute top-3 right-3 w-4 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transform -rotate-45 origin-bottom animate-pulse shadow-lg"></div>
-                  {/* Center screw */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-amber-700 rounded-full shadow-inner"></div>
-                  {/* Cutting motion */}
-                  <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2s' }}>
-                    <div className="w-1.5 h-1.5 bg-amber-300 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
-                  </div>
-                </div>
-                {/* Sparkle effects */}
-                <div className="absolute -top-2 -left-2 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></div>
-                <div className="absolute -bottom-2 -right-2 w-1.5 h-1.5 bg-amber-300 rounded-full animate-ping delay-300"></div>
-                <div className="absolute top-0 -right-3 w-1 h-1 bg-yellow-400 rounded-full animate-ping delay-700"></div>
-              </div>
-            </div>
-          </div>
-          <p className="mt-6 text-amber-800 font-medium">Loading your premium reservations...</p>
+          <LoadingAnimation size="lg" className="mb-4" />
+          <p className="text-amber-800 font-medium">Loading your reservations...</p>
         </div>
       </div>
     );
