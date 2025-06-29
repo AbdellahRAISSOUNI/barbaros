@@ -348,21 +348,21 @@ export function VisitRecordingForm({
                 <div className="flex flex-col sm:flex-row gap-2">
                   {/* Search Input */}
                   <div className="flex-1 relative">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      {isSearching ? (
+                        <FaSpinner className="h-4 w-4 text-stone-400 animate-spin" />
+                      ) : (
+                        <FaSearch className="h-4 w-4 text-stone-400" />
+                      )}
+                    </div>
                     <input
                       ref={searchInputRef}
                       type="text"
                       placeholder="Search services..."
                       value={searchTerm}
                       onChange={handleSearchChange}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-sm placeholder-stone-500"
+                      className="w-full pl-10 pr-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-sm placeholder-stone-500"
                     />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      {isSearching ? (
-                        <FaSpinner className="h-4 w-4 text-gray-400 animate-spin" />
-                      ) : (
-                        <FaSearch className="h-4 w-4 text-gray-400" />
-                      )}
-                    </div>
                   </div>
                   
                   {/* Category Filter */}
@@ -487,9 +487,9 @@ export function VisitRecordingForm({
             <div>
                 {selectedServices.length === 0 ? (
                   <div className="text-center py-8 bg-white/60 rounded-lg border border-dashed border-stone-300">
-                    <FaCut className="h-10 w-10 text-stone-300 mx-auto mb-3" />
-                    <p className="text-sm">No services selected</p>
-                    <p className="text-xs text-stone-400 mt-1">Choose services from above</p>
+                    <FaCut className="h-10 w-10 text-stone-600 mx-auto mb-3" />
+                    <p className="text-sm text-stone-800">No services selected</p>
+                    <p className="text-xs text-stone-600 mt-1">Choose services from above</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -588,8 +588,8 @@ export function VisitRecordingForm({
               <div className="p-4 bg-white rounded-lg shadow-sm border border-stone-200/60">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="visitDate" className="block text-sm font-medium text-stone-700 mb-1">
-                    <FaClock className="inline mr-1" />
+                  <label htmlFor="visitDate" className="block text-sm font-medium text-stone-800 mb-1">
+                    <FaClock className="inline mr-1 text-stone-700" />
                     Visit Date & Time
                   </label>
                   <input
@@ -597,7 +597,7 @@ export function VisitRecordingForm({
                     type="datetime-local"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm text-stone-800 bg-white"
                     required
                   />
                 </div>
@@ -631,25 +631,31 @@ export function VisitRecordingForm({
           {/* Submit Buttons */}
           <div className="bg-white rounded-lg shadow-md border border-stone-200/60 p-3 sm:p-4">
             <div className="flex flex-col gap-3">
-              <div className="text-center text-sm text-stone-600">
+              <div className="text-center text-sm text-stone-700 font-medium">
                 {selectedServices.length === 0 ? (
-                  '⚠️ Please select at least one service to continue'
+                  <div className="flex items-center justify-center gap-2 text-amber-700">
+                    <span className="text-amber-500">⚠️</span>
+                    Please select at least one service to continue
+                  </div>
                 ) : (
-                  `✅ Ready to record visit with ${selectedServices.length} service${selectedServices.length === 1 ? '' : 's'}`
+                  <div className="flex items-center justify-center gap-2 text-emerald-700">
+                    <FaCheck className="h-4 w-4 text-emerald-500" />
+                    Ready to record visit with {selectedServices.length} service{selectedServices.length === 1 ? '' : 's'}
+                  </div>
                 )}
               </div>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="flex-1 py-3 border border-stone-300 text-stone-700 rounded-lg hover:bg-stone-50 transition-all duration-200 font-medium text-center"
+                  className="flex-1 py-3 px-6 bg-white border-2 border-stone-200 text-stone-700 rounded-lg hover:bg-stone-50 hover:border-stone-300 hover:text-stone-800 active:bg-stone-100 transition-all duration-200 font-semibold text-center shadow-sm hover:shadow-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || selectedServices.length === 0}
-                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center font-semibold shadow-md"
+                  className="flex-1 py-3 px-6 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center font-semibold shadow-[0_4px_12px_rgba(16,185,129,0.2)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.3)] active:shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:shadow-none"
                 >
                   <FaSave className="mr-2 h-4 w-4" />
                   {isLoading ? 'Recording...' : 'Record Visit'}
