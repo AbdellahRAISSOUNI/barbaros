@@ -53,12 +53,14 @@ interface VisitRecordingFormProps {
   clientInfo: ClientInfo;
   onVisitCreated: () => void;
   onCancel: () => void;
+  onNavigateToRewards: (clientId: string) => void;
 }
 
 export function VisitRecordingForm({
   clientInfo,
   onVisitCreated,
   onCancel,
+  onNavigateToRewards,
 }: VisitRecordingFormProps) {
   const [selectedServices, setSelectedServices] = useState<ServiceReceived[]>([]);
   const [barber, setBarber] = useState<string>('');
