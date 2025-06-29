@@ -47,6 +47,7 @@ interface Visit {
   visitNumber: number;
   rewardRedeemed?: boolean;
   redeemedReward?: RewardRedemption;
+  isRewardRedemption?: boolean;
 }
 
 interface VisitHistoryStats {
@@ -530,7 +531,7 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {visits.map((visit) => {
                     const dateInfo = formatDate(visit.visitDate);
-                    const isRewardVisit = visit.rewardRedeemed === true || visit.redeemedReward;
+                    const isRewardVisit = visit.rewardRedeemed === true || visit.redeemedReward || visit.isRewardRedemption;
                     
                     return (
                       <div
@@ -638,7 +639,7 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                     <div className="space-y-4">
                       {visits.map((visit, index) => {
                         const dateInfo = formatDate(visit.visitDate);
-                        const isRewardVisit = visit.rewardRedeemed === true || visit.redeemedReward;
+                        const isRewardVisit = visit.rewardRedeemed === true || visit.redeemedReward || visit.isRewardRedemption;
                         
                         return (
                           <div key={visit._id} className="relative flex items-start gap-3">
@@ -670,7 +671,7 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                                     <span className="text-sm font-bold text-gray-900">Visit #{visit.visitNumber}</span>
                                     {isRewardVisit && (
                                       <span className="px-2 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold rounded-full shadow-md animate-pulse">
-                                        REWARD
+                                        🎁 {visit.isRewardRedemption ? 'Special Reward Visit' : 'REWARD'}
                                       </span>
                                     )}
                                   </div>
@@ -766,17 +767,17 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
           >
             {/* Modal Header */}
             <div className={`flex items-center justify-between p-4 border-b border-gray-200 ${
-              (selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward)
+              (selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward || selectedVisit.isRewardRedemption)
                 ? 'bg-gradient-to-r from-amber-50 to-yellow-50' 
                 : 'bg-gray-50'
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`p-3 rounded-xl ${
-                  (selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward)
+                  (selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward || selectedVisit.isRewardRedemption)
                     ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white' 
                     : 'bg-gradient-to-r from-gray-700 to-gray-800 text-white'
                 }`}>
-                  {(selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward) ? (
+                  {(selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward || selectedVisit.isRewardRedemption) ? (
                     <FaGift className="w-4 h-4" />
                   ) : (
                     <FaEye className="w-4 h-4" />
@@ -785,9 +786,9 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-bold text-gray-900">Visit #{selectedVisit.visitNumber}</h2>
-                    {(selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward) && (
+                    {(selectedVisit.rewardRedeemed === true || selectedVisit.redeemedReward || selectedVisit.isRewardRedemption) && (
                       <span className="px-2 py-1 bg-amber-400 text-amber-900 text-xs font-bold rounded-full">
-                        REWARD
+                        🎁 {selectedVisit.isRewardRedemption ? 'Special Reward Visit' : 'REWARD'}
                       </span>
                     )}
                   </div>
@@ -832,16 +833,24 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                       <FaGift className="w-3 h-3 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-amber-800">Reward Redeemed</h3>
+                      <h3 className="text-sm font-bold text-amber-800">🎁 Reward Redeemed</h3>
                       <p className="text-xs text-amber-600">{selectedVisit.redeemedReward.rewardName}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-amber-700">
-                    {selectedVisit.redeemedReward.rewardType === 'discount' 
-                      ? `${selectedVisit.redeemedReward.discountPercentage}% discount applied`
-                      : 'Free service applied'
-                    }
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-amber-700">
+                      {selectedVisit.redeemedReward.rewardType === 'discount' 
+                        ? `${selectedVisit.redeemedReward.discountPercentage}% discount applied`
+                        : 'Free service applied'
+                      }
+                    </p>
+                    {(selectedVisit.isRewardRedemption || selectedVisit.notes?.includes('🎁 REWARD REDEMPTION:') || selectedVisit.totalPrice === 0) && (
+                      <div className="flex items-center gap-1 text-xs text-purple-600 font-medium">
+                        <span>✨</span>
+                        <span>Special Reward Visit</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

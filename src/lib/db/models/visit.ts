@@ -18,6 +18,7 @@ export interface IVisit extends Document {
   rewardRedeemed: boolean;
   redeemedRewardId?: mongoose.Types.ObjectId;
   visitNumber: number;
+  isRewardRedemption?: boolean;
 }
 
 const VisitSchema = new Schema<IVisit>(
@@ -82,6 +83,9 @@ const VisitSchema = new Schema<IVisit>(
     visitNumber: {
       type: Number,
       required: true,
+    },
+    isRewardRedemption: {
+      type: Boolean,
     },
   },
   {

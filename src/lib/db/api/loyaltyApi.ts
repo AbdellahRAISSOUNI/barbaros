@@ -252,8 +252,9 @@ export async function redeemReward(
   clientId: string, 
   rewardId: string, 
   redeemedBy: string,
-  visitId?: string
-): Promise<{ success: boolean; loyaltyStatus: LoyaltyStatus; redemption: RewardRedemption }> {
+  visitId?: string,
+  createSpecialVisit: boolean = false
+): Promise<{ success: boolean; loyaltyStatus: LoyaltyStatus; redemption: RewardRedemption; visitId?: string }> {
   try {
     await connectToDatabase();
     
@@ -267,31 +268,45 @@ export async function redeemReward(
       throw new Error('Reward not found or inactive');
     }
 
-    // Check if client has selected this reward
-    if (!client.selectedReward || client.selectedReward.toString() !== rewardId) {
-      throw new Error('Client must select this reward before redeeming it');
+    // DEBUG: Log the actual data to understand the issue
+    console.log('=== LOYALTY REDEMPTION DEBUG ===');
+    console.log('Client ID:', clientId);
+    console.log('Reward ID:', rewardId);
+    console.log('Client currentProgressVisits:', client.currentProgressVisits);
+    console.log('Client totalLifetimeVisits:', client.totalLifetimeVisits);
+    console.log('Reward visitsRequired:', reward.visitsRequired);
+    console.log('Client selectedReward:', client.selectedReward);
+    console.log('Client selectedRewardStartVisits:', client.selectedRewardStartVisits);
+    console.log('Validation check: currentProgressVisits >= visitsRequired:', client.currentProgressVisits >= reward.visitsRequired);
+    console.log('==================================');
+
+    // SIMPLIFIED VALIDATION LOGIC - Complete fix for the bug
+    // Allow redemption of ANY reward the client is eligible for, regardless of selection
+    
+    // Primary validation: Check if client has enough current progress visits
+    if (client.currentProgressVisits < reward.visitsRequired) {
+      console.log('❌ Validation failed: Insufficient progress visits');
+      console.log('   Client has:', client.currentProgressVisits, 'visits');
+      console.log('   Reward needs:', reward.visitsRequired, 'visits');
+      console.log('   Missing:', reward.visitsRequired - client.currentProgressVisits, 'visits');
+      throw new Error(`Client needs ${reward.visitsRequired - client.currentProgressVisits} more visits to redeem this reward. Current progress: ${client.currentProgressVisits}/${reward.visitsRequired}`);
     }
 
-    // CRITICAL VALIDATION: Multiple checks to prevent abuse
-    if (client.totalLifetimeVisits === 0 || client.currentProgressVisits === 0) {
-      throw new Error('Client must have at least 1 visit to redeem any reward');
-    }
-
-    // Check if client has earned enough new visits since selecting the reward
-    const visitsEarnedSinceSelection = client.currentProgressVisits - (client.selectedRewardStartVisits || 0);
-    if (visitsEarnedSinceSelection < reward.visitsRequired) {
-      throw new Error(`Client needs ${reward.visitsRequired - visitsEarnedSinceSelection} more visits since selecting this reward`);
-    }
-
-    // Ensure client has enough total visits
+    // Ensure client has enough total visits (backup validation)
     if (client.totalLifetimeVisits < reward.visitsRequired) {
+      console.log('❌ Validation failed: Insufficient total visits');
       throw new Error(`Client needs ${reward.visitsRequired - client.totalLifetimeVisits} more total visits to redeem this reward`);
     }
 
-    // Ensure client has enough current progress visits
-    if (client.currentProgressVisits < reward.visitsRequired) {
-      throw new Error(`Client needs ${reward.visitsRequired - client.currentProgressVisits} more progress visits to redeem this reward`);
+    // Basic sanity check
+    if (client.totalLifetimeVisits === 0 || client.currentProgressVisits === 0) {
+      console.log('❌ Validation failed: No visits recorded');
+      throw new Error('Client must have at least 1 visit to redeem any reward');
     }
+
+    console.log('✅ All validations passed!');
+    console.log('   Client has sufficient visits for this reward');
+    console.log('   Proceeding with redemption...');
 
     // Check if reward has expired
     if (reward.validForDays) {
@@ -312,11 +327,45 @@ export async function redeemReward(
       }
     }
 
+    let actualVisitId = visitId;
+
+    // Create special visit for reward redemption if requested
+    if (createSpecialVisit && !visitId) {
+      const specialVisitData = {
+        clientId,
+        visitDate: new Date(),
+        services: reward.applicableServices.map((service: any) => ({
+          serviceId: service._id,
+          name: service.name,
+          price: reward.rewardType === 'free' ? 0 : service.price * (100 - (reward.discountPercentage || 0)) / 100,
+          duration: service.duration || 30
+        })),
+        totalPrice: reward.rewardType === 'free' ? 0 : reward.applicableServices.reduce((total: number, service: any) => {
+          return total + (service.price * (100 - (reward.discountPercentage || 0)) / 100);
+        }, 0),
+        barber: redeemedBy,
+        visitNumber: client.visitCount + 1,
+        notes: `🎁 REWARD REDEMPTION: ${reward.name} - ${reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Discount Applied`}`,
+        isRewardRedemption: true // Special flag to identify reward visits
+      };
+
+      // Create the special visit
+      const specialVisit = new Visit(specialVisitData);
+      await specialVisit.save();
+      actualVisitId = specialVisit._id.toString();
+
+      // Update client visit counters for the special visit
+      client.visitCount += 1;
+      client.totalLifetimeVisits += 1;
+      // Note: We don't increment currentProgressVisits here since this visit is the redemption itself
+      client.lastVisit = new Date();
+    }
+
     // Create redemption record
     const redemption: RewardRedemption = {
       rewardId,
       clientId,
-      visitId,
+      visitId: actualVisitId,
       redeemedAt: new Date(),
       redeemedBy,
       previousVisitCount: client.currentProgressVisits,
@@ -324,27 +373,35 @@ export async function redeemReward(
       ...(reward.rewardType === 'free' && { servicesFree: reward.applicableServices.map((s: any) => s._id.toString()) })
     };
 
-    // Store redemption in Visit model if visitId provided
-    if (visitId) {
-      await Visit.findByIdAndUpdate(visitId, {
-        rewardRedeemed: {
-          rewardId,
-          rewardName: reward.name,
-          rewardType: reward.rewardType,
-          discountPercentage: reward.discountPercentage,
-          redeemedAt: new Date(),
-          redeemedBy
+    // Store redemption in Visit model
+    if (actualVisitId) {
+      await Visit.findByIdAndUpdate(actualVisitId, {
+        $set: {
+          rewardRedeemed: true,
+          redeemedRewardId: rewardId,
+          rewardRedemption: {
+            rewardId,
+            rewardName: reward.name,
+            rewardType: reward.rewardType,
+            discountPercentage: reward.discountPercentage,
+            redeemedAt: new Date(),
+            redeemedBy
+          }
         }
       });
     }
 
-    // Update client's loyalty status
+    // Update client's loyalty status - FIXED LOGIC
     client.rewardsRedeemed += 1;
     client.rewardsEarned += 1;
-    client.currentProgressVisits = 0; // Reset progress after redemption
+    
+    // Reset progress and clear selected reward
+    const remainingProgress = Math.max(0, client.currentProgressVisits - reward.visitsRequired);
+    console.log('DEBUG: remainingProgress calculation:', client.currentProgressVisits, '-', reward.visitsRequired, '=', remainingProgress);
+    client.currentProgressVisits = remainingProgress; // Carry over excess visits
     client.selectedReward = undefined; // Clear selected reward
     client.selectedRewardStartVisits = undefined;
-    client.loyaltyStatus = 'active';
+    client.loyaltyStatus = remainingProgress > 0 ? 'active' : 'active';
 
     await client.save();
 
@@ -353,7 +410,8 @@ export async function redeemReward(
     return {
       success: true,
       loyaltyStatus: updatedLoyaltyStatus,
-      redemption
+      redemption,
+      ...(actualVisitId && { visitId: actualVisitId })
     };
   } catch (error: any) {
     console.error('Error redeeming reward:', error);
@@ -368,23 +426,34 @@ export async function getClientRewardHistory(clientId: string, rewardId?: string
   try {
     await connectToDatabase();
     
-    const filter: any = { 'rewardRedeemed.rewardId': { $exists: true } };
+    // Get visits where rewards were redeemed (supporting both old and new structures)
+    const filter: any = {
+      $or: [
+        { 'rewardRedeemed': true },
+        { 'rewardRedemption.rewardId': { $exists: true } },
+        { 'redeemedRewardId': { $exists: true } }
+      ]
+    };
     
-    // Get visits where rewards were redeemed
     const visits = await Visit.find({
       clientId,
       ...filter,
-      ...(rewardId && { 'rewardRedeemed.rewardId': rewardId })
+      ...(rewardId && { 
+        $or: [
+          { 'redeemedRewardId': rewardId },
+          { 'rewardRedemption.rewardId': rewardId }
+        ]
+      })
     })
-    .populate('rewardRedeemed.rewardId')
     .sort({ visitDate: -1 });
 
     return visits.map(visit => ({
       visitId: visit._id,
       visitDate: visit.visitDate,
-      rewardRedeemed: visit.rewardRedeemed,
+      rewardRedeemed: visit.rewardRedemption || visit.rewardRedeemed,
       totalPrice: visit.totalPrice,
-      services: visit.services
+      services: visit.services,
+      rewardId: visit.redeemedRewardId || visit.rewardRedemption?.rewardId
     }));
   } catch (error: any) {
     console.error('Error getting reward history:', error);
@@ -443,8 +512,14 @@ export async function getLoyaltyStatistics(): Promise<any> {
     const activeMembers = await Client.countDocuments({ loyaltyStatus: 'active' });
     const milestoneReached = await Client.countDocuments({ loyaltyStatus: 'milestone_reached' });
     
-    // Total rewards redeemed
-    const totalRedemptions = await Visit.countDocuments({ 'rewardRedeemed.rewardId': { $exists: true } });
+    // Total rewards redeemed (supporting both old and new structures)
+    const totalRedemptions = await Visit.countDocuments({
+      $or: [
+        { 'rewardRedeemed': true },
+        { 'rewardRedemption.rewardId': { $exists: true } },
+        { 'redeemedRewardId': { $exists: true } }
+      ]
+    });
     
     // Average visits per member
     const avgVisits = await Client.aggregate([
@@ -452,10 +527,26 @@ export async function getLoyaltyStatistics(): Promise<any> {
       { $group: { _id: null, avgVisits: { $avg: '$totalLifetimeVisits' } } }
     ]);
 
-    // Most popular rewards
+    // Most popular rewards (supporting both old and new structures)
     const popularRewards = await Visit.aggregate([
-      { $match: { 'rewardRedeemed.rewardId': { $exists: true } } },
-      { $group: { _id: '$rewardRedeemed.rewardId', count: { $sum: 1 } } },
+      { 
+        $match: { 
+          $or: [
+            { 'rewardRedeemed': true },
+            { 'rewardRedemption.rewardId': { $exists: true } },
+            { 'redeemedRewardId': { $exists: true } }
+          ]
+        } 
+      },
+      {
+        $addFields: {
+          rewardId: {
+            $ifNull: ['$redeemedRewardId', '$rewardRedemption.rewardId']
+          }
+        }
+      },
+      { $match: { rewardId: { $exists: true } } },
+      { $group: { _id: '$rewardId', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
       { $lookup: { from: 'rewards', localField: '_id', foreignField: '_id', as: 'reward' } },

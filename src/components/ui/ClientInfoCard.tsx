@@ -460,13 +460,15 @@ export function ClientInfoCard({
           </button>
           
           {/* Show Redeem Reward button only if client is eligible */}
-          {loyaltyStatus && loyaltyStatus.canRedeem && (
+          {loyaltyStatus && (loyaltyStatus.canRedeem || loyaltyStatus.eligibleRewards?.length > 0) && (
             <button
               onClick={() => setViewMode('rewards')}
               className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg font-medium animate-pulse"
             >
               <FaGift className="h-4 w-4 mr-2" />
-              🎉 Redeem Reward!
+              🎉 {loyaltyStatus.canRedeem 
+                ? 'Redeem Reward!' 
+                : `${loyaltyStatus.eligibleRewards?.length} Reward${loyaltyStatus.eligibleRewards?.length !== 1 ? 's' : ''} Available!`}
             </button>
           )}
           

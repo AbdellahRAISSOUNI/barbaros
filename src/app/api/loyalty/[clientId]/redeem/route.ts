@@ -10,7 +10,7 @@ export async function POST(
 ) {
   try {
     const { clientId } = await params;
-    const { rewardId, redeemedBy, visitId } = await request.json();
+    const { rewardId, redeemedBy, visitId, createSpecialVisit = false } = await request.json();
 
     if (!rewardId || !redeemedBy) {
       return NextResponse.json(
@@ -19,13 +19,14 @@ export async function POST(
       );
     }
 
-    const result = await redeemReward(clientId, rewardId, redeemedBy, visitId);
+    const result = await redeemReward(clientId, rewardId, redeemedBy, visitId, createSpecialVisit);
 
     return NextResponse.json({
       success: true,
       loyaltyStatus: result.loyaltyStatus,
       redemption: result.redemption,
-      message: 'Reward redeemed successfully'
+      visitId: result.visitId,
+      message: `Reward redeemed successfully${createSpecialVisit ? ' - Special visit created' : ''}`
     });
   } catch (error: any) {
     console.error('Error redeeming reward:', error);

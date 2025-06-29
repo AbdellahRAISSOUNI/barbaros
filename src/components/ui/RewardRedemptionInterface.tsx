@@ -89,7 +89,7 @@ export default function RewardRedemptionInterface({
   }, [clientId]);
 
   // Redeem a reward
-  const handleRedeemReward = async (rewardId: string) => {
+  const handleRedeemReward = async (rewardId: string, createSpecialVisit: boolean = false) => {
     try {
       setIsRedeeming(true);
       setSelectedRewardForRedemption(rewardId);
@@ -100,18 +100,26 @@ export default function RewardRedemptionInterface({
         body: JSON.stringify({
           rewardId,
           redeemedBy: barberName,
-          visitId
+          visitId,
+          createSpecialVisit
         })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Reward redeemed successfully!');
+        const message = createSpecialVisit 
+          ? `Reward redeemed successfully! Special visit created.` 
+          : 'Reward redeemed successfully!';
+        toast.success(message);
         setLoyaltyStatus(data.loyaltyStatus);
         
         if (onRedemptionComplete) {
-          onRedemptionComplete(data.redemption);
+          onRedemptionComplete({
+            ...data.redemption,
+            visitId: data.visitId,
+            isSpecialVisit: createSpecialVisit
+          });
         }
       } else {
         toast.error(data.message || 'Failed to redeem reward');
@@ -235,21 +243,33 @@ export default function RewardRedemptionInterface({
                       Client has reached the milestone for this reward
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id)}
-                    disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
-                      ? 'Redeeming...' 
-                      : 'Redeem Now'
-                    }
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, false)}
+                      disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
+                        ? 'Processing...' 
+                        : 'Apply to Visit'
+                      }
+                    </button>
+                    <button
+                      onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, true)}
+                      disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
+                      className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
+                        ? 'Creating...' 
+                        : 'Create Visit'
+                      }
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
               <p className="text-green-700 text-sm">
-                {loyaltyStatus.visitsToNextReward} more visit{loyaltyStatus.visitsToNextReward !== 1 ? 's' : ''} needed
+                {loyaltyStatus.visitsToNextReward} more visit{loyaltyStatus.visitsToNextReward !== 1 ? 's' : ''} needed to redeem
               </p>
             )}
           </div>
@@ -258,7 +278,22 @@ export default function RewardRedemptionInterface({
         {/* Eligible Rewards */}
         {hasEligibleRewards && (
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Available Rewards</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Available Rewards</h3>
+              <div className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                <div className="font-medium mb-1">Redemption Options:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>Apply to Visit: Use with existing/new visit</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Create Visit: Make special reward-only visit</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="space-y-3">
               {loyaltyStatus.eligibleRewards.map((reward) => {
                 // Double check eligibility: client must have enough visits AND visits must be >= required
@@ -326,18 +361,30 @@ export default function RewardRedemptionInterface({
                       </div>
                       <div className="ml-4">
                         {isEligibleForRedemption ? (
-                          <button
-                            onClick={() => handleRedeemReward(reward._id)}
-                            disabled={isRedeeming && selectedRewardForRedemption === reward._id}
-                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isRedeeming && selectedRewardForRedemption === reward._id 
-                              ? 'Redeeming...' 
-                              : 'Redeem Now'
-                            }
-                          </button>
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={() => handleRedeemReward(reward._id, false)}
+                              disabled={isRedeeming && selectedRewardForRedemption === reward._id}
+                              className="px-3 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                              {isRedeeming && selectedRewardForRedemption === reward._id 
+                                ? 'Processing...' 
+                                : 'Apply to Visit'
+                              }
+                            </button>
+                            <button
+                              onClick={() => handleRedeemReward(reward._id, true)}
+                              disabled={isRedeeming && selectedRewardForRedemption === reward._id}
+                              className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                              {isRedeeming && selectedRewardForRedemption === reward._id 
+                                ? 'Creating...' 
+                                : 'Create Visit'
+                              }
+                            </button>
+                          </div>
                         ) : (
-                          <div className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed">
+                          <div className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed text-sm">
                             Not Available
                           </div>
                         )}
