@@ -147,7 +147,15 @@ export async function POST(request: NextRequest) {
     // Create client
     const client = await createClient(clientData);
     
-    return NextResponse.json(client, { status: 201 });
+    // Clear the cache to ensure fresh data
+    apiCache.clear();
+    
+    // Return the created client with a success message
+    return NextResponse.json({
+      success: true,
+      message: 'Client created successfully',
+      client
+    }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating client:', error);
     return NextResponse.json(

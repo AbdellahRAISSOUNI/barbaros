@@ -60,7 +60,7 @@ export default function RewardsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSelecting, setIsSelecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAllRewards, setShowAllRewards] = useState(false);
+  const [showAllRewards, setShowAllRewards] = useState(true);
   const [rewardHistory, setRewardHistory] = useState<RewardHistory[]>([]);
 
   useEffect(() => {
@@ -467,22 +467,22 @@ export default function RewardsPage() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 md:py-12">
+              <div className="text-center py-4 md:py-6">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-5 md:mb-6"
+                  className="relative w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-5"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl md:rounded-2xl blur-lg"></div>
                   <div className="relative w-full h-full bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl ring-4 ring-amber-500/30">
-                    <FaGift className="w-10 h-10 md:w-12 md:h-12 text-white" />
+                    <FaGift className="w-8 h-8 md:w-10 md:h-10 text-white" />
                     <div className="absolute inset-0 bg-white/20 rounded-xl md:rounded-2xl animate-pulse"></div>
                   </div>
                 </motion.div>
-                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">Choose Your Reward</h3>
-                <p className="text-sm md:text-base text-gray-600 max-w-md mx-auto">
-                  Select a reward from the available options below to start tracking your progress
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2">Choose Your Reward</h3>
+                <p className="text-sm text-gray-600 max-w-sm mx-auto">
+                  Select a reward from the options below to start tracking your progress
                 </p>
               </div>
             )}
@@ -499,13 +499,13 @@ export default function RewardsPage() {
           <div className="p-6 md:p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">
-                {showAllRewards ? 'All Rewards' : 'Available Rewards'}
+                {showAllRewards ? 'All Available Rewards' : 'Eligible Rewards'}
               </h2>
               <button
                 onClick={() => setShowAllRewards(!showAllRewards)}
                 className="px-4 py-2 bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 rounded-xl border border-amber-200/50 hover:border-amber-300/50 transition-all text-sm font-medium shadow-sm"
               >
-                {showAllRewards ? 'Show Available' : 'Show All'}
+                {showAllRewards ? 'Show Eligible' : 'Show All'}
               </button>
             </div>
             

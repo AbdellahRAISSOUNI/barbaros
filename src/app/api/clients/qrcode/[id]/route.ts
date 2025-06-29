@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { generateQRCodeDataURL } from '@/lib/utils/qrcode';
-import { getClientById, updateClient } from '@/lib/db/api/clientApi';
+import { getClientById, getClientByClientId, updateClient } from '@/lib/db/api/clientApi';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -18,17 +18,21 @@ export async function GET(
       );
     }
     
-    const { id: clientId } = await params;
+    const params = await context.params;
+    const { id } = params;
     
-    if (!clientId) {
+    if (!id) {
       return NextResponse.json(
         { error: 'Client ID is required' },
         { status: 400 }
       );
     }
     
-    // Get client from database
-    const client = await getClientById(clientId);
+    // Try to get client by MongoDB _id first, then by clientId if that fails
+    let client = await getClientById(id);
+    if (!client) {
+      client = await getClientByClientId(id);
+    }
     
     if (!client) {
       return NextResponse.json(
@@ -37,31 +41,36 @@ export async function GET(
       );
     }
     
-    // Check if client already has a QR code ID
-    // Use the MongoDB _id for QR code to ensure proper scanning
-    const qrCodeId = client.qrCodeId || client._id;
+    // Use the client's unique clientId for QR code generation
+    const qrCodeId = client.clientId;
     
-    // Generate QR code
-    const qrCodeDataUrl = await generateQRCodeDataURL(qrCodeId);
-    
-    // If client doesn't have a QR code ID, update the client record
-    if (!client.qrCodeId) {
-      await updateClient(clientId, {
-        qrCodeId: qrCodeId,
-        qrCodeUrl: `/api/clients/qrcode/${clientId}`
+    try {
+      // Generate QR code
+      const qrCodeDataUrl = await generateQRCodeDataURL(qrCodeId);
+      
+      // Update client with QR code URL if needed
+      if (!client.qrCodeUrl) {
+        await updateClient(client._id.toString(), {
+          qrCodeUrl: `/api/clients/qrcode/${client.clientId}`
+        });
+      }
+      
+      return NextResponse.json({
+        success: true,
+        qrCode: qrCodeDataUrl,
+        clientId: client.clientId
       });
+    } catch (qrError) {
+      console.error('QR code generation error:', qrError);
+      return NextResponse.json(
+        { error: 'Failed to generate QR code' },
+        { status: 500 }
+      );
     }
-    
-    return NextResponse.json({
-      success: true,
-      qrCode: qrCodeDataUrl,
-      clientId: client.clientId,
-      qrCodeId: qrCodeId
-    });
   } catch (error) {
-    console.error('Error generating QR code:', error);
+    console.error('Error in QR code endpoint:', error);
     return NextResponse.json(
-      { error: 'Failed to generate QR code' },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
   }
@@ -70,7 +79,7 @@ export async function GET(
 // POST endpoint to regenerate a QR code (if needed)
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -83,17 +92,21 @@ export async function POST(
       );
     }
     
-    const { id: clientId } = await params;
+    const params = await context.params;
+    const { id } = params;
     
-    if (!clientId) {
+    if (!id) {
       return NextResponse.json(
         { error: 'Client ID is required' },
         { status: 400 }
       );
     }
     
-    // Get client from database
-    const client = await getClientById(clientId);
+    // Try to get client by MongoDB _id first, then by clientId if that fails
+    let client = await getClientById(id);
+    if (!client) {
+      client = await getClientByClientId(id);
+    }
     
     if (!client) {
       return NextResponse.json(
@@ -102,28 +115,31 @@ export async function POST(
       );
     }
     
-    // Generate a new QR code ID based on MongoDB _id
-    const newQrCodeId = client._id;
-    
-    // Generate QR code
-    const qrCodeDataUrl = await generateQRCodeDataURL(newQrCodeId);
-    
-    // Update the client record with the new QR code ID
-    await updateClient(clientId, {
-      qrCodeId: newQrCodeId,
-      qrCodeUrl: `/api/clients/qrcode/${clientId}`
-    });
-    
-    return NextResponse.json({
-      success: true,
-      qrCode: qrCodeDataUrl,
-      clientId: client.clientId,
-      qrCodeId: newQrCodeId
-    });
+    try {
+      // Generate QR code using client's unique clientId
+      const qrCodeDataUrl = await generateQRCodeDataURL(client.clientId);
+      
+      // Update the client record with the QR code URL
+      await updateClient(client._id.toString(), {
+        qrCodeUrl: `/api/clients/qrcode/${client.clientId}`
+      });
+      
+      return NextResponse.json({
+        success: true,
+        qrCode: qrCodeDataUrl,
+        clientId: client.clientId
+      });
+    } catch (qrError) {
+      console.error('QR code generation error:', qrError);
+      return NextResponse.json(
+        { error: 'Failed to generate QR code' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Error regenerating QR code:', error);
+    console.error('Error in QR code endpoint:', error);
     return NextResponse.json(
-      { error: 'Failed to regenerate QR code' },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
   }

@@ -35,6 +35,7 @@ import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal
 import { AdminModal } from '@/components/ui/AdminModal';
 import { debounce } from 'lodash';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 interface Client {
   _id: string;
@@ -353,15 +354,26 @@ export default function ClientsPage() {
         body: JSON.stringify(clientData),
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'create'} client`);
-      }
+      const data = await response.json();
       
-      setShowClientForm(false);
-      fetchClients();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'An error occurred');
+      if (response.ok) {
+        // Close the form and show success message
+        setShowClientForm(false);
+        toast.success(data.message || (isEditing ? 'Client updated successfully!' : 'Client created successfully!'));
+        
+        // Reset form state
+        setSelectedClient(null);
+        setFormError(null);
+        
+        // Refresh the client list
+        await fetchClients();
+      } else {
+        throw new Error(data.error || 'Failed to save client');
+      }
+    } catch (err: any) {
+      console.error('Error saving client:', err);
+      setFormError(err.message || 'Failed to save client');
+      toast.error(err.message || 'Failed to save client');
     } finally {
       setIsSubmitting(false);
     }

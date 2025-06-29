@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaTimes, FaDownload, FaSpinner } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaTimes, FaDownload, FaSpinner, FaQrcode } from 'react-icons/fa';
 
 interface QRCodeModalProps {
   clientId: string;
@@ -21,6 +21,35 @@ export function QRCodeModal({
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && contentRef.current) {
+        const target = event.target as Element;
+        if (modalRef.current.contains(target) && !contentRef.current.contains(target)) {
+          onClose();
+        }
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [onClose]);
 
   useEffect(() => {
     const fetchQRCode = async () => {
@@ -28,7 +57,6 @@ export function QRCodeModal({
         setIsLoading(true);
         setError(null);
         
-        // Use the API endpoint to get the QR code for this client
         const response = await fetch(`/api/clients/qrcode/${clientId}`);
         
         if (!response.ok) {
@@ -67,29 +95,43 @@ export function QRCodeModal({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto ${className}`}>
+    <div
+      ref={modalRef}
+      className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+    >
+      <div
+        ref={contentRef}
+        className={`bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 ${className}`}
+      >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Client QR Code</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-100 p-2 rounded-lg">
+              <FaQrcode className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Client QR Code</h2>
+              <p className="text-sm text-gray-600">Scan to access client information</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-            aria-label="Close"
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg"
           >
-            <FaTimes className="h-5 w-5" />
+            <FaTimes size={20} />
           </button>
         </div>
         
         {/* Content */}
-        <div className="p-6">
-          <div className="text-center mb-6">
+        <div className="p-4 sm:p-6">
+          <div className="text-center">
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900 mb-1">{clientName}</h3>
               <p className="text-sm text-gray-500">Client ID: {clientId}</p>
             </div>
             
             {/* QR Code Display */}
-            <div className="relative mx-auto w-64 h-64 border-2 border-gray-200 rounded-lg bg-white flex items-center justify-center mb-6">
+            <div className="relative mx-auto w-64 h-64 border-2 border-gray-200 rounded-xl bg-white flex items-center justify-center mb-6 shadow-md">
               {isLoading ? (
                 <div className="flex flex-col items-center">
                   <FaSpinner className="animate-spin h-8 w-8 text-gray-400 mb-2" />
@@ -109,7 +151,7 @@ export function QRCodeModal({
                 <img 
                   src={qrCodeDataUrl} 
                   alt={`QR Code for ${clientName}`} 
-                  className="w-full h-full object-contain rounded-lg"
+                  className="w-full h-full object-contain rounded-lg p-2"
                 />
               ) : null}
             </div>
@@ -119,19 +161,19 @@ export function QRCodeModal({
             </p>
             
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-3">
+            <div className="flex justify-center gap-3">
               {qrCodeDataUrl && (
                 <button
                   onClick={handleDownload}
-                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors gap-2"
                 >
-                  <FaDownload className="h-4 w-4 mr-2" />
+                  <FaDownload className="w-4 h-4" />
                   Download
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="flex items-center px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                className="flex items-center px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
                 Close
               </button>
@@ -139,5 +181,6 @@ export function QRCodeModal({
           </div>
         </div>
       </div>
+    </div>
   );
 }
