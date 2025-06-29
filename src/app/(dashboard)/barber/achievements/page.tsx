@@ -2,66 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FaTrophy, FaMedal, FaStar, FaFire, FaUsers, FaCalendarAlt, FaCrown, FaLock, FaClock, FaGraduationCap, FaPalette, FaChartLine } from 'react-icons/fa';
+import { 
+  FaTrophy, 
+  FaMedal, 
+  FaStar, 
+  FaCrown, 
+  FaChartLine,
+  FaSpinner,
+  FaLock,
+  FaCheck,
+  FaFire,
+  FaAward,
+  FaUsers
+} from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
-interface AchievementProgress {
-  achievementId: string;
+interface Achievement {
+  _id: string;
   title: string;
   description: string;
-  category: string;
-  tier: string;
-  badge: string;
-  color: string;
+  type: string;
   points: number;
-  progress: number;
-  requirement: number;
-  isCompleted: boolean;
-  completedAt?: Date;
-  progressPercentage: number;
-  reward?: {
+  criteria: {
     type: string;
-    value: string;
-    description: string;
+    value: number;
   };
+  progress: number;
+  isCompleted: boolean;
+  completedAt?: string;
+  icon?: string;
 }
 
-interface BarberStats {
+interface AchievementStats {
   totalPoints: number;
-  completedAchievements: number;
-  bronzeAchievements: number;
-  silverAchievements: number;
-  goldAchievements: number;
-  platinumAchievements: number;
-  diamondAchievements: number;
+  completedCount: number;
+  nextMilestone: number;
+  rank: string;
+  level: number;
 }
 
 export default function BarberAchievementsPage() {
   const { data: session } = useSession();
-  const [achievements, setAchievements] = useState<AchievementProgress[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [stats, setStats] = useState<AchievementStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedTier, setSelectedTier] = useState<string>('all');
-
-  const categories = [
-    { value: 'all', label: 'All Achievements', icon: '🏆', color: 'bg-gray-500' },
-    { value: 'tenure', label: 'Tenure & Loyalty', icon: '🕒', color: 'bg-blue-500' },
-    { value: 'visits', label: 'Performance', icon: '📊', color: 'bg-green-500' },
-    { value: 'clients', label: 'Client Relations', icon: '👥', color: 'bg-purple-500' },
-    { value: 'consistency', label: 'Consistency', icon: '🔥', color: 'bg-orange-500' },
-    { value: 'quality', label: 'Quality & Craft', icon: '⭐', color: 'bg-yellow-500' },
-    { value: 'learning', label: 'Growth & Learning', icon: '📚', color: 'bg-indigo-500' },
-    { value: 'milestone', label: 'Major Milestones', icon: '🏆', color: 'bg-red-500' }
-  ];
-
-  const tiers = [
-    { value: 'all', label: 'All Tiers', color: 'bg-gray-500', textColor: 'text-gray-100' },
-    { value: 'bronze', label: 'Bronze', color: 'bg-amber-600', textColor: 'text-amber-100' },
-    { value: 'silver', label: 'Silver', color: 'bg-gray-400', textColor: 'text-gray-100' },
-    { value: 'gold', label: 'Gold', color: 'bg-yellow-500', textColor: 'text-yellow-100' },
-    { value: 'platinum', label: 'Platinum', color: 'bg-blue-400', textColor: 'text-blue-100' },
-    { value: 'diamond', label: 'Diamond', color: 'bg-purple-600', textColor: 'text-purple-100' }
-  ];
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -72,11 +56,12 @@ export default function BarberAchievementsPage() {
   const fetchAchievements = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/barber/achievements?barberId=${session?.user?.id}`);
+      const response = await fetch('/api/barber/achievements');
       const data = await response.json();
 
       if (data.success) {
         setAchievements(data.achievements);
+        setStats(data.stats);
       } else {
         toast.error('Failed to load achievements');
       }
@@ -88,288 +73,171 @@ export default function BarberAchievementsPage() {
     }
   };
 
-  const getFilteredAchievements = () => {
-    return achievements.filter(achievement => {
-      const categoryMatch = selectedCategory === 'all' || achievement.category === selectedCategory;
-      const tierMatch = selectedTier === 'all' || achievement.tier === selectedTier;
-      return categoryMatch && tierMatch;
-    });
+  const getProgressColor = (progress: number) => {
+    if (progress >= 100) return 'bg-gradient-to-r from-[#8B0000] to-[#A31515]';
+    if (progress >= 75) return 'bg-gradient-to-r from-amber-600 to-amber-500';
+    if (progress >= 50) return 'bg-gradient-to-r from-emerald-600 to-emerald-500';
+    return 'bg-gradient-to-r from-stone-600 to-stone-500';
   };
 
-  const getBarberStats = (): BarberStats => {
-    const totalPoints = achievements
-      .filter(a => a.isCompleted)
-      .reduce((sum, a) => sum + a.points, 0);
-    
-    const completedAchievements = achievements.filter(a => a.isCompleted).length;
-    
-    const tierCounts = achievements
-      .filter(a => a.isCompleted)
-      .reduce((counts, a) => {
-        counts[a.tier] = (counts[a.tier] || 0) + 1;
-        return counts;
-      }, {} as any);
-
-    return {
-      totalPoints,
-      completedAchievements,
-      bronzeAchievements: tierCounts.bronze || 0,
-      silverAchievements: tierCounts.silver || 0,
-      goldAchievements: tierCounts.gold || 0,
-      platinumAchievements: tierCounts.platinum || 0,
-      diamondAchievements: tierCounts.diamond || 0
-    };
+  const getRankIcon = (level: number) => {
+    if (level >= 30) return FaCrown;
+    if (level >= 20) return FaStar;
+    if (level >= 10) return FaMedal;
+    return FaTrophy;
   };
-
-  const getCategoryProgress = () => {
-    return categories.slice(1).map(category => {
-      const categoryAchievements = achievements.filter(a => a.category === category.value);
-      const completed = categoryAchievements.filter(a => a.isCompleted).length;
-      const total = categoryAchievements.length;
-      return {
-        ...category,
-        completed,
-        total,
-        percentage: total > 0 ? Math.round((completed / total) * 100) : 0
-      };
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your achievements...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const stats = getBarberStats();
-  const filteredAchievements = getFilteredAchievements();
-  const categoryProgress = getCategoryProgress();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <FaTrophy className="mr-3 text-yellow-500" />
-            Your Career Achievements
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Track your professional growth and earn rewards for your dedication
-          </p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaChartLine className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.totalPoints}</div>
-              <div className="text-sm opacity-90">Total Points</div>
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+        {/* Premium Welcome Section */}
+        <div className="bg-gradient-to-r from-[#8B0000] to-[#A31515] rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+              {stats && getRankIcon(stats.level)({ className: "w-8 h-8 text-amber-200" })}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Achievement Center</h1>
+              <p className="text-red-100">Level {stats?.level || 0} • {stats?.rank || 'Rookie'}</p>
             </div>
           </div>
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaTrophy className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.completedAchievements}</div>
-              <div className="text-sm opacity-90">Completed</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaMedal className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.bronzeAchievements}</div>
-              <div className="text-sm opacity-90">Bronze</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-gray-400 to-gray-500 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaMedal className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.silverAchievements}</div>
-              <div className="text-sm opacity-90">Silver</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaCrown className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.goldAchievements}</div>
-              <div className="text-sm opacity-90">Gold</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-            <div className="text-center">
-              <FaCrown className="text-2xl mx-auto mb-2" />
-              <div className="text-2xl font-bold">{stats.platinumAchievements + stats.diamondAchievements}</div>
-              <div className="text-sm opacity-90">Elite</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Category Progress */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Progress by Category</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {categoryProgress.map((category) => (
-              <div key={category.value} className="text-center">
-                <div className={`${category.color} rounded-lg p-4 text-white mb-2`}>
-                  <div className="text-2xl mb-1">{category.icon}</div>
-                  <div className="text-sm font-medium">{category.label}</div>
-                </div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {category.completed}/{category.total}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-300 ${category.color}`}
-                    style={{ width: `${category.percentage}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">{category.percentage}%</div>
+          
+          {stats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-2xl font-bold">{stats.totalPoints}</div>
+                <div className="text-sm text-red-100">Total Points</div>
               </div>
-            ))}
-          </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-2xl font-bold">{stats.completedCount}</div>
+                <div className="text-sm text-red-100">Achievements</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-2xl font-bold">{stats.nextMilestone}</div>
+                <div className="text-sm text-red-100">Next Milestone</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-2xl font-bold">{Math.round((stats.completedCount / achievements.length) * 100)}%</div>
+                <div className="text-sm text-red-100">Completion</div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tier</label>
-            <select
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              {tiers.map((tier) => (
-                <option key={tier.value} value={tier.value}>
-                  {tier.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Achievements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAchievements.map((achievement) => (
-            <div 
-              key={achievement.achievementId} 
-              className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
-                achievement.isCompleted ? 'ring-2 ring-green-500' : ''
-              }`}
-            >
-              {/* Achievement Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  <span className="text-3xl mr-3">{achievement.badge}</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
-                    <div className="flex items-center mt-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        tiers.find(t => t.value === achievement.tier)?.color
-                      } ${tiers.find(t => t.value === achievement.tier)?.textColor}`}>
-                        {achievement.tier.toUpperCase()}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">
-                        {achievement.points} pts
-                      </span>
+        {/* Achievement Categories */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {loading ? (
+            <div className="col-span-full flex items-center justify-center py-12">
+              <FaSpinner className="w-8 h-8 animate-spin text-[#8B0000]" />
+            </div>
+          ) : (
+            <>
+              {/* Service Excellence */}
+              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
+                <div className="p-4 border-b border-stone-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-emerald-100 rounded-lg">
+                      <FaAward className="w-5 h-5 text-emerald-600" />
                     </div>
+                    <h2 className="text-lg font-semibold text-stone-800">Service Excellence</h2>
                   </div>
                 </div>
-                <div className={`p-2 rounded-full ${achievement.isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
-                  {achievement.isCompleted ? (
-                    <FaTrophy className="text-green-600" />
-                  ) : (
-                    <FaLock className="text-gray-400" />
-                  )}
+                <div className="p-4 space-y-4">
+                  {achievements
+                    .filter(a => a.type === 'service')
+                    .map(achievement => (
+                      <AchievementCard key={achievement._id} achievement={achievement} />
+                    ))}
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-gray-600 text-sm mb-4">{achievement.description}</p>
-
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Progress</span>
-                  <span>{achievement.progress}/{achievement.requirement}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className={`h-3 rounded-full transition-all duration-300 ${
-                      achievement.isCompleted 
-                        ? 'bg-green-500' 
-                        : achievement.progressPercentage > 0 
-                          ? 'bg-blue-500' 
-                          : 'bg-gray-300'
-                    }`}
-                    style={{ width: `${Math.min(achievement.progressPercentage, 100)}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1 text-center">
-                  {achievement.progressPercentage}% Complete
-                </div>
-              </div>
-
-              {/* Reward */}
-              {achievement.reward && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <div className="flex items-center">
-                    <FaStar className="text-yellow-500 mr-2" />
-                    <div>
-                      <div className="text-sm font-medium text-yellow-800">
-                        Reward: {achievement.reward.value}
-                      </div>
-                      <div className="text-xs text-yellow-600">
-                        {achievement.reward.description}
-                      </div>
+              {/* Client Loyalty */}
+              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
+                <div className="p-4 border-b border-stone-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-amber-100 rounded-lg">
+                      <FaUsers className="w-5 h-5 text-amber-600" />
                     </div>
+                    <h2 className="text-lg font-semibold text-stone-800">Client Loyalty</h2>
                   </div>
                 </div>
-              )}
+                <div className="p-4 space-y-4">
+                  {achievements
+                    .filter(a => a.type === 'client')
+                    .map(achievement => (
+                      <AchievementCard key={achievement._id} achievement={achievement} />
+                    ))}
+                </div>
+              </div>
 
-              {/* Completion Status */}
-              {achievement.isCompleted && achievement.completedAt && (
-                <div className="mt-4 text-center">
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">
-                    <FaTrophy className="mr-1" />
-                    Completed {new Date(achievement.completedAt).toLocaleDateString()}
+              {/* Professional Growth */}
+              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
+                <div className="p-4 border-b border-stone-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-[#8B0000]/10 rounded-lg">
+                      <FaFire className="w-5 h-5 text-[#8B0000]" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-stone-800">Professional Growth</h2>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="p-4 space-y-4">
+                  {achievements
+                    .filter(a => a.type === 'professional')
+                    .map(achievement => (
+                      <AchievementCard key={achievement._id} achievement={achievement} />
+                    ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
-
-        {/* Empty State */}
-        {filteredAchievements.length === 0 && (
-          <div className="text-center py-12">
-            <FaTrophy className="text-6xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">No achievements found</h3>
-            <p className="text-gray-600">
-              Try adjusting your filters or start working towards your first achievement!
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
 }
+
+const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
+  const progressWidth = `${Math.min(100, achievement.progress)}%`;
+  const progressColor = achievement.isCompleted 
+    ? 'bg-gradient-to-r from-[#8B0000] to-[#A31515]' 
+    : achievement.progress >= 75
+    ? 'bg-gradient-to-r from-amber-600 to-amber-500'
+    : 'bg-gradient-to-r from-emerald-600 to-emerald-500';
+
+  return (
+    <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-lg ${achievement.isCompleted ? 'bg-[#8B0000]/10' : 'bg-stone-100'}`}>
+            {achievement.isCompleted ? (
+              <FaCheck className="w-4 h-4 text-[#8B0000]" />
+            ) : (
+              <FaLock className="w-4 h-4 text-stone-600" />
+            )}
+          </div>
+          <div>
+            <h3 className="font-semibold text-stone-800">{achievement.title}</h3>
+            <p className="text-sm text-stone-600">{achievement.description}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <FaTrophy className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-medium text-stone-700">{achievement.points}</span>
+        </div>
+      </div>
+
+      <div className="relative h-2 bg-stone-100 rounded-full overflow-hidden">
+        <div 
+          className={`absolute left-0 top-0 h-full ${progressColor} transition-all duration-500`}
+          style={{ width: progressWidth }}
+        />
+      </div>
+      <div className="flex justify-between mt-2">
+        <span className="text-xs font-medium text-stone-600">{achievement.progress}%</span>
+        <span className="text-xs font-medium text-stone-600">
+          {achievement.isCompleted ? 'Completed' : `${achievement.criteria.value} required`}
+        </span>
+      </div>
+    </div>
+  );
+};

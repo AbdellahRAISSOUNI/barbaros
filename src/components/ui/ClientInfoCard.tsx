@@ -328,6 +328,23 @@ export function ClientInfoCard({
         </div>
       </div>
 
+      {/* Prominent Reward Button - Moved to top for maximum visibility */}
+      {loyaltyStatus && (loyaltyStatus.canRedeem || loyaltyStatus.eligibleRewards?.length > 0) && (
+        <div className="px-6 pt-2 pb-4">
+          <button
+            onClick={() => setViewMode('rewards')}
+            className="w-full flex items-center justify-center px-8 py-6 bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-700 text-white rounded-xl hover:from-emerald-600 hover:via-green-700 hover:to-emerald-800 transition-all shadow-xl hover:shadow-2xl font-bold text-xl transform hover:scale-105 animate-pulse border-2 border-white/20"
+          >
+            <div className="absolute left-4 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+            <FaGift className="h-8 w-8 mr-3 animate-bounce" />
+            🎉 {loyaltyStatus.canRedeem 
+              ? 'REDEEM YOUR REWARD NOW!' 
+              : `${loyaltyStatus.eligibleRewards?.length} REWARD${loyaltyStatus.eligibleRewards?.length !== 1 ? 'S' : ''} READY TO CLAIM!`}
+            <div className="absolute right-4 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+          </button>
+        </div>
+      )}
+
       {/* Content */}
       <div className="p-6">
         {/* Contact Information */}
@@ -458,19 +475,6 @@ export function ClientInfoCard({
             <FaPlus className="h-4 w-4 mr-2" />
             Record New Visit
           </button>
-          
-          {/* Show Redeem Reward button only if client is eligible */}
-          {loyaltyStatus && (loyaltyStatus.canRedeem || loyaltyStatus.eligibleRewards?.length > 0) && (
-            <button
-              onClick={() => setViewMode('rewards')}
-              className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg font-medium animate-pulse"
-            >
-              <FaGift className="h-4 w-4 mr-2" />
-              🎉 {loyaltyStatus.canRedeem 
-                ? 'Redeem Reward!' 
-                : `${loyaltyStatus.eligibleRewards?.length} Reward${loyaltyStatus.eligibleRewards?.length !== 1 ? 's' : ''} Available!`}
-            </button>
-          )}
           
           <button
             onClick={() => setViewMode('history')}

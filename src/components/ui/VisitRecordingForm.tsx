@@ -12,6 +12,7 @@ interface Service {
   description: string;
   price: number;
   durationMinutes: number;
+  imageUrl?: string;
   category?: {
     _id: string;
     name: string;
@@ -63,7 +64,15 @@ export function VisitRecordingForm({
   const [barber, setBarber] = useState<string>('');
   const [barberId, setBarberId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState<string>('');
-  const [visitDate, setVisitDate] = useState(new Date().toISOString().split('T')[0]);
+  const [visitDate, setVisitDate] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Service-related states
@@ -297,195 +306,208 @@ export function VisitRecordingForm({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div className="w-full bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        {/* Mobile Header */}
+        <div className="bg-gradient-to-r from-emerald-800 to-emerald-700 text-white p-3 sm:p-4 rounded-lg shadow-md mb-3 sm:mb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-black text-white rounded-xl">
-                <FaCut className="h-6 w-6" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <FaCut className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Record New Visit</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-base sm:text-lg font-bold">Record Visit</h1>
+                <p className="text-xs text-emerald-100">
                   {clientInfo.firstName} {clientInfo.lastName} • Visit #{clientInfo.visitCount + 1}
                 </p>
               </div>
             </div>
             <button
               onClick={onCancel}
-              className="p-3 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-all duration-200"
+              className="p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
             >
-              <FaTimes className="h-5 w-5" />
+              <FaTimes className="h-4 w-4" />
             </button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Responsive Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-            
-            {/* Service Selection - Takes full width on mobile, 2 cols on lg, 2 cols on xl */}
-            <div className="lg:col-span-1 xl:col-span-2 space-y-4">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                    <FaPlus className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Select Services</h2>
+          {/* Service Selection */}
+          <div>
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                <div className="p-2 bg-emerald-100 rounded-lg inline-flex">
+                  <FaPlus className="h-4 w-4 text-emerald-700" />
                 </div>
-              
-                {/* Enhanced Search and Filter Controls */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {/* Search Input */}
-                    <div className="flex-1 relative">
-                  <input
-                        ref={searchInputRef}
-                    type="text"
-                        placeholder="Search services by name, description, or category..."
-                    value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 transition-all"
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        {isSearching ? (
-                          <FaSpinner className="h-4 w-4 text-gray-400 animate-spin" />
-                        ) : (
-                          <FaSearch className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Category Filter */}
-                    <div className="sm:w-48">
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 text-sm"
-                      >
-                        <option value="">All Categories</option>
-                        {serviceCategories.map((category) => (
-                          <option key={category._id} value={category._id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
+                <span>Select Services</span>
+              </h2>
+            </div>
+            <div>
+              {/* Enhanced Search and Filter Controls */}
+              <div className="space-y-2 mb-4">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Search Input */}
+                  <div className="flex-1 relative">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search services..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-sm placeholder-stone-500"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {isSearching ? (
+                        <FaSpinner className="h-4 w-4 text-gray-400 animate-spin" />
+                      ) : (
+                        <FaSearch className="h-4 w-4 text-gray-400" />
+                      )}
                     </div>
                   </div>
                   
-                  {/* Results Count and Quick Actions */}
-                  {!servicesLoading && (
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="text-gray-600">
-                        {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
-                        {searchTerm && ` for "${searchTerm}"`}
-                        {selectedCategory && serviceCategories.find(c => c._id === selectedCategory) && 
-                          ` in ${serviceCategories.find(c => c._id === selectedCategory)?.name}`}
-                      </div>
-                      {(searchTerm || selectedCategory) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSearchTerm('');
-                            setSelectedCategory('');
-                            searchInputRef.current?.focus();
-                          }}
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          Clear filters
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  {/* Category Filter */}
+                  <div className="sm:w-48">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-sm text-black"
+                    >
+                      <option value="">All Categories</option>
+                      {serviceCategories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+                
+                {/* Results Count and Quick Actions */}
+                {!servicesLoading && (
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-gray-600">
+                      {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
+                      {searchTerm && ` for "${searchTerm}"`}
+                      {selectedCategory && serviceCategories.find(c => c._id === selectedCategory) && 
+                        ` in ${serviceCategories.find(c => c._id === selectedCategory)?.name}`}
+                    </div>
+                    {(searchTerm || selectedCategory) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedCategory('');
+                          searchInputRef.current?.focus();
+                        }}
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
 
-                {/* Available Services */}
-                <div className="border border-gray-200 rounded-xl max-h-80 lg:max-h-96 overflow-y-auto bg-gray-50">
+              {/* Available Services - Mobile Grid */}
+              <div className="max-h-[24rem] overflow-y-auto pr-1">
                 {servicesLoading ? (
                   <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading services...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700 mx-auto mb-4"></div>
+                    <p className="text-stone-600">Loading services...</p>
                   </div>
                 ) : filteredServices.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
-                    {searchTerm ? 'No services found matching your search' : 'No active services available'}
+                  <div className="p-4 text-center text-stone-500">
+                    <FaCut className="h-12 w-12 text-stone-300 mx-auto mb-3" />
+                    <p className="text-sm">{searchTerm ? 'No services found matching your search' : 'No active services available'}</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
+                  <div className="grid grid-cols-1 gap-3">
                     {filteredServices.map((service) => (
-                      <div key={service._id} className="p-3 lg:p-4 hover:bg-white transition-all duration-200">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div key={service._id} className="bg-white rounded-xl border border-stone-200/80 shadow-sm hover:border-emerald-400/50 hover:shadow-md transition-all duration-300 p-3">
+                        <div className="flex items-center gap-4">
+                          {/* Image */}
+                          <div className="w-20 h-20 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
+                            {service.imageUrl ? (
+                              <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
+                                <FaCut className="h-8 w-8 text-stone-400" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
-                              <h3 className="font-semibold text-gray-900 text-sm lg:text-base truncate pr-2">{service.name}</h3>
-                              <span className="text-lg lg:text-xl font-bold text-green-600 shrink-0">
-                                ${service.price}
-                              </span>
+                            <div className="flex justify-between items-start">
+                              <h3 className="font-bold text-stone-800 text-base truncate pr-2">{service.name}</h3>
+                              <p className="text-base font-bold text-emerald-600 flex-shrink-0">${service.price}</p>
                             </div>
-                            <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">{service.description}</p>
-                            <div className="flex flex-wrap items-center text-xs text-gray-500 gap-2 lg:gap-4">
-                              <div className="flex items-center">
-                                <FaClock className="mr-1" />
-                                <span>{service.durationMinutes} min</span>
+                            <p className="text-sm text-stone-500 mb-2 truncate">{service.description}</p>
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="flex items-center text-stone-500">
+                                <FaClock className="mr-1.5 h-3.5 w-3.5" />
+                                <span>{service.durationMinutes}min</span>
                               </div>
                               {service.category && (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full font-semibold text-xs">
                                   {service.category.name}
                                 </span>
                               )}
                             </div>
                           </div>
+                          
+                          {/* Add Button */}
                           <button
                             type="button"
                             onClick={() => addService(service)}
-                            className="shrink-0 p-2 lg:p-3 bg-gradient-to-r from-black to-gray-800 text-white rounded-xl hover:from-gray-800 hover:to-black transition-all duration-200 shadow-lg hover:shadow-xl"
+                            className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-full hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                            aria-label={`Add ${service.name} to visit`}
                           >
-                            <FaPlus className="h-4 w-4 lg:h-5 lg:w-5" />
+                            <FaPlus className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-                </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Sidebar - Selected Services, Rewards, etc. */}
-            <div className="lg:col-span-1 xl:col-span-1 space-y-4">
-              
-              {/* Selected Services */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                    <FaCut className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Selected Services</h3>
+          {/* Selected Services Section */}
+          <div>
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                <div className="p-2 bg-amber-100 rounded-lg inline-flex">
+                  <FaCut className="h-4 w-4 text-amber-700" />
                 </div>
+                <span>Selected Services</span>
+              </h2>
+            </div>
+            <div>
                 {selectedServices.length === 0 ? (
-                  <div className="text-center py-6">
-                    <FaCut className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500 text-sm">No services selected</p>
+                  <div className="text-center py-8 bg-white/60 rounded-lg border border-dashed border-stone-300">
+                    <FaCut className="h-10 w-10 text-stone-300 mx-auto mb-3" />
+                    <p className="text-sm">No services selected</p>
+                    <p className="text-xs text-stone-400 mt-1">Choose services from above</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {selectedServices.map((service, index) => (
-                      <div key={index} className="p-3 lg:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                        <div className="flex items-start justify-between gap-3">
+                      <div key={index} className="bg-gradient-to-r from-stone-50 to-amber-50/50 rounded-lg border border-stone-200/60 p-3">
+                        <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-sm lg:text-base truncate">{service.name}</h4>
-                            <p className="text-xs lg:text-sm text-gray-600 mt-1">{service.duration} minutes</p>
+                            <h4 className="font-semibold text-stone-900 text-sm truncate">{service.name}</h4>
+                            <p className="text-xs text-stone-600 mt-1">{service.duration} minutes</p>
                           </div>
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500 hidden sm:inline">$</span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-stone-500">$</span>
                               <input
                                 type="number"
                                 value={service.price}
                                 onChange={(e) => updateServicePrice(index, parseFloat(e.target.value) || 0)}
-                                className="w-16 lg:w-20 px-2 py-1 text-xs lg:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent font-semibold text-center"
+                                className="w-16 px-2 py-1 text-sm border border-stone-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold text-center placeholder-black"
                                 step="0.01"
                                 min="0"
                               />
@@ -495,7 +517,7 @@ export function VisitRecordingForm({
                               onClick={() => removeService(index)}
                               className="p-1.5 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded-lg transition-all duration-200"
                             >
-                              <FaTimes className="h-3 w-3 lg:h-4 lg:w-4" />
+                              <FaTimes className="h-3 w-3" />
                             </button>
                           </div>
                         </div>
@@ -504,35 +526,34 @@ export function VisitRecordingForm({
                   </div>
                 )}
               </div>
-
-              {/* Rewards Section */}
-              {/* All reward-related UI components removed */}
-            </div>
           </div>
 
           {/* Bottom Section - Price Summary and Visit Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="space-y-6">
             
             {/* Price Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
-                  <FaCalculator className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Price Summary</h3>
+            <div>
+              <div className="mb-3">
+                <h2 className="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                  <div className="p-2 bg-amber-100 rounded-lg inline-flex">
+                    <FaCalculator className="h-4 w-4 text-amber-700" />
+                  </div>
+                  <span>Price Summary</span>
+                </h2>
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="p-4 bg-white rounded-lg shadow-sm border border-stone-200/60">
+              <div className="space-y-3 text-sm text-black">
                 <div className="flex justify-between">
-                  <span>Services Total:</span>
-                  <span className="font-medium">${calculatedTotal.toFixed(2)}</span>
+                  <span className="text-stone-600">Services Total:</span>
+                  <span className="font-medium text-black">${calculatedTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Total Duration:</span>
-                  <span className="font-medium">{totalDuration} minutes</span>
+                  <span className="text-stone-600">Total Duration:</span>
+                  <span className="font-medium text-black">{totalDuration} minutes</span>
                 </div>
-                <hr className="my-2" />
+                <hr className="my-2 border-stone-200" />
                 <div className="flex justify-between items-center">
-                  <label htmlFor="customPrice" className="font-medium">
+                  <label htmlFor="customPrice" className="font-medium text-black">
                     Final Total:
                   </label>
                   <div className="flex items-center space-x-2">
@@ -544,26 +565,30 @@ export function VisitRecordingForm({
                       onChange={(e) => {
                         // Handle price change
                       }}
-                      className="w-20 lg:w-24 px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-black focus:border-transparent text-right font-semibold text-sm"
+                      className="w-20 px-2 py-1 border border-stone-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-right font-semibold text-sm placeholder-black"
                       step="0.01"
                       min="0"
                     />
                   </div>
                 </div>
               </div>
+                </div>
             </div>
 
             {/* Visit Information */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                  <FaClipboard className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Visit Information</h3>
+            <div>
+              <div className="mb-3">
+                <h2 className="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                  <div className="p-2 bg-emerald-100 rounded-lg inline-flex">
+                    <FaClipboard className="h-4 w-4 text-emerald-700" />
+                  </div>
+                  <span>Visit Information</span>
+                </h2>
               </div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border border-stone-200/60">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="visitDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="visitDate" className="block text-sm font-medium text-stone-700 mb-1">
                     <FaClock className="inline mr-1" />
                     Visit Date & Time
                   </label>
@@ -572,7 +597,7 @@ export function VisitRecordingForm({
                     type="datetime-local"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                     required
                   />
                 </div>
@@ -585,7 +610,7 @@ export function VisitRecordingForm({
                 />
 
                 <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="notes" className="block text-sm font-medium text-stone-700 mb-1">
                     <FaClipboard className="inline mr-1" />
                     Visit Notes (Optional)
                   </label>
@@ -594,39 +619,40 @@ export function VisitRecordingForm({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm placeholder-black"
                     placeholder="Any special notes about this visit..."
                   />
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
           {/* Submit Buttons */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="text-sm text-gray-600">
+          <div className="bg-white rounded-lg shadow-md border border-stone-200/60 p-3 sm:p-4">
+            <div className="flex flex-col gap-3">
+              <div className="text-center text-sm text-stone-600">
                 {selectedServices.length === 0 ? (
-                  'Please select at least one service to continue'
+                  '⚠️ Please select at least one service to continue'
                 ) : (
-                  `Ready to record visit with ${selectedServices.length} service${selectedServices.length === 1 ? '' : 's'}`
+                  `✅ Ready to record visit with ${selectedServices.length} service${selectedServices.length === 1 ? '' : 's'}`
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="px-4 lg:px-6 py-2 lg:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-center"
+                  className="flex-1 py-3 border border-stone-300 text-stone-700 rounded-lg hover:bg-stone-50 transition-all duration-200 font-medium text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || selectedServices.length === 0}
-                  className="px-6 lg:px-8 py-2 lg:py-3 bg-gradient-to-r from-black to-gray-800 text-white rounded-xl hover:from-gray-800 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center font-medium shadow-lg"
+                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center font-semibold shadow-md"
                 >
-                  <FaSave className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-                  {isLoading ? 'Recording Visit...' : 'Record Visit'}
+                  <FaSave className="mr-2 h-4 w-4" />
+                  {isLoading ? 'Recording...' : 'Record Visit'}
                 </button>
               </div>
             </div>

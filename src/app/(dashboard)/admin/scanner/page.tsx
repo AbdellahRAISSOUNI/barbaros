@@ -758,6 +758,7 @@ export default function AdminScannerPage() {
             clientInfo={clientInfo}
             onVisitCreated={handleVisitSuccess}
             onCancel={() => setViewMode('client-overview')}
+            onNavigateToRewards={(clientId) => setViewMode('rewards')}
           />
         </div>
       </div>

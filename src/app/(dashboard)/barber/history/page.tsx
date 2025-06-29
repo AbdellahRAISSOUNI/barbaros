@@ -20,7 +20,8 @@ import {
   FaChevronRight,
   FaUsers,
   FaPhone,
-  FaExclamationCircle
+  FaExclamationCircle,
+  FaDollarSign
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -60,6 +61,7 @@ interface HistoryStats {
     visits: number;
     clients: number;
   };
+  averageVisitsPerDay?: number;
 }
 
 interface Filters {
@@ -87,7 +89,7 @@ export default function BarberHistoryPage() {
     rewardFilter: 'all'
   });
 
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -141,7 +143,8 @@ export default function BarberHistoryPage() {
           thisMonth: {
             visits: thisMonthVisits.length,
             clients: thisMonthClients
-          }
+          },
+          averageVisitsPerDay: totalVisits / Math.max(1, Math.ceil((Date.now() - new Date(data.visits[data.visits.length - 1]?.visitDate).getTime()) / (1000 * 60 * 60 * 24)))
         });
       } else {
         toast.error('Failed to fetch visit history');
@@ -211,6 +214,72 @@ export default function BarberHistoryPage() {
     </div>
   );
 
+  const PaginationControls = () => (
+    <div className="flex items-center justify-between border-t border-stone-200 bg-white px-4 py-3 sm:px-6 rounded-b-xl">
+      <div className="flex flex-1 justify-between sm:hidden">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-stone-900 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-stone-900 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-stone-700">
+            Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+            <span className="font-medium">{Math.min(currentPage * itemsPerPage, stats?.totalVisits || 0)}</span> of{' '}
+            <span className="font-medium">{stats?.totalVisits || 0}</span> visits
+          </p>
+        </div>
+        <div>
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-stone-400 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Previous</span>
+              <FaChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNumber = i + 1;
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    pageNumber === currentPage
+                      ? 'z-10 bg-gradient-to-r from-[#8B0000] to-[#A31515] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0000]'
+                      : 'text-stone-900 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 focus:z-20 focus:outline-offset-0'
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-stone-400 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Next</span>
+              <FaChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20">
       <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
@@ -240,33 +309,33 @@ export default function BarberHistoryPage() {
 
         {/* Statistics */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
             <StatCard
-              icon={FaHistory}
+              icon={FaCut}
               title="Total Visits"
               value={stats.totalVisits}
-              subtitle={`${stats.thisMonth.visits} this month`}
+              subtitle={`${stats.averageVisitsPerDay?.toFixed(1) || 0}/day avg`}
               gradient="bg-gradient-to-r from-emerald-600 to-emerald-500"
             />
             <StatCard
               icon={FaUsers}
-              title="Clients Served"
+              title="Unique Clients"
               value={stats.totalClients}
-              subtitle={`${stats.thisMonth.clients} this month`}
-              gradient="bg-gradient-to-r from-amber-600 to-amber-500"
-            />
-            <StatCard
-              icon={FaCut}
-              title="This Month"
-              value={stats.thisMonth.visits}
-              subtitle="Recent visits"
-              gradient="bg-gradient-to-r from-stone-600 to-stone-500"
+              subtitle={`${((stats.thisMonth.clients / stats.totalClients) * 100).toFixed(0)}% active this month`}
+              gradient="bg-gradient-to-r from-[#8B0000] to-[#A31515]"
             />
             <StatCard
               icon={FaChartLine}
-              title="Performance"
-              value={`${Math.round(stats.thisMonth.visits / Math.max(new Date().getDate(), 1) * 10) / 10}`}
-              subtitle="Visits/day avg"
+              title="This Month"
+              value={stats.thisMonth.visits}
+              subtitle={`${stats.thisMonth.clients} unique clients`}
+              gradient="bg-gradient-to-r from-amber-600 to-amber-500"
+            />
+            <StatCard
+              icon={FaDollarSign}
+              title="Avg. Visit Value"
+              value={`$${stats.averageVisitValue.toFixed(2)}`}
+              subtitle="per visit"
               gradient="bg-gradient-to-r from-emerald-700 to-emerald-600"
             />
           </div>
@@ -357,7 +426,7 @@ export default function BarberHistoryPage() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base md:text-lg font-semibold text-stone-800">Recent Visits</h3>
               {loading && (
-                <div className="flex items-center space-x-2 text-emerald-600">
+                <div className="flex items-center space-x-2 text-[#8B0000]">
                   <FaSpinner className="w-4 h-4 animate-spin" />
                   <span className="text-sm">Loading...</span>
                 </div>
@@ -366,7 +435,7 @@ export default function BarberHistoryPage() {
 
             {loading && visits.length === 0 ? (
               <div className="text-center py-12">
-                <FaSpinner className="w-8 h-8 animate-spin text-emerald-600 mx-auto mb-4" />
+                <FaSpinner className="w-8 h-8 animate-spin text-[#8B0000] mx-auto mb-4" />
                 <p className="text-stone-600">Loading visit history...</p>
               </div>
             ) : visits.length === 0 ? (
@@ -446,36 +515,9 @@ export default function BarberHistoryPage() {
                 ))}
               </div>
             )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-stone-200">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="flex items-center space-x-2 px-3 py-2 bg-stone-100 hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed text-stone-700 rounded-lg transition-colors"
-                >
-                  <FaChevronLeft className="w-3 h-3" />
-                  <span className="text-sm">Previous</span>
-                </button>
-                
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-stone-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                </div>
-                
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center space-x-2 px-3 py-2 bg-stone-100 hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed text-stone-700 rounded-lg transition-colors"
-                >
-                  <span className="text-sm">Next</span>
-                  <FaChevronRight className="w-3 h-3" />
-                </button>
-              </div>
-            )}
           </div>
+          
+          {visits.length > 0 && <PaginationControls />}
         </div>
 
         {/* Visit Detail Modal */}

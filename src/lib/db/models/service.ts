@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IServiceCategory } from './serviceCategory';
 
 export interface IService extends Document {
   name: string;
@@ -6,7 +7,8 @@ export interface IService extends Document {
   price: number;
   durationMinutes: number;
   imageUrl?: string;
-  categoryId: mongoose.Types.ObjectId;
+  categoryId: mongoose.Types.ObjectId | IServiceCategory;
+  category?: IServiceCategory;
   isActive: boolean;
   popularityScore: number;
   createdAt: Date;
@@ -41,6 +43,7 @@ const ServiceSchema = new Schema<IService>(
       type: Schema.Types.ObjectId,
       ref: 'ServiceCategory',
       required: [true, 'Category is required'],
+      autopopulate: true
     },
     isActive: {
       type: Boolean,
@@ -53,8 +56,18 @@ const ServiceSchema = new Schema<IService>(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
+
+// Virtual for category
+ServiceSchema.virtual('category', {
+  ref: 'ServiceCategory',
+  localField: 'categoryId',
+  foreignField: '_id',
+  justOne: true
+});
 
 // Indexes
 ServiceSchema.index({ categoryId: 1 });

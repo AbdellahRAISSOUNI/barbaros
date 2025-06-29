@@ -341,6 +341,7 @@ export default function ClientDetailPage() {
             clientInfo={clientInfo}
             onVisitCreated={handleVisitCreated}
             onCancel={() => setViewMode('info')}
+            onNavigateToRewards={(clientId) => setViewMode('rewards')}
           />
         )}
 

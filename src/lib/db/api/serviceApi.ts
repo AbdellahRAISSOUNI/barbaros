@@ -79,15 +79,29 @@ export async function listServices(page = 1, limit = 10, filter: any = {}, searc
     }
     
     const services = await Service.find(query)
-      .populate('categoryId')
+      .populate({
+        path: 'categoryId',
+        select: 'name description',
+        model: 'ServiceCategory'
+      })
       .sort({ popularityScore: -1, name: 1 })
       .skip(skip)
       .limit(limit);
       
     const total = await Service.countDocuments(query);
     
+    // Transform the response to match the expected format
+    const transformedServices = services.map(service => ({
+      ...service.toObject(),
+      category: service.categoryId ? {
+        _id: service.categoryId._id,
+        name: service.categoryId.name,
+        description: service.categoryId.description
+      } : null
+    }));
+    
     return {
-      services,
+      services: transformedServices,
       pagination: {
         total,
         page,

@@ -1,0 +1,282 @@
+{
+  "version": "1.0.0",
+  "name": "Barbaros Design System",
+  "description": "Comprehensive design system for Barbaros Barbershop Dashboard",
+  
+  "colors": {
+    "primary": {
+      "blood_red": {
+        "base": "#8B0000",
+        "light": "#A31515",
+        "gradient": "bg-gradient-to-r from-[#8B0000] to-[#A31515]",
+        "usage": ["achievement cards", "active pagination", "primary actions"]
+      },
+      "emerald": {
+        "base": "#059669",
+        "light": "#10B981",
+        "dark": "#047857",
+        "gradients": {
+          "primary": "bg-gradient-to-r from-emerald-600 to-emerald-500",
+          "dark": "bg-gradient-to-r from-emerald-700 to-emerald-600",
+          "light": "bg-gradient-to-r from-emerald-500 to-emerald-400"
+        },
+        "usage": ["success states", "positive metrics", "secondary actions"]
+      }
+    },
+    "secondary": {
+      "amber": {
+        "base": "#D97706",
+        "light": "#F59E0B",
+        "gradient": "bg-gradient-to-r from-amber-600 to-amber-500",
+        "usage": ["warnings", "notifications", "tertiary actions"]
+      },
+      "stone": {
+        "base": "#57534E",
+        "light": "#78716C",
+        "gradient": "bg-gradient-to-r from-stone-600 to-stone-500",
+        "usage": ["neutral actions", "text", "borders"]
+      }
+    },
+    "background": {
+      "page": {
+        "primary": "bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20",
+        "secondary": "bg-white"
+      },
+      "card": {
+        "primary": "bg-white",
+        "gradient": "bg-gradient-to-br from-stone-50 to-amber-50/50"
+      }
+    },
+    "text": {
+      "primary": "text-stone-800",
+      "secondary": "text-stone-600",
+      "tertiary": "text-stone-400",
+      "inverse": "text-white"
+    },
+    "border": {
+      "primary": "border-stone-200",
+      "secondary": "border-stone-200/60",
+      "focus": "focus:ring-2 focus:ring-offset-2"
+    }
+  },
+
+  "typography": {
+    "headings": {
+      "h1": {
+        "size": "text-2xl sm:text-3xl",
+        "weight": "font-bold",
+        "color": "text-gray-900"
+      },
+      "h2": {
+        "size": "text-xl sm:text-2xl",
+        "weight": "font-bold",
+        "color": "text-gray-900"
+      },
+      "h3": {
+        "size": "text-lg sm:text-xl",
+        "weight": "font-semibold",
+        "color": "text-gray-900"
+      },
+      "section": {
+        "size": "text-base md:text-lg",
+        "weight": "font-semibold",
+        "color": "text-stone-800"
+      }
+    },
+    "body": {
+      "regular": {
+        "size": "text-sm md:text-base",
+        "weight": "font-normal",
+        "color": "text-stone-600"
+      },
+      "small": {
+        "size": "text-xs md:text-sm",
+        "weight": "font-normal",
+        "color": "text-stone-500"
+      }
+    },
+    "buttons": {
+      "primary": {
+        "size": "text-sm",
+        "weight": "font-semibold"
+      },
+      "secondary": {
+        "size": "text-sm",
+        "weight": "font-medium"
+      }
+    }
+  },
+
+  "spacing": {
+    "layout": {
+      "page": "p-4 sm:p-6",
+      "section": "space-y-4 md:space-y-6",
+      "card": {
+        "outer": "p-4 md:p-6",
+        "inner": "p-3 md:p-4"
+      },
+      "grid": {
+        "gap": "gap-3 md:gap-4",
+        "cols": {
+          "default": "grid-cols-1",
+          "sm": "sm:grid-cols-2",
+          "md": "md:grid-cols-3",
+          "lg": "lg:grid-cols-4"
+        }
+      }
+    },
+    "components": {
+      "button": "px-4 py-2",
+      "input": "px-3 py-2",
+      "card": "p-4 md:p-6"
+    }
+  },
+
+  "borders": {
+    "radius": {
+      "sm": "rounded-lg",
+      "md": "rounded-xl",
+      "lg": "rounded-2xl",
+      "full": "rounded-full"
+    },
+    "width": {
+      "default": "border",
+      "medium": "border-2",
+      "thick": "border-4"
+    }
+  },
+
+  "shadows": {
+    "sm": "shadow-sm",
+    "md": "shadow",
+    "lg": "shadow-lg",
+    "hover": "hover:shadow-md"
+  },
+
+  "components": {
+    "cards": {
+      "metric": {
+        "wrapper": "bg-gradient-to-br from-stone-50 to-amber-50/50 backdrop-blur-sm border border-stone-200/60 rounded-xl p-3 md:p-4 shadow-sm",
+        "icon": {
+          "wrapper": "w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shadow-sm",
+          "size": "w-4 h-4 md:w-5 md:h-5"
+        },
+        "text": {
+          "title": "text-xs md:text-sm font-medium text-stone-600 truncate",
+          "value": "text-lg md:text-xl font-bold text-stone-800 leading-tight",
+          "subtitle": "text-xs text-stone-500 truncate"
+        }
+      },
+      "action": {
+        "wrapper": "block transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]",
+        "inner": "rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300",
+        "icon": {
+          "wrapper": "bg-white/20 backdrop-blur-sm rounded-lg p-2 flex-shrink-0",
+          "size": "w-4 h-4 md:w-5 md:h-5"
+        },
+        "text": {
+          "title": "text-sm md:text-base font-semibold leading-tight",
+          "description": "text-xs md:text-sm text-white/80 mt-1 leading-tight"
+        }
+      }
+    },
+
+    "buttons": {
+      "primary": {
+        "base": "px-4 py-2 rounded-lg font-semibold transition-colors",
+        "variants": {
+          "blood_red": "bg-gradient-to-r from-[#8B0000] to-[#A31515] text-white hover:from-[#7A0000] hover:to-[#920000]",
+          "emerald": "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600"
+        }
+      },
+      "secondary": {
+        "base": "px-3 py-2 rounded-lg font-medium border transition-colors",
+        "variants": {
+          "stone": "border-stone-200 text-stone-700 hover:bg-stone-50",
+          "emerald": "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+        }
+      }
+    },
+
+    "inputs": {
+      "text": {
+        "base": "w-full px-3 py-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-2 transition-colors",
+        "variants": {
+          "default": "focus:border-emerald-500 focus:ring-emerald-500/20",
+          "error": "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+        }
+      },
+      "select": {
+        "base": "w-full px-3 py-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-2 transition-colors appearance-none bg-white",
+        "variants": {
+          "default": "focus:border-emerald-500 focus:ring-emerald-500/20",
+          "error": "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+        }
+      }
+    },
+
+    "pagination": {
+      "wrapper": "flex items-center justify-between border-t border-stone-200 bg-white px-4 py-3 sm:px-6 rounded-b-xl",
+      "button": {
+        "base": "relative inline-flex items-center px-2 py-2 text-stone-400 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed",
+        "active": "z-10 bg-gradient-to-r from-[#8B0000] to-[#A31515] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0000]"
+      },
+      "text": "text-sm text-stone-700"
+    },
+
+    "loading": {
+      "spinner": {
+        "small": "w-4 h-4 animate-spin",
+        "medium": "w-6 h-6 animate-spin",
+        "large": "w-8 h-8 animate-spin",
+        "color": "text-[#8B0000]"
+      }
+    }
+  },
+
+  "animations": {
+    "transition": {
+      "default": "transition-all duration-300",
+      "fast": "transition-all duration-200",
+      "slow": "transition-all duration-500"
+    },
+    "hover": {
+      "scale": "hover:scale-[1.02]",
+      "shrink": "active:scale-[0.98]"
+    }
+  },
+
+  "icons": {
+    "sizes": {
+      "xs": "w-3 h-3",
+      "sm": "w-4 h-4",
+      "md": "w-5 h-5",
+      "lg": "w-6 h-6",
+      "xl": "w-8 h-8"
+    },
+    "common": {
+      "dashboard": "FaHome",
+      "clients": "FaUsers",
+      "scanner": "FaQrcode",
+      "history": "FaHistory",
+      "achievements": "FaTrophy",
+      "profile": "FaUser",
+      "settings": "FaCog",
+      "calendar": "FaCalendarAlt",
+      "stats": "FaChartLine",
+      "money": "FaDollarSign",
+      "loading": "FaSpinner",
+      "close": "FaTimes",
+      "search": "FaSearch",
+      "filter": "FaFilter",
+      "edit": "FaEdit",
+      "delete": "FaTrash",
+      "view": "FaEye",
+      "add": "FaPlus",
+      "success": "FaCheck",
+      "error": "FaExclamationCircle",
+      "warning": "FaExclamationTriangle",
+      "info": "FaInfoCircle"
+    }
+  }
+} 
