@@ -9,6 +9,7 @@ import RewardRedemptionInterface from '@/components/ui/RewardRedemptionInterface
 import { QRCodeScanner } from '@/components/ui/QRCodeScanner';
 import jsQR from 'jsqr';
 import toast from 'react-hot-toast';
+import { IconType } from 'react-icons';
 
 type ScanMode = 'camera' | 'upload' | 'manual';
 type ViewMode = 'scanner' | 'client-overview' | 'visit-recording' | 'rewards' | 'history';
@@ -252,31 +253,65 @@ export default function BarberScannerPage() {
     return badges[status as keyof typeof badges] || badges.new;
   };
 
-  const ScanModeButton = ({ mode, icon: Icon, title, description, active }: {
+  const ScanModeButton = ({
+    mode,
+    icon: Icon,
+    title,
+    description,
+    active,
+  }: {
     mode: ScanMode;
-    icon: any;
+    icon: IconType;
     title: string;
     description: string;
     active: boolean;
-  }) => (
-    <button
-      onClick={() => setScanMode(mode)}
-      className={`group relative overflow-hidden rounded-lg p-3 sm:p-4 transition-all duration-300 ${
-        active 
-          ? 'bg-gradient-to-br from-[#8B0000] to-[#A31515] text-white shadow-md scale-[1.02]' 
-          : 'bg-gradient-to-br from-stone-50 to-amber-50/50 text-stone-700 border border-stone-200/60 hover:border-amber-200 hover:shadow-sm hover:scale-[1.01]'
-      }`}
-    >
-      <div className="relative z-10">
-        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 mb-2 sm:mb-3 mx-auto ${active ? 'text-white' : 'text-[#8B0000]'}`} />
-        <h3 className={`font-semibold text-sm sm:text-base mb-1 ${active ? 'text-white' : 'text-stone-800'}`}>{title}</h3>
-        <p className={`text-xs ${active ? 'text-red-100' : 'text-stone-600'}`}>{description}</p>
-      </div>
-      {active && (
-        <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 to-red-800/10 rounded-lg"></div>
-      )}
-    </button>
-  );
+  }) => {
+    const handleClick = () => {
+      setScanMode(mode);
+      const scanInterface = document.querySelector('.scan-interface');
+      if (scanInterface) {
+        const windowHeight = window.innerHeight;
+        const elementRect = scanInterface.getBoundingClientRect();
+        const elementTop = elementRect.top + window.pageYOffset;
+        const targetScrollPosition = elementTop - (windowHeight - elementRect.height) / 2;
+        
+        window.scrollTo({
+          top: targetScrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className={`relative flex flex-col items-center justify-center p-3 sm:p-4 lg:p-8 rounded-lg lg:rounded-2xl border transition-all duration-300 transform hover:scale-[1.02] ${
+          active
+            ? 'bg-gradient-to-br from-[#8B0000] to-[#A31515] border-[#8B0000]/20 shadow-lg lg:shadow-xl'
+            : 'bg-white border-stone-200/60 hover:border-[#8B0000]/20 hover:shadow-md lg:hover:shadow-lg'
+        } ${!active && 'lg:hover:bg-gradient-to-br lg:hover:from-stone-50 lg:hover:to-red-50'}`}
+      >
+        <Icon 
+          className={`h-6 w-6 sm:h-7 sm:w-7 lg:h-10 lg:w-10 mb-2 lg:mb-4 transition-transform group-hover:scale-110 ${
+            active ? 'text-white' : 'text-stone-600 lg:text-[#8B0000]'
+          }`} 
+        />
+        <h3 className={`text-sm sm:text-base lg:text-xl font-semibold mb-1 lg:mb-2 ${
+          active ? 'text-white' : 'text-stone-800'
+        }`}>
+          {title}
+        </h3>
+        <p className={`text-xs lg:text-sm leading-tight ${
+          active ? 'text-white/90' : 'text-stone-600'
+        }`}>
+          {description}
+        </p>
+        {!active && (
+          <div className="absolute inset-0 bg-gradient-to-br from-white to-transparent opacity-0 lg:hover:opacity-10 rounded-lg lg:rounded-2xl transition-opacity" />
+        )}
+      </button>
+    );
+  };
 
   // Scanner View
   if (viewMode === 'scanner') {
@@ -301,12 +336,12 @@ export default function BarberScannerPage() {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
           {/* Header */}
-          <div className="text-center mb-3 sm:mb-4">
-            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-[#8B0000] to-[#A31515] rounded-lg mb-2 sm:mb-3 shadow-md">
-              <FaQrcode className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+          <div className="text-center mb-3 sm:mb-8 lg:mb-12">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16 lg:w-24 lg:h-24 bg-gradient-to-br from-[#8B0000] to-[#A31515] rounded-2xl lg:rounded-3xl mb-2 sm:mb-4 lg:mb-6 shadow-xl transform transition-transform hover:scale-105">
+              <FaQrcode className="h-5 w-5 sm:h-8 sm:w-8 lg:h-12 lg:w-12 text-white" />
             </div>
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-stone-800 mb-1">Client Scanner</h1>
-            <p className="text-xs text-stone-600 max-w-md mx-auto leading-tight">
+            <h1 className="text-lg sm:text-2xl lg:text-4xl font-bold text-stone-800 mb-1 lg:mb-3">Client Scanner</h1>
+            <p className="text-xs sm:text-sm lg:text-lg text-stone-600 max-w-md lg:max-w-2xl mx-auto">
               Upload QR code images or search manually to find clients
             </p>
           </div>
@@ -325,7 +360,7 @@ export default function BarberScannerPage() {
           )}
 
           {/* Scan Mode Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 lg:gap-6 mb-3 sm:mb-6 lg:mb-8 max-w-3xl mx-auto">
             <ScanModeButton
               mode="camera"
               icon={FaCamera}
@@ -350,7 +385,7 @@ export default function BarberScannerPage() {
           </div>
 
           {/* Scan Interface */}
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto scan-interface">
             <div className="bg-white rounded-lg shadow-md border border-stone-200/60 overflow-hidden">
               {scanMode === 'camera' && (
                 <div className="p-3 sm:p-4">

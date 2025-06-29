@@ -9,6 +9,7 @@ import RewardRedemptionInterface from '@/components/ui/RewardRedemptionInterface
 import { QRCodeScanner } from '@/components/ui/QRCodeScanner';
 import jsQR from 'jsqr';
 import toast from 'react-hot-toast';
+import { IconType } from 'react-icons';
 
 type ScanMode = 'camera' | 'upload' | 'manual';
 type ViewMode = 'scanner' | 'client-overview' | 'visit-recording' | 'rewards' | 'history' | 'edit-client';
@@ -253,31 +254,55 @@ export default function AdminScannerPage() {
     return badges[status as keyof typeof badges] || badges.new;
   };
 
-  const ScanModeButton = ({ mode, icon: Icon, title, description, active }: {
+  const ScanModeButton = ({
+    mode,
+    icon: Icon,
+    title,
+    description,
+    active,
+  }: {
     mode: ScanMode;
-    icon: any;
+    icon: IconType;
     title: string;
     description: string;
     active: boolean;
-  }) => (
-    <button
-      onClick={() => setScanMode(mode)}
-      className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 ${
-        active 
-          ? 'bg-gradient-to-br from-black to-gray-800 text-white shadow-lg scale-105' 
-          : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-black hover:shadow-md hover:scale-102'
-      }`}
-    >
-      <div className="relative z-10">
-        <Icon className={`h-8 w-8 mb-4 mx-auto ${active ? 'text-white' : 'text-black'}`} />
-        <h3 className={`font-bold text-lg mb-2 ${active ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-        <p className={`text-sm ${active ? 'text-gray-200' : 'text-gray-600'}`}>{description}</p>
-      </div>
-      {active && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-700/20 to-black/20 rounded-2xl"></div>
-      )}
-    </button>
-  );
+  }) => {
+    const handleClick = () => {
+      setScanMode(mode);
+      // Scroll the scan interface into view with smooth behavior
+      const scanInterface = document.querySelector('.scan-interface');
+      if (scanInterface) {
+        const windowHeight = window.innerHeight;
+        const elementRect = scanInterface.getBoundingClientRect();
+        const elementTop = elementRect.top + window.pageYOffset;
+        const targetScrollPosition = elementTop - (windowHeight - elementRect.height) / 2;
+        
+        window.scrollTo({
+          top: targetScrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className={`relative flex flex-col items-center justify-center p-6 rounded-xl border transition-all ${
+          active
+            ? 'bg-gradient-to-br from-[#8B0000] to-[#A31515] border-[#8B0000]/20 shadow-lg'
+            : 'bg-white border-gray-200 hover:border-[#8B0000]/20 hover:shadow-md'
+        }`}
+      >
+        <Icon className={`h-8 w-8 mb-3 ${active ? 'text-white' : 'text-gray-600'}`} />
+        <h3 className={`text-lg font-semibold mb-1 ${active ? 'text-white' : 'text-gray-800'}`}>
+          {title}
+        </h3>
+        <p className={`text-sm leading-tight ${active ? 'text-white/90' : 'text-gray-600'}`}>
+          {description}
+        </p>
+      </button>
+    );
+  };
 
   // Scanner View
   if (viewMode === 'scanner') {
@@ -334,7 +359,7 @@ export default function AdminScannerPage() {
           </div>
 
           {/* Scan Interface */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto scan-interface">
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               {scanMode === 'camera' && (
                 <div className="p-8">

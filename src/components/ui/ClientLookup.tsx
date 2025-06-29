@@ -111,27 +111,19 @@ export function ClientLookup({
 
   return (
     <div className={`${className}`}>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-            <FaSearch className="h-5 w-5 mr-2" />
-            Manual Client Search
-          </h2>
-        </div>
-
-        <div className="p-6">
+      <div className="bg-white rounded-xl shadow-lg border border-stone-200/60 overflow-hidden">
+        {/* Search Type Selection */}
+        <div className="p-4 sm:p-6">
           <form onSubmit={handleSearch} className="space-y-6">
-            {/* Search Type Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Search By</label>
-              <div className="grid grid-cols-3 gap-3">
+              <label className="block text-sm font-medium text-stone-700 mb-3">Search By</label>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {[
                   { value: 'name', label: 'Name', icon: FaUser },
                   { value: 'phone', label: 'Phone', icon: FaPhone },
                   { value: 'clientId', label: 'Client ID', icon: FaSearch },
                 ].map(({ value, label, icon: Icon }) => (
-                  <label key={value} className="relative">
+                  <label key={value} className="relative group">
                     <input
                       type="radio"
                       name="search-type"
@@ -140,13 +132,23 @@ export function ClientLookup({
                       onChange={(e) => setSearchType(e.target.value as any)}
                       className="sr-only"
                     />
-                    <div className={`flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      searchType === value
-                        ? 'border-black bg-black text-white'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                    }`}>
-                      <Icon className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium">{label}</span>
+                    <div 
+                      className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                        searchType === value
+                          ? 'bg-gradient-to-br from-[#8B0000] to-[#A31515] border-[#8B0000]/20 shadow-lg transform scale-[1.02]'
+                          : 'border-stone-200/60 bg-white text-stone-700 hover:border-[#8B0000]/20 hover:shadow-md hover:scale-[1.01]'
+                      }`}
+                    >
+                      <Icon 
+                        className={`h-5 w-5 sm:h-6 sm:w-6 mb-2 transition-transform group-hover:scale-110 ${
+                          searchType === value ? 'text-white' : 'text-[#8B0000]'
+                        }`} 
+                      />
+                      <span className={`text-xs sm:text-sm font-medium ${
+                        searchType === value ? 'text-white' : 'text-stone-800'
+                      }`}>
+                        {label}
+                      </span>
                     </div>
                   </label>
                 ))}
@@ -155,28 +157,33 @@ export function ClientLookup({
             
             {/* Search Input */}
             <div>
-              <label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="search-term" className="block text-sm font-medium text-stone-700 mb-2">
                 Search Term
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="h-4 w-4 text-gray-400" />
+                  <SearchIcon className={`h-4 w-4 transition-colors ${isLoading ? 'text-[#8B0000]' : 'text-stone-400 group-hover:text-[#8B0000]'}`} />
                 </div>
                 <input
                   type="text"
                   id="search-term"
-                  className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-black"
+                  className="pl-10 w-full p-3 sm:p-4 border border-stone-200/60 rounded-xl focus:ring-2 focus:ring-[#8B0000] focus:border-transparent transition-all text-stone-800 placeholder:text-stone-400 hover:border-[#8B0000]/20"
                   placeholder={getSearchPlaceholder()}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   disabled={isLoading}
                 />
+                {isLoading && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <FaSpinner className="animate-spin h-4 w-4 text-[#8B0000]" />
+                  </div>
+                )}
               </div>
             </div>
             
             {/* Error Message */}
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-red-50/50 border border-red-200/50 rounded-xl">
                 <p className="text-red-800 text-sm font-medium">Search Error</p>
                 <p className="text-red-700 text-sm mt-1">{error}</p>
               </div>
@@ -186,10 +193,10 @@ export function ClientLookup({
             <button
               type="submit"
               disabled={isLoading || !searchTerm.trim() || searchTerm.trim().length < 2}
-              className={`w-full flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`w-full flex items-center justify-center px-6 py-4 rounded-xl font-medium transition-all duration-300 ${
                 isLoading || !searchTerm.trim() || searchTerm.trim().length < 2
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-black text-white hover:bg-gray-800 shadow-sm'
+                  ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                  : 'bg-gradient-to-br from-[#8B0000] to-[#A31515] text-white hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]'
               }`}
             >
               {isLoading ? (
@@ -208,9 +215,9 @@ export function ClientLookup({
 
           {/* Recent Searches */}
           {recentSearches.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                <FaClock className="h-4 w-4 mr-2" />
+            <div className="mt-8 pt-6 border-t border-stone-200/60">
+              <h3 className="text-sm font-medium text-stone-700 mb-3 flex items-center">
+                <FaClock className="h-4 w-4 mr-2 text-[#8B0000]" />
                 Recent Searches
               </h3>
               <div className="space-y-2">
@@ -218,15 +225,17 @@ export function ClientLookup({
                   <button
                     key={search.id}
                     onClick={() => handleRecentSearchClick(search.id)}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-all group"
+                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-stone-50 border border-stone-200/60 transition-all duration-300 group hover:border-[#8B0000]/20 hover:shadow-md"
                   >
                     <div className="flex items-center">
-                      <FaUser className="h-4 w-4 text-gray-400 mr-3" />
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-stone-100 to-stone-50 group-hover:from-[#8B0000]/5 group-hover:to-[#A31515]/5 mr-3">
+                        <FaUser className="h-4 w-4 text-[#8B0000] opacity-70 group-hover:opacity-100" />
+                      </div>
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 group-hover:text-black">
+                        <div className="text-sm font-medium text-stone-800 group-hover:text-[#8B0000]">
                           {search.name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-stone-500">
                           {search.phone}
                         </div>
                       </div>

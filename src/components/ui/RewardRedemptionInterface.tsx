@@ -161,23 +161,23 @@ export default function RewardRedemptionInterface({
   const hasSelectedRewardReady = loyaltyStatus.selectedReward && loyaltyStatus.canRedeem;
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${className}`}>
+    <div className={`bg-white rounded-xl shadow-md border border-stone-200/60 ${className}`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 lg:p-6 rounded-t-xl">
+      <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 text-white p-3 sm:p-4 rounded-t-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <FaGift className="w-5 h-5" />
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <FaGift className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg lg:text-xl font-bold">Loyalty Rewards</h2>
-              <p className="text-purple-100 text-sm">Manage client reward redemptions</p>
+              <h2 className="text-base sm:text-lg font-bold">Loyalty Rewards</h2>
+              <p className="text-xs text-white/80">Manage client rewards</p>
             </div>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-all"
             >
               <FaTimes className="w-4 h-4" />
             </button>
@@ -185,209 +185,217 @@ export default function RewardRedemptionInterface({
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-4 space-y-4">
+        {/* Selected Reward Progress - Moved to top */}
+        {loyaltyStatus.selectedReward && (
+          <div className="bg-gradient-to-br from-emerald-50 to-stone-50/50 rounded-lg border border-emerald-200/60 overflow-hidden">
+            <div className="p-3">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                  <FaCrown className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-stone-800">Current Goal</h3>
+                  <p className="text-sm text-stone-600">{loyaltyStatus.selectedReward.name}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-stone-700">Progress</span>
+                <span className="text-sm font-medium text-stone-800">
+                  {loyaltyStatus.currentProgressVisits} / {loyaltyStatus.selectedReward.visitsRequired} visits
+                </span>
+              </div>
+              
+              <div className="w-full bg-emerald-100 rounded-full h-2.5 mb-3">
+                <div 
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-500 h-2.5 rounded-full transition-all duration-500"
+                  style={{ width: `${loyaltyStatus.progressPercentage}%` }}
+                ></div>
+              </div>
+
+              {loyaltyStatus.canRedeem ? (
+                <div className="bg-emerald-50 border border-emerald-200/60 rounded-lg p-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                        <FaCheck className="w-4 h-4 text-emerald-600" />
+                        <span>Ready to Redeem!</span>
+                      </div>
+                      <p className="text-sm text-emerald-600 mt-1">
+                        Client has reached the milestone
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, false)}
+                        disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
+                        className="flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                      >
+                        {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
+                          ? 'Processing...' 
+                          : 'Apply to Visit'
+                        }
+                      </button>
+                      <button
+                        onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, true)}
+                        disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
+                        className="flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-[#8B0000] to-[#A31515] text-white rounded-lg hover:from-[#7A0000] hover:to-[#920000] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                      >
+                        {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
+                          ? 'Creating...' 
+                          : 'Create Visit'
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-stone-600">
+                  {loyaltyStatus.visitsToNextReward} more visit{loyaltyStatus.visitsToNextReward !== 1 ? 's' : ''} needed
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Loyalty Status Summary */}
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-lg border border-stone-200/60 p-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-800">{loyaltyStatus.totalVisits}</div>
-              <div className="text-sm text-purple-600">Total Visits</div>
+              <div className="text-lg sm:text-xl font-bold text-stone-800">{loyaltyStatus.totalVisits}</div>
+              <div className="text-xs sm:text-sm text-stone-600">Total Visits</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-800">{loyaltyStatus.currentProgressVisits}</div>
-              <div className="text-sm text-purple-600">Current Progress</div>
+              <div className="text-lg sm:text-xl font-bold text-stone-800">{loyaltyStatus.currentProgressVisits}</div>
+              <div className="text-xs sm:text-sm text-stone-600">Current Progress</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-800">{loyaltyStatus.rewardsRedeemed}</div>
-              <div className="text-sm text-purple-600">Rewards Redeemed</div>
+              <div className="text-lg sm:text-xl font-bold text-stone-800">{loyaltyStatus.rewardsRedeemed}</div>
+              <div className="text-xs sm:text-sm text-stone-600">Rewards Redeemed</div>
             </div>
           </div>
         </div>
 
-        {/* Selected Reward Progress */}
-        {loyaltyStatus.selectedReward && (
-          <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-green-500 rounded-lg">
-                <FaCrown className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="font-medium text-green-800">Current Goal</h3>
-                <p className="text-sm text-green-600">{loyaltyStatus.selectedReward.name}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-green-700">Progress</span>
-              <span className="text-sm font-medium text-green-800">
-                {loyaltyStatus.currentProgressVisits} / {loyaltyStatus.selectedReward.visitsRequired} visits
-              </span>
-            </div>
-            
-            <div className="w-full bg-green-200 rounded-full h-2 mb-3">
-              <div 
-                className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${loyaltyStatus.progressPercentage}%` }}
-              ></div>
-            </div>
-
-            {loyaltyStatus.canRedeem ? (
-              <div className="bg-green-100 border border-green-300 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-green-800 font-medium">
-                      <FaCheck className="w-4 h-4" />
-                      <span>Ready to Redeem!</span>
-                    </div>
-                    <p className="text-green-600 text-sm mt-1">
-                      Client has reached the milestone for this reward
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, false)}
-                      disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
-                        ? 'Processing...' 
-                        : 'Apply to Visit'
-                      }
-                    </button>
-                    <button
-                      onClick={() => handleRedeemReward(loyaltyStatus.selectedReward!._id, true)}
-                      disabled={isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id}
-                      className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      {isRedeeming && selectedRewardForRedemption === loyaltyStatus.selectedReward!._id 
-                        ? 'Creating...' 
-                        : 'Create Visit'
-                      }
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-green-700 text-sm">
-                {loyaltyStatus.visitsToNextReward} more visit{loyaltyStatus.visitsToNextReward !== 1 ? 's' : ''} needed to redeem
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Eligible Rewards */}
         {hasEligibleRewards && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Available Rewards</h3>
-              <div className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                <div className="font-medium mb-1">Redemption Options:</div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <h3 className="text-base font-semibold text-stone-800">Available Rewards</h3>
+              <div className="text-xs bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-lg px-3 py-2 border border-stone-200/60">
+                <div className="font-medium text-stone-700 mb-1">Redemption Options:</div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span>Apply to Visit: Use with existing/new visit</span>
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    <span className="text-stone-600">Apply to Visit: Use with current visit</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                    <span>Create Visit: Make special reward-only visit</span>
+                    <span className="w-2 h-2 bg-[#8B0000] rounded-full"></span>
+                    <span className="text-stone-600">Create Visit: Make special reward visit</span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="space-y-3">
               {loyaltyStatus.eligibleRewards.map((reward) => {
-                // Double check eligibility: client must have enough visits AND visits must be >= required
                 const hasEnoughVisits = loyaltyStatus.currentProgressVisits >= reward.visitsRequired;
                 const totalVisitsCheck = loyaltyStatus.totalVisits >= reward.visitsRequired;
                 const isEligibleForRedemption = hasEnoughVisits && totalVisitsCheck;
                 const visitsNeeded = Math.max(0, reward.visitsRequired - loyaltyStatus.currentProgressVisits);
                 
                 return (
-                  <div key={reward._id} className={`border rounded-lg p-4 transition-all ${
-                    isEligibleForRedemption 
-                      ? 'border-green-200 bg-green-50 hover:shadow-md' 
-                      : 'border-gray-200 bg-gray-50'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          reward.rewardType === 'free' ? 'bg-green-100' : 'bg-blue-100'
-                        }`}>
-                          {reward.rewardType === 'free' ? (
-                            <FaGift className="w-5 h-5 text-green-600" />
+                  <div 
+                    key={reward._id} 
+                    className={`bg-gradient-to-br rounded-lg border transition-all ${
+                      isEligibleForRedemption 
+                        ? 'from-emerald-50 to-stone-50/50 border-emerald-200/60 hover:shadow-md' 
+                        : 'from-stone-50 to-amber-50/30 border-stone-200/60'
+                    }`}
+                  >
+                    <div className="p-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            reward.rewardType === 'free' 
+                              ? 'bg-emerald-600' 
+                              : 'bg-gradient-to-r from-[#8B0000] to-[#A31515]'
+                          }`}>
+                            {reward.rewardType === 'free' ? (
+                              <FaGift className="w-4 h-4 text-white" />
+                            ) : (
+                              <FaPercentage className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-stone-800 truncate">{reward.name}</h4>
+                            <p className="text-sm text-stone-600 mb-2 line-clamp-2">{reward.description}</p>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <span className="text-stone-600 bg-white/60 px-2 py-1 rounded-md border border-stone-200/60">
+                                Required: {reward.visitsRequired} visits
+                              </span>
+                              <span className={`px-2 py-1 rounded-md font-medium ${
+                                reward.rewardType === 'free' 
+                                  ? 'bg-emerald-100 text-emerald-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
+                              </span>
+                              {isEligibleForRedemption ? (
+                                <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md font-medium">
+                                  ✓ Ready to Redeem
+                                </span>
+                              ) : (
+                                <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
+                                  ⚠️ Not Eligible
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-2 space-y-1">
+                              <p className="text-xs text-stone-600">
+                                Applicable to: {reward.applicableServices.map(s => s.name).join(', ')}
+                              </p>
+                              <div className="text-xs text-stone-600 flex gap-3">
+                                <span>Current: {loyaltyStatus.currentProgressVisits} visits</span>
+                                <span>Total: {loyaltyStatus.totalVisits} visits</span>
+                              </div>
+                              {!isEligibleForRedemption && (
+                                <p className="text-xs font-medium text-amber-600">
+                                  ⚠️ Need {visitsNeeded} more visit{visitsNeeded !== 1 ? 's' : ''} to unlock
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex sm:flex-col gap-2 sm:w-auto w-full">
+                          {isEligibleForRedemption ? (
+                            <>
+                              <button
+                                onClick={() => handleRedeemReward(reward._id, false)}
+                                disabled={isRedeeming && selectedRewardForRedemption === reward._id}
+                                className="flex-1 sm:w-[120px] px-3 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                              >
+                                {isRedeeming && selectedRewardForRedemption === reward._id 
+                                  ? 'Processing...' 
+                                  : 'Apply to Visit'
+                                }
+                              </button>
+                              <button
+                                onClick={() => handleRedeemReward(reward._id, true)}
+                                disabled={isRedeeming && selectedRewardForRedemption === reward._id}
+                                className="flex-1 sm:w-[120px] px-3 py-2 bg-gradient-to-r from-[#8B0000] to-[#A31515] text-white rounded-lg hover:from-[#7A0000] hover:to-[#920000] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                              >
+                                {isRedeeming && selectedRewardForRedemption === reward._id 
+                                  ? 'Creating...' 
+                                  : 'Create Visit'
+                                }
+                              </button>
+                            </>
                           ) : (
-                            <FaPercentage className="w-5 h-5 text-blue-600" />
+                            <div className="w-full sm:w-[120px] px-3 py-2 bg-stone-100 text-stone-500 rounded-lg text-center text-sm font-medium cursor-not-allowed">
+                              Not Available
+                            </div>
                           )}
                         </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{reward.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">{reward.description}</p>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-gray-500">
-                              Required: {reward.visitsRequired} visits
-                            </span>
-                            <div className={`px-2 py-1 rounded text-xs font-medium ${
-                              reward.rewardType === 'free' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
-                            </div>
-                            {isEligibleForRedemption ? (
-                              <div className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                                ✓ Ready to Redeem
-                              </div>
-                            ) : (
-                              <div className="px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                ⚠️ Not Eligible
-                              </div>
-                            )}
-                          </div>
-                          <div className="mt-2">
-                            <p className="text-xs text-gray-500">
-                              Applicable to: {reward.applicableServices.map(s => s.name).join(', ')}
-                            </p>
-                            <div className="text-xs text-gray-500 mt-1 space-y-1">
-                              <p>Current Progress: {loyaltyStatus.currentProgressVisits} visits</p>
-                              <p>Total Lifetime: {loyaltyStatus.totalVisits} visits</p>
-                            </div>
-                            {!isEligibleForRedemption && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Need {visitsNeeded} more visit{visitsNeeded !== 1 ? 's' : ''} to unlock
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        {isEligibleForRedemption ? (
-                          <div className="flex flex-col gap-2">
-                            <button
-                              onClick={() => handleRedeemReward(reward._id, false)}
-                              disabled={isRedeeming && selectedRewardForRedemption === reward._id}
-                              className="px-3 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                              {isRedeeming && selectedRewardForRedemption === reward._id 
-                                ? 'Processing...' 
-                                : 'Apply to Visit'
-                              }
-                            </button>
-                            <button
-                              onClick={() => handleRedeemReward(reward._id, true)}
-                              disabled={isRedeeming && selectedRewardForRedemption === reward._id}
-                              className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                              {isRedeeming && selectedRewardForRedemption === reward._id 
-                                ? 'Creating...' 
-                                : 'Create Visit'
-                              }
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed text-sm">
-                            Not Available
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -399,16 +407,16 @@ export default function RewardRedemptionInterface({
 
         {/* No Rewards Available */}
         {!hasEligibleRewards && !hasSelectedRewardReady && (
-          <div className="text-center py-8">
-            <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4">
-              <FaGift className="w-8 h-8 text-gray-400" />
+          <div className="text-center py-6 bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-lg border border-stone-200/60">
+            <div className="w-12 h-12 bg-white/60 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <FaGift className="w-6 h-6 text-stone-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Rewards Available</h3>
-            <p className="text-gray-600">
+            <h3 className="text-base font-medium text-stone-800 mb-1">No Rewards Available</h3>
+            <p className="text-sm text-stone-600">
               Client needs more visits to earn rewards. Current progress: {loyaltyStatus.currentProgressVisits} visits
             </p>
             {loyaltyStatus.selectedReward && (
-              <p className="text-sm text-purple-600 mt-2">
+              <p className="text-sm text-emerald-600 mt-2 font-medium">
                 Working towards: {loyaltyStatus.selectedReward.name} 
                 ({loyaltyStatus.visitsToNextReward} more visits needed)
               </p>
@@ -418,14 +426,14 @@ export default function RewardRedemptionInterface({
 
         {/* Encourage Loyalty */}
         {!loyaltyStatus.selectedReward && loyaltyStatus.currentProgressVisits > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-gradient-to-br from-amber-50 to-stone-50/50 rounded-lg border border-amber-200/60 p-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <FaCrown className="w-4 h-4 text-yellow-600" />
+              <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                <FaCrown className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h4 className="font-medium text-yellow-800">Encourage Goal Setting</h4>
-                <p className="text-yellow-600 text-sm">
+                <h4 className="font-medium text-stone-800">Encourage Goal Setting</h4>
+                <p className="text-sm text-stone-600">
                   Client has {loyaltyStatus.currentProgressVisits} visits but no reward goal selected. 
                   Suggest they choose a reward in their app!
                 </p>

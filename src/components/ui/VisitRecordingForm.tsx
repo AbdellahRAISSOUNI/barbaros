@@ -644,21 +644,30 @@ export function VisitRecordingForm({
                   </div>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-row gap-2 w-full">
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="flex-1 py-3 px-6 bg-white border-2 border-stone-200 text-stone-700 rounded-lg hover:bg-stone-50 hover:border-stone-300 hover:text-stone-800 active:bg-stone-100 transition-all duration-200 font-semibold text-center shadow-sm hover:shadow-md"
+                  className="flex-1 px-3 py-2 border-2 border-stone-200 text-stone-600 font-medium rounded-lg hover:bg-stone-50 hover:border-stone-300 hover:text-stone-700 active:bg-stone-100 transition-all text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || selectedServices.length === 0}
-                  className="flex-1 py-3 px-6 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center font-semibold shadow-[0_4px_12px_rgba(16,185,129,0.2)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.3)] active:shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:shadow-none"
+                  disabled={selectedServices.length === 0 || isLoading}
+                  className="flex-1 px-3 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm shadow-sm hover:shadow flex items-center justify-center gap-2"
                 >
-                  <FaSave className="mr-2 h-4 w-4" />
-                  {isLoading ? 'Recording...' : 'Record Visit'}
+                  {isLoading ? (
+                    <>
+                      <FaSpinner className="w-4 h-4 animate-spin" />
+                      <span>Recording...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck className="w-4 h-4" />
+                      <span>Record Visit</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
