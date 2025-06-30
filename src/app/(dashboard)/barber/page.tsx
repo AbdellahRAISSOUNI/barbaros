@@ -22,8 +22,8 @@ interface BarberStats {
   clientRetentionRate: number;
   averageServiceTime: number;
   topServices: string[];
-  achievementPoints?: number;
-  completedAchievements?: number;
+  earnedRewards?: number;
+  redeemedRewards?: number;
   currentStreak?: number;
   serviceVariety?: number;
 }
@@ -47,10 +47,10 @@ export default function BarberDashboardPage() {
       setLoading(true);
       setError(null);
       
-      // Parallel requests for faster loading
-      const [statsResponse, achievementsResponse] = await Promise.all([
+      // Fetch barber stats and rewards data
+      const [statsResponse, rewardsResponse] = await Promise.all([
         fetch(`/api/admin/barbers/${session.user.id}/stats`),
-        fetch(`/api/barber/achievements?barberId=${session.user.id}`)
+        fetch(`/api/barber/rewards?barberId=${session.user.id}`)
       ]);
 
       if (statsResponse.ok) {
@@ -58,13 +58,12 @@ export default function BarberDashboardPage() {
         if (statsData.success) {
           let enhancedStats = statsData.stats;
           
-          // Add achievement data if available
-          if (achievementsResponse.ok) {
-            const achievementsData = await achievementsResponse.json();
-            if (achievementsData.success) {
-              const completedAchievements = achievementsData.achievements.filter((a: any) => a.isCompleted);
-              enhancedStats.achievementPoints = completedAchievements.reduce((sum: number, a: any) => sum + a.points, 0);
-              enhancedStats.completedAchievements = completedAchievements.length;
+          // Add rewards data if available
+          if (rewardsResponse.ok) {
+            const rewardsData = await rewardsResponse.json();
+            if (rewardsData.success) {
+              enhancedStats.earnedRewards = rewardsData.statistics.earnedRewards;
+              enhancedStats.redeemedRewards = rewardsData.statistics.redeemedRewards;
             }
           }
           
@@ -182,7 +181,7 @@ export default function BarberDashboardPage() {
             />
             <ActionButton
               icon={FaTrophy}
-              title="Achievements"
+              title="Rewards"
               description="Track progress"
               href="/barber/achievements"
               gradient="bg-gradient-to-r from-stone-600 to-stone-500"
@@ -232,9 +231,9 @@ export default function BarberDashboardPage() {
               />
                 <MetricCard
                   icon={FaMedal}
-                  title="Achievement Points"
-                  value={stats.achievementPoints || 0}
-                  subtitle={`${stats.completedAchievements || 0} achievements`}
+                  title="Rewards"
+                  value={stats.earnedRewards || 0}
+                  subtitle={`${stats.redeemedRewards || 0} redeemed`}
                   gradient="bg-gradient-to-r from-stone-600 to-stone-500"
               />
                 <MetricCard

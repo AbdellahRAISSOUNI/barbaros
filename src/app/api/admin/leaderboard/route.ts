@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBarberLeaderboard } from '@/lib/db/api/barberApi';
+import { getBarberLeaderboard } from '@/lib/db/api/barberRewardEngine';
 
 /**
  * GET /api/admin/leaderboard - Get barber leaderboard for admin dashboard
@@ -7,10 +7,9 @@ import { getBarberLeaderboard } from '@/lib/db/api/barberApi';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const sortBy = searchParams.get('sortBy') || 'overall'; // overall, visits, revenue, clients, efficiency
-    const timePeriod = searchParams.get('timePeriod') || 'all-time'; // all-time, this-month, this-week
+    const sortBy = searchParams.get('sortBy') || 'overall';
 
-    const leaderboard = await getBarberLeaderboard(sortBy, timePeriod);
+    const leaderboard = await getBarberLeaderboard();
 
     return NextResponse.json({
       success: true,

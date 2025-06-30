@@ -1,4 +1,4 @@
-import { Admin, Client, Service, ServiceCategory, Reward, Visit, BarberStats, Achievement, BarberAchievement, Reservation } from './models';
+import { Admin, Client, Service, ServiceCategory, Reward, Visit, BarberStats, Reservation } from './models';
 import connectToDatabase from './mongodb';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
@@ -204,443 +204,6 @@ export async function seedDatabase() {
     const createdRewards = await Reward.insertMany(rewards);
     console.log(`Created ${createdRewards.length} rewards`);
 
-    // Create advanced employee loyalty achievements
-    console.log('Creating advanced achievement system...');
-    const achievements = [
-      // TENURE ACHIEVEMENTS - Building Employee Loyalty
-      {
-        title: 'Welcome Aboard',
-        description: 'Complete your first week with the team',
-        category: 'tenure',
-        subcategory: 'onboarding',
-        requirement: 7,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '🎯',
-        color: 'bg-blue-500',
-        icon: 'FaCalendarCheck',
-        tier: 'bronze',
-        points: 50,
-        reward: {
-          type: 'recognition',
-          value: 'Team Welcome Certificate',
-          description: 'Official welcome to the Barbaros family'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'One Month Strong',
-        description: 'Celebrate your first month of dedication',
-        category: 'tenure',
-        subcategory: 'milestone',
-        requirement: 30,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '📅',
-        color: 'bg-green-500',
-        icon: 'FaCalendarAlt',
-        tier: 'bronze',
-        points: 100,
-        reward: {
-          type: 'monetary',
-          value: '$25',
-          description: 'First month completion bonus'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Quarterly Champion',
-        description: 'Complete your first 3 months of excellent service',
-        category: 'tenure',
-        subcategory: 'milestone',
-        requirement: 90,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '🏅',
-        color: 'bg-yellow-500',
-        icon: 'FaMedal',
-        tier: 'silver',
-        points: 250,
-        reward: {
-          type: 'time_off',
-          value: '1 day',
-          description: 'Extra paid day off'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Half-Year Hero',
-        description: 'Six months of commitment and excellence',
-        category: 'tenure',
-        subcategory: 'milestone',
-        requirement: 180,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '⭐',
-        color: 'bg-orange-500',
-        icon: 'FaStar',
-        tier: 'gold',
-        points: 500,
-        reward: {
-          type: 'monetary',
-          value: '$100',
-          description: 'Six-month loyalty bonus'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Annual Veteran',
-        description: 'One full year of dedication to the craft',
-        category: 'tenure',
-        subcategory: 'milestone',
-        requirement: 365,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '👑',
-        color: 'bg-purple-600',
-        icon: 'FaCrown',
-        tier: 'platinum',
-        points: 1000,
-        reward: {
-          type: 'monetary',
-          value: '$300',
-          description: 'Annual loyalty reward + extra benefits'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-
-      // PERFORMANCE ACHIEVEMENTS - Daily Excellence
-      {
-        title: 'First Cut',
-        description: 'Complete your very first client service',
-        category: 'visits',
-        subcategory: 'milestone',
-        requirement: 1,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '✂️',
-        color: 'bg-blue-400',
-        icon: 'FaCut',
-        tier: 'bronze',
-        points: 25,
-        reward: {
-          type: 'recognition',
-          value: 'First Cut Certificate',
-          description: 'Commemorate your first professional service'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Daily Achiever',
-        description: 'Complete 3 or more services in a single day',
-        category: 'visits',
-        subcategory: 'daily',
-        requirement: 3,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'daily', minimumValue: 3 },
-        badge: '🌟',
-        color: 'bg-yellow-400',
-        icon: 'FaCalendarDay',
-        tier: 'bronze',
-        points: 15,
-        reward: {
-          type: 'recognition',
-          value: 'Daily Star',
-          description: 'Recognition for outstanding daily performance'
-        },
-        isRepeatable: true,
-        maxCompletions: 365,
-        isActive: true
-      },
-      {
-        title: 'Weekly Warrior',
-        description: 'Complete 25+ services in a single week',
-        category: 'visits',
-        subcategory: 'weekly',
-        requirement: 25,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'weekly' },
-        badge: '⚔️',
-        color: 'bg-red-500',
-        icon: 'FaCalendarWeek',
-        tier: 'silver',
-        points: 75,
-        reward: {
-          type: 'monetary',
-          value: '$20',
-          description: 'Weekly performance bonus'
-        },
-        isRepeatable: true,
-        maxCompletions: 52,
-        isActive: true
-      },
-      {
-        title: 'Monthly Master',
-        description: 'Complete 100+ services in a single month',
-        category: 'visits',
-        subcategory: 'monthly',
-        requirement: 100,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'monthly' },
-        badge: '👨‍💼',
-        color: 'bg-indigo-600',
-        icon: 'FaCalendarCheck',
-        tier: 'gold',
-        points: 200,
-        reward: {
-          type: 'monetary',
-          value: '$75',
-          description: 'Monthly excellence bonus'
-        },
-        isRepeatable: true,
-        maxCompletions: 12,
-        isActive: true
-      },
-
-      // CONSISTENCY ACHIEVEMENTS - Building Habits
-      {
-        title: 'Consistency Starter',
-        description: 'Work 5 consecutive days with at least 2 services each',
-        category: 'consistency',
-        subcategory: 'daily_visits',
-        requirement: 5,
-        requirementType: 'streak',
-        requirementDetails: { 
-          consecutiveRequired: true,
-          minimumValue: 2,
-          timeframe: 'daily'
-        },
-        badge: '🔥',
-        color: 'bg-orange-400',
-        icon: 'FaFire',
-        tier: 'bronze',
-        points: 100,
-        reward: {
-          type: 'recognition',
-          value: 'Consistency Award',
-          description: 'Recognition for building good work habits'
-        },
-        isRepeatable: true,
-        maxCompletions: 10,
-        isActive: true
-      },
-      {
-        title: 'Reliability Expert',
-        description: 'Maintain 10+ services per week for 8 consecutive weeks',
-        category: 'consistency',
-        subcategory: 'weekly_consistency',
-        requirement: 8,
-        requirementType: 'streak',
-        requirementDetails: { 
-          consecutiveRequired: true,
-          minimumValue: 10,
-          timeframe: 'weekly'
-        },
-        badge: '🎯',
-        color: 'bg-green-600',
-        icon: 'FaBullseye',
-        tier: 'gold',
-        points: 300,
-        reward: {
-          type: 'time_off',
-          value: '0.5 day',
-          description: 'Half day off for exceptional reliability'
-        },
-        isRepeatable: true,
-        maxCompletions: 6,
-        isActive: true
-      },
-
-      // CLIENT RELATIONSHIP ACHIEVEMENTS
-      {
-        title: 'People Person',
-        description: 'Serve 5 different clients in your career',
-        category: 'clients',
-        subcategory: 'diversity',
-        requirement: 5,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '👥',
-        color: 'bg-blue-500',
-        icon: 'FaUsers',
-        tier: 'bronze',
-        points: 50,
-        reward: {
-          type: 'recognition',
-          value: 'People Skills Badge',
-          description: 'Recognition for excellent client relations'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Community Favorite',
-        description: 'Build a clientele of 25 unique customers',
-        category: 'clients',
-        subcategory: 'growth',
-        requirement: 25,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '💖',
-        color: 'bg-pink-500',
-        icon: 'FaHeart',
-        tier: 'silver',
-        points: 150,
-        reward: {
-          type: 'monetary',
-          value: '$40',
-          description: 'Client relationship building bonus'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Network Builder',
-        description: 'Serve 50 unique clients - you\'re a true professional',
-        category: 'clients',
-        subcategory: 'mastery',
-        requirement: 50,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '🌐',
-        color: 'bg-purple-500',
-        icon: 'FaNetworkWired',
-        tier: 'gold',
-        points: 400,
-        reward: {
-          type: 'privileges',
-          value: 'Schedule Flexibility',
-          description: 'Enhanced scheduling privileges for top performers'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-
-      // QUALITY & TEAMWORK ACHIEVEMENTS
-      {
-        title: 'Quality Craftsman',
-        description: 'Maintain 80%+ client retention rate',
-        category: 'quality',
-        subcategory: 'client_retention',
-        requirement: 80,
-        requirementType: 'percentage',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '🏆',
-        color: 'bg-yellow-600',
-        icon: 'FaTrophy',
-        tier: 'gold',
-        points: 300,
-        reward: {
-          type: 'monetary',
-          value: '$60',
-          description: 'Quality excellence bonus'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Service Specialist',
-        description: 'Master 4 different types of services',
-        category: 'quality',
-        subcategory: 'service_variety',
-        requirement: 4,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '🎨',
-        color: 'bg-indigo-500',
-        icon: 'FaPalette',
-        tier: 'silver',
-        points: 200,
-        reward: {
-          type: 'training',
-          value: 'Advanced Techniques Course',
-          description: 'Free advanced training in specialized techniques'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-
-      // LEARNING & DEVELOPMENT
-      {
-        title: 'Growth Mindset',
-        description: 'Complete your first month of continuous improvement',
-        category: 'learning',
-        subcategory: 'development',
-        requirement: 30,
-        requirementType: 'days',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '📚',
-        color: 'bg-green-500',
-        icon: 'FaGraduationCap',
-        tier: 'bronze',
-        points: 75,
-        reward: {
-          type: 'training',
-          value: 'Skill Workshop Access',
-          description: 'Access to professional development workshops'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-
-      // MILESTONE ACHIEVEMENTS
-      {
-        title: 'Century Club',
-        description: 'Complete 100 total services - welcome to the pros!',
-        category: 'milestone',
-        subcategory: 'volume',
-        requirement: 100,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '💯',
-        color: 'bg-red-600',
-        icon: 'FaAward',
-        tier: 'platinum',
-        points: 500,
-        reward: {
-          type: 'monetary',
-          value: '$150',
-          description: 'Century milestone achievement reward'
-        },
-        isRepeatable: false,
-        isActive: true
-      },
-      {
-        title: 'Elite Professional',
-        description: 'Reach 500 total services - you\'re among the elite',
-        category: 'milestone',
-        subcategory: 'mastery',
-        requirement: 500,
-        requirementType: 'count',
-        requirementDetails: { timeframe: 'all-time' },
-        badge: '💎',
-        color: 'bg-blue-800',
-        icon: 'FaGem',
-        tier: 'diamond',
-        points: 1500,
-        reward: {
-          type: 'monetary',
-          value: '$500',
-          description: 'Elite status achievement + special recognition'
-        },
-        isRepeatable: false,
-        isActive: true
-      }
-    ];
-
-    // Clear existing achievements first
-    await Achievement.deleteMany({});
-    await BarberAchievement.deleteMany({});
-    
-    const createdAchievements = await Achievement.insertMany(achievements);
-    console.log(`Created ${createdAchievements.length} achievements`);
-
     // Create clients
     console.log('Creating clients...');
     const clientPasswordHash = await bcrypt.hash('clientpass', 10);
@@ -692,7 +255,7 @@ export async function seedDatabase() {
     
     for (let i = 0; i < createdClients.length; i++) {
       const client = createdClients[i];
-      const visitCount = Math.floor(Math.random() * 5) + 1; // Reduced to ensure we don't create too many
+      const visitCount = Math.floor(Math.random() * 5) + 1;
       
       for (let j = 0; j < visitCount; j++) {
         const visitDate = new Date(Date.now() - Math.floor(Math.random() * 90) * 24 * 60 * 60 * 1000);
@@ -755,7 +318,6 @@ export async function seedDatabase() {
     const categoryCount = await ServiceCategory.countDocuments();
     const serviceCount = await Service.countDocuments();
     const rewardCount = await Reward.countDocuments();
-    const achievementCount = await Achievement.countDocuments();
     const clientCount = await Client.countDocuments();
     const visitCount = await Visit.countDocuments();
     const barberStatsCount = await BarberStats.countDocuments();
@@ -765,7 +327,6 @@ export async function seedDatabase() {
     console.log(`- Category count: ${categoryCount}`);
     console.log(`- Service count: ${serviceCount}`);
     console.log(`- Reward count: ${rewardCount}`);
-    console.log(`- Achievement count: ${achievementCount}`);
     console.log(`- Client count: ${clientCount}`);
     console.log(`- Visit count: ${visitCount}`);
     console.log(`- Barber stats count: ${barberStatsCount}`);
@@ -779,7 +340,6 @@ export async function seedDatabase() {
         categories: categoryCount,
         services: serviceCount,
         rewards: rewardCount,
-        achievements: achievementCount,
         clients: clientCount,
         visits: visitCount,
         barberStats: barberStatsCount
@@ -814,10 +374,8 @@ export async function clearDatabase() {
     await Service.deleteMany({});
     await ServiceCategory.deleteMany({});
     await Reward.deleteMany({});
-    await Achievement.deleteMany({});
     await Visit.deleteMany({});
     await BarberStats.deleteMany({});
-    await BarberAchievement.deleteMany({});
     await Reservation.deleteMany({});
 
     console.log('Database cleared successfully!');

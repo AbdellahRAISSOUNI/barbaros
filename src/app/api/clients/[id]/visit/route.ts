@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createVisit, recordVisitForLoyalty } from '@/lib/db/api';
 import { getClientById, getClientByClientId } from '@/lib/db/api/clientApi';
 import { updateBarberStatsAfterVisit } from '@/lib/db/api/barberApi';
-import { updateBarberAchievementProgress } from '@/lib/db/api/achievementEngine';
+import { updateBarberRewardProgress } from '@/lib/db/api/barberRewardEngine';
 import { IVisit } from '@/lib/db/models/visit';
 import mongoose from 'mongoose';
 
@@ -83,11 +83,11 @@ export async function POST(
           visitDate: visitData.visitDate || new Date(),
         });
 
-        // Update achievement progress for the barber
-        await updateBarberAchievementProgress(visitData.barberId.toString());
+        // Update reward progress for the barber
+        await updateBarberRewardProgress(visitData.barberId.toString());
       } catch (barberStatsError) {
-        console.error('Error updating barber statistics or achievements:', barberStatsError);
-        // Continue execution even if barber stats/achievements update fails
+        console.error('Error updating barber statistics or rewards:', barberStatsError);
+        // Continue execution even if barber stats/rewards update fails
       }
     }
 

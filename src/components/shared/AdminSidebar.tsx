@@ -58,9 +58,9 @@ export function AdminSidebar({ onCollapsedChange }: { onCollapsedChange?: (colla
           label: 'Loyalty Rewards'
         },
         {
-          href: '/admin/achievements',
+          href: '/admin/barber-rewards',
           icon: FaTrophy,
-          label: 'Achievement System'
+          label: 'Barber Rewards'
         },
         {
           href: '/admin/leaderboard',

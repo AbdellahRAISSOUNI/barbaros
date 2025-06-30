@@ -27,7 +27,6 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
           icon: FaQrcode,
           label: 'Scanner'
         },
-
         {
           href: '/barber/history',
           icon: FaHistory,
@@ -36,12 +35,7 @@ export function BarberSidebar({ onCollapsedChange }: { onCollapsedChange?: (coll
         {
           href: '/barber/achievements',
           icon: FaTrophy,
-          label: 'Achievements'
-        },
-        {
-          href: '/barber/leaderboard',
-          icon: FaMedal,
-          label: 'Leaderboard'
+          label: 'Rewards'
         },
         {
           href: '/barber/profile',
