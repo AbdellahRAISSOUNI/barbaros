@@ -83,11 +83,6 @@ export function MobileBottomNav({ userType }: MobileBottomNavProps) {
 
   const barberBurgerItems: BurgerMenuItem[] = [
     {
-      href: '/barber/leaderboard',
-      icon: FaMedal,
-      label: 'Leaderboard'
-    },
-    {
       href: '/barber/profile',
       icon: FaUser,
       label: 'Profile'
