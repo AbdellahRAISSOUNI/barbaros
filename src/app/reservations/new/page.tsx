@@ -136,17 +136,7 @@ export default function GuestReservationPage() {
     }
   };
 
-  // Show loading while checking auth status
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingAnimation size="lg" />
-          <p className="mt-6 text-amber-800 font-medium">Loading reservation system...</p>
-        </div>
-      </div>
-    );
-  }
+
 
   if (isSuccess && reservationDetails) {
     return (
