@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaCalendarAlt, FaClock, FaCheck, FaArrowLeft, FaStar, FaUser, FaChevronRight, FaCrown } from 'react-icons/fa';
@@ -31,6 +31,14 @@ const ScissorLoader = () => (
   </div>
 );
 
+interface ClientData {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  // ... other client properties
+}
+
 export default function ClientReservationPage() {
   const { data: session } = useSession();
   
@@ -42,6 +50,33 @@ export default function ClientReservationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [reservationDetails, setReservationDetails] = useState<any>(null);
+  const [clientData, setClientData] = useState<ClientData | null>(null);
+  const [isLoadingClient, setIsLoadingClient] = useState(true);
+
+  // Fetch client data to get phone number
+  useEffect(() => {
+    const fetchClientData = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        setIsLoadingClient(true);
+        const response = await fetch(`/api/clients/${session.user.id}`);
+        
+        if (response.ok) {
+          const clientDataResponse = await response.json();
+          setClientData(clientDataResponse);
+        } else {
+          console.error('Failed to fetch client data');
+        }
+      } catch (error) {
+        console.error('Error fetching client data:', error);
+      } finally {
+        setIsLoadingClient(false);
+      }
+    };
+
+    fetchClientData();
+  }, [session?.user?.id]);
 
   // Generate available time slots
   const generateTimeSlots = () => {
@@ -261,7 +296,11 @@ export default function ClientReservationPage() {
                     </div>
                     <div>
                       <span className="text-amber-800 font-medium">Phone:</span>
-                      <p className="text-amber-900 font-semibold">{(session?.user as any)?.phoneNumber || 'Not provided'}</p>
+                      {isLoadingClient ? (
+                        <p className="text-amber-900 font-semibold">Loading...</p>
+                      ) : (
+                        <p className="text-amber-900 font-semibold">{clientData?.phoneNumber || 'Not provided'}</p>
+                      )}
                     </div>
                   </div>
                 </div>

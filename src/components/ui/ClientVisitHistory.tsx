@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   FaHistory, 
   FaCut, 
@@ -15,7 +15,9 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaChevronDown,
+  FaCheck
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -65,6 +67,20 @@ interface ClientVisitHistoryProps {
   clientId: string;
 }
 
+// Add interfaces for dropdown options
+interface ServiceOption {
+  _id: string;
+  name: string;
+  categoryId?: string;
+  isActive: boolean;
+}
+
+interface BarberOption {
+  _id: string;
+  name: string;
+  active: boolean;
+}
+
 export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps) {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [stats, setStats] = useState<VisitHistoryStats | null>(null);
@@ -88,6 +104,22 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
   // Store all visits for accurate stats calculation
   const [allVisits, setAllVisits] = useState<Visit[]>([]);
 
+  // New states for dropdown options and controls
+  const [availableServices, setAvailableServices] = useState<ServiceOption[]>([]);
+  const [availableBarbers, setAvailableBarbers] = useState<BarberOption[]>([]);
+  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const [barberDropdownOpen, setBarberDropdownOpen] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedBarbers, setSelectedBarbers] = useState<string[]>([]);
+  
+  // Refs for dropdown management
+  const serviceDropdownRef = useRef<HTMLDivElement>(null);
+  const barberDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Debounced filter values
+  const [debouncedServiceFilter, setDebouncedServiceFilter] = useState('');
+  const [debouncedBarberFilter, setDebouncedBarberFilter] = useState('');
+
   // Add debounce function at the top of the component
   const debounce = (func: Function, wait: number) => {
     let timeout: NodeJS.Timeout;
@@ -96,10 +128,6 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
       timeout = setTimeout(() => func(...args), wait);
     };
   };
-
-  // Add state for debounced filters
-  const [debouncedServiceFilter, setDebouncedServiceFilter] = useState('');
-  const [debouncedBarberFilter, setDebouncedBarberFilter] = useState('');
 
   // Add useEffect for real-time filtering
   useEffect(() => {
@@ -115,28 +143,52 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
     }
   }, [serviceFilter, barberFilter]);
 
-  // Handle click outside modal to close
+  // Enhanced click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (selectedVisit && event.target) {
-        const target = event.target as Element;
-        const modal = document.getElementById('visit-modal');
-        const modalContent = document.getElementById('visit-modal-content');
-        
-        if (modal && !modalContent?.contains(target)) {
-          setSelectedVisit(null);
-        }
+      if (selectedVisit && !(event.target as Element).closest('[data-modal]')) {
+        setSelectedVisit(null);
+      }
+      
+      // Close service dropdown
+      if (serviceDropdownRef.current && !serviceDropdownRef.current.contains(event.target as Node)) {
+        setServiceDropdownOpen(false);
+      }
+      
+      // Close barber dropdown
+      if (barberDropdownRef.current && !barberDropdownRef.current.contains(event.target as Node)) {
+        setBarberDropdownOpen(false);
       }
     };
 
-    if (selectedVisit) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [selectedVisit]);
+
+  // Fetch available services and barbers for dropdowns
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        // Fetch services
+        const servicesResponse = await fetch('/api/services?limit=1000');
+        const servicesData = await servicesResponse.json();
+        if (servicesData.success) {
+          setAvailableServices(servicesData.services || []);
+        }
+
+        // Fetch barbers
+        const barbersResponse = await fetch('/api/admin/barbers');
+        const barbersData = await barbersResponse.json();
+        if (barbersData.success) {
+          setAvailableBarbers(barbersData.barbers || []);
+        }
+      } catch (error) {
+        console.error('Error fetching filter options:', error);
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
 
   // Fetch visit history
   const fetchVisitHistory = async (page = 1, isInitialFetch = false) => {
@@ -152,8 +204,8 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
         limit: itemsPerPage.toString(),
         ...(dateRange.start && { startDate: dateRange.start }),
         ...(dateRange.end && { endDate: dateRange.end }),
-        ...(serviceFilter && { service: serviceFilter }),
-        ...(barberFilter && { barber: barberFilter }),
+        ...(selectedServices.length > 0 && { services: selectedServices.join(',') }),
+        ...(selectedBarbers.length > 0 && { barbers: selectedBarbers.join(',') }),
         ...(rewardFilter !== 'all' && { rewardFilter })
       });
 
@@ -220,14 +272,8 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
 
     const serviceCount: { [key: string]: number } = {};
     const barberCount: { [key: string]: number } = {};
-    let rewardsRedeemed = 0;
 
     visitsData.forEach(visit => {
-      // More robust check for redeemed rewards
-      if (visit.rewardRedeemed === true || visit.redeemedReward) {
-        rewardsRedeemed++;
-      }
-      
       if (visit.barber) {
         barberCount[visit.barber] = (barberCount[visit.barber] || 0) + 1;
       }
@@ -245,13 +291,55 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
     const mostFrequentBarber = Object.entries(barberCount)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
 
-    setStats({
-      totalVisits: visitsData.length,
-      favoriteServices,
-      mostFrequentBarber,
-      rewardsRedeemed,
-      lastVisit: visitsData[0]?.visitDate
-    });
+    // Fetch the correct redeemed rewards count from loyalty status
+    fetchRewardsRedeemedCount(visitsData.length, favoriteServices, mostFrequentBarber, visitsData[0]?.visitDate);
+  };
+
+  // Fetch correct redeemed rewards count from loyalty status
+  const fetchRewardsRedeemedCount = async (totalVisits: number, favoriteServices: any[], mostFrequentBarber: string, lastVisit?: string) => {
+    try {
+      const response = await fetch(`/api/loyalty/${clientId}`);
+      if (response.ok) {
+        const loyaltyData = await response.json();
+        if (loyaltyData.success && loyaltyData.loyaltyStatus) {
+          setStats({
+            totalVisits,
+            favoriteServices,
+            mostFrequentBarber,
+            rewardsRedeemed: loyaltyData.loyaltyStatus.rewardsRedeemed || 0,
+            lastVisit
+          });
+        } else {
+          // Fallback to 0 if loyalty data is not available
+          setStats({
+            totalVisits,
+            favoriteServices,
+            mostFrequentBarber,
+            rewardsRedeemed: 0,
+            lastVisit
+          });
+        }
+      } else {
+        // Fallback to 0 if API call fails
+        setStats({
+          totalVisits,
+          favoriteServices,
+          mostFrequentBarber,
+          rewardsRedeemed: 0,
+          lastVisit
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching loyalty status for redeemed rewards count:', error);
+      // Fallback to 0 if there's an error
+      setStats({
+        totalVisits,
+        favoriteServices,
+        mostFrequentBarber,
+        rewardsRedeemed: 0,
+        lastVisit
+      });
+    }
   };
 
   // Update the useEffect for initial load
@@ -273,6 +361,8 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
     setDateRange({ start: '', end: '' });
     setServiceFilter('');
     setBarberFilter('');
+    setSelectedServices([]);
+    setSelectedBarbers([]);
     setRewardFilter('all');
     setDebouncedServiceFilter('');
     setDebouncedBarberFilter('');
@@ -390,27 +480,35 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
         </div>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-sm border border-amber-200 p-4 -mx-2 md:mx-0">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-gray-900">Filter Visits</h3>
+      {/* Enhanced Filters Panel with Animation - Mobile Responsive */}
+      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+        showFilters 
+          ? 'max-h-screen opacity-100 transform translate-y-0' 
+          : 'max-h-0 opacity-0 transform -translate-y-4'
+      }`}>
+        <div className="bg-white/90 backdrop-blur-md rounded-xl md:rounded-2xl shadow-lg border border-amber-200/50 p-3 sm:p-4 -mx-2 md:mx-0 mt-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+              <FaFilter className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
+              Filter Visits
+            </h3>
             <button
               onClick={() => setShowFilters(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
-              <FaTimes className="w-4 h-4" />
+              <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
           
-          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3 md:space-y-0 mb-4">
+          <div className="space-y-3 sm:space-y-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 lg:gap-4 sm:space-y-0 mb-3 sm:mb-4">
+            {/* Date Range */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm text-gray-900"
+                className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs sm:text-sm text-gray-900 transition-all duration-200"
               />
             </div>
             <div>
@@ -419,51 +517,170 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm text-gray-900"
+                className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs sm:text-sm text-gray-900 transition-all duration-200"
               />
             </div>
+
+            {/* Enhanced Service Dropdown */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Service</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Service name..."
-                  value={serviceFilter}
-                  onChange={(e) => setServiceFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm text-gray-900"
-                />
-                {serviceFilter !== debouncedServiceFilter && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Services</label>
+              <div className="relative" ref={serviceDropdownRef}>
+                <button
+                  onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
+                  className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs sm:text-sm text-gray-900 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-between"
+                >
+                  <span className="truncate text-left">
+                    {selectedServices.length === 0 
+                      ? 'Select services...' 
+                      : selectedServices.length === 1
+                      ? availableServices.find(s => s._id === selectedServices[0])?.name || 'Unknown service'
+                      : `${selectedServices.length} services selected`
+                    }
+                  </span>
+                  <FaChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ml-1 ${
+                    serviceDropdownOpen ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                
+                {serviceDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 sm:max-h-48 overflow-y-auto">
+                    <div className="p-1.5 sm:p-2">
+                      {/* Select All Option */}
+                      <button
+                        onClick={() => {
+                          if (selectedServices.length === availableServices.length) {
+                            setSelectedServices([]);
+                          } else {
+                            setSelectedServices(availableServices.map(s => s._id));
+                          }
+                        }}
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm hover:bg-amber-50 rounded-md transition-colors duration-150 flex items-center gap-2"
+                      >
+                        <div className={`w-3 h-3 sm:w-4 sm:h-4 border-2 border-amber-500 rounded flex items-center justify-center flex-shrink-0 ${
+                          selectedServices.length === availableServices.length ? 'bg-amber-500' : ''
+                        }`}>
+                          {selectedServices.length === availableServices.length && (
+                            <FaCheck className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
+                          )}
+                        </div>
+                        <span className="font-medium text-amber-600 truncate">
+                          {selectedServices.length === availableServices.length ? 'Deselect All' : 'Select All'}
+                        </span>
+                      </button>
+                      
+                      {/* Service Options */}
+                      {availableServices.map((service) => (
+                        <button
+                          key={service._id}
+                          onClick={() => {
+                            setSelectedServices(prev => 
+                              prev.includes(service._id)
+                                ? prev.filter(id => id !== service._id)
+                                : [...prev, service._id]
+                            );
+                          }}
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm hover:bg-gray-50 rounded-md transition-colors duration-150 flex items-center gap-2"
+                        >
+                          <div className={`w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 ${
+                            selectedServices.includes(service._id) ? 'bg-amber-500 border-amber-500' : ''
+                          }`}>
+                            {selectedServices.includes(service._id) && (
+                              <FaCheck className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
+                            )}
+                          </div>
+                          <span className="text-gray-700 truncate">{service.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Enhanced Barber Dropdown */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Barber</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Barber name..."
-                  value={barberFilter}
-                  onChange={(e) => setBarberFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm text-gray-900"
-                />
-                {barberFilter !== debouncedBarberFilter && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Barbers</label>
+              <div className="relative" ref={barberDropdownRef}>
+                <button
+                  onClick={() => setBarberDropdownOpen(!barberDropdownOpen)}
+                  className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs sm:text-sm text-gray-900 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-between"
+                >
+                  <span className="truncate text-left">
+                    {selectedBarbers.length === 0 
+                      ? 'Select barbers...' 
+                      : selectedBarbers.length === 1
+                      ? availableBarbers.find(b => b._id === selectedBarbers[0])?.name || 'Unknown barber'
+                      : `${selectedBarbers.length} barbers selected`
+                    }
+                  </span>
+                  <FaChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ml-1 ${
+                    barberDropdownOpen ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                
+                {barberDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 sm:max-h-48 overflow-y-auto">
+                    <div className="p-1.5 sm:p-2">
+                      {/* Select All Option */}
+                      <button
+                        onClick={() => {
+                          if (selectedBarbers.length === availableBarbers.length) {
+                            setSelectedBarbers([]);
+                          } else {
+                            setSelectedBarbers(availableBarbers.map(b => b._id));
+                          }
+                        }}
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm hover:bg-amber-50 rounded-md transition-colors duration-150 flex items-center gap-2"
+                      >
+                        <div className={`w-3 h-3 sm:w-4 sm:h-4 border-2 border-amber-500 rounded flex items-center justify-center flex-shrink-0 ${
+                          selectedBarbers.length === availableBarbers.length ? 'bg-amber-500' : ''
+                        }`}>
+                          {selectedBarbers.length === availableBarbers.length && (
+                            <FaCheck className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
+                          )}
+                        </div>
+                        <span className="font-medium text-amber-600 truncate">
+                          {selectedBarbers.length === availableBarbers.length ? 'Deselect All' : 'Select All'}
+                        </span>
+                      </button>
+                      
+                      {/* Barber Options */}
+                      {availableBarbers.map((barber) => (
+                        <button
+                          key={barber._id}
+                          onClick={() => {
+                            setSelectedBarbers(prev => 
+                              prev.includes(barber._id)
+                                ? prev.filter(id => id !== barber._id)
+                                : [...prev, barber._id]
+                            );
+                          }}
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm hover:bg-gray-50 rounded-md transition-colors duration-150 flex items-center gap-2"
+                        >
+                          <div className={`w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 ${
+                            selectedBarbers.includes(barber._id) ? 'bg-amber-500 border-amber-500' : ''
+                          }`}>
+                            {selectedBarbers.includes(barber._id) && (
+                              <FaCheck className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
+                            )}
+                          </div>
+                          <span className="text-gray-700 truncate">{barber.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="mb-4">
+          {/* Visit Type Filter */}
+          <div className="mb-3 sm:mb-4 sm:col-span-2 lg:col-span-4">
             <label className="block text-xs font-medium text-gray-700 mb-1">Visit Type</label>
             <select
               value={rewardFilter}
               onChange={(e) => setRewardFilter(e.target.value as 'all' | 'redeemed' | 'regular')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm text-gray-900"
+              className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs sm:text-sm text-gray-900 transition-all duration-200"
             >
               <option value="all" className="text-gray-900">All Visits</option>
               <option value="redeemed" className="text-gray-900">Reward Redemptions</option>
@@ -471,22 +688,23 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
             </select>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-2">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:col-span-2 lg:col-span-4">
             <button
               onClick={applyFilters}
-              className="flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-colors font-medium text-sm"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all duration-200 font-medium text-xs sm:text-sm shadow-md hover:shadow-lg active:scale-95 sm:hover:scale-105"
             >
               Apply Filters
             </button>
             <button
               onClick={clearFilters}
-              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium text-xs sm:text-sm hover:border-gray-400 active:scale-95"
             >
               Clear All
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Statistics Overview */}
       {stats && (
