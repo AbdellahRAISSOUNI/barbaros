@@ -89,12 +89,12 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
         const rewardsData = await rewardsRes.json();
         const historyData = await historyRes.json();
 
-      if (rewardsData.success) {
-        setAvailableRewards(rewardsData.rewards);
-      }
+        if (rewardsData.success) {
+          setAvailableRewards(rewardsData.rewards);
+        }
 
-      if (historyData.success) {
-        setRewardHistory(historyData.history);
+        if (historyData.success) {
+          setRewardHistory(historyData.history);
         }
       } else {
         throw new Error(statusData.message || 'Failed to load loyalty status');
@@ -214,7 +214,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
-                                <FaBullseye className="w-5 h-5 text-white" />
+              <FaBullseye className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Current Goal</h3>
@@ -381,4 +381,70 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
                           <span className="text-sm font-medium text-purple-600">
                             {reward.visitsRequired} visits required
                           </span>
-                          <div className={`
+                          <div className="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                            {reward.rewardType === 'free' ? 'Free Service' : `${reward.discountPercentage}% Off`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Reward History</h2>
+                <p className="text-sm text-gray-600">Your past reward redemptions</p>
+              </div>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              {rewardHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {rewardHistory.map((history, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{history.rewardRedeemed.rewardName}</h3>
+                          <p className="text-sm text-gray-600">Redeemed on {new Date(history.visitDate).toLocaleDateString()}</p>
+                          <div className="mt-2">
+                            <div className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded inline-block">
+                              {history.rewardRedeemed.rewardType === 'free' ? 'Free Service' : `${history.rewardRedeemed.discountPercentage}% Discount`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-gray-900">${history.totalPrice}</p>
+                          <p className="text-sm text-gray-600">{history.services.length} service{history.services.length !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FaHistory className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No reward history yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
