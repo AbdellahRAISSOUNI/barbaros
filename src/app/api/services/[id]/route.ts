@@ -8,10 +8,11 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const service = await getServiceById(params.id);
+    const { id } = await params;
+    const service = await getServiceById(id);
     
     if (!service) {
       return NextResponse.json(
@@ -35,9 +36,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, description, price, durationMinutes, categoryId, imageData, isActive } = body;
 
@@ -69,7 +71,7 @@ export async function PUT(
       updateData.imageUrl = imageData;
     }
 
-    const service = await updateService(params.id, updateData);
+    const service = await updateService(id, updateData);
     
     if (!service) {
       return NextResponse.json(
@@ -94,10 +96,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await deleteService(params.id);
+    const { id } = await params;
+    await deleteService(id);
     return NextResponse.json({
       success: true,
       message: 'Service deleted successfully'
@@ -113,14 +116,15 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
 
     if (action === 'toggle-status') {
-      const service = await toggleServiceStatus(params.id);
+      const service = await toggleServiceStatus(id);
       return NextResponse.json({
         success: true,
         message: 'Service status updated successfully',

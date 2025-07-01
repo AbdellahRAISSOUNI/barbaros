@@ -8,12 +8,13 @@ import mongoose from 'mongoose';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
     
-    const reward = await BarberReward.findById(params.id);
+    const { id } = await params;
+    const reward = await BarberReward.findById(id);
     
     if (!reward) {
       return NextResponse.json(
@@ -62,11 +63,12 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
     
+    const { id } = await params;
     const body = await request.json();
     const {
       name,
@@ -109,7 +111,7 @@ export async function PUT(
     if (maxRedemptions) updateData.maxRedemptions = maxRedemptions;
     
     const reward = await BarberReward.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true, runValidators: true }
     );
@@ -140,12 +142,13 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
 
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, message: 'Invalid reward ID format' },
         { status: 400 }
@@ -154,7 +157,7 @@ export async function DELETE(
     
     // Check if reward has any redemptions
     const redemptionCount = await BarberRewardRedemption.countDocuments({
-      rewardId: params.id
+      rewardId: id
     });
     
     if (redemptionCount > 0) {
@@ -167,7 +170,7 @@ export async function DELETE(
       );
     }
     
-    const reward = await BarberReward.findByIdAndDelete(params.id);
+    const reward = await BarberReward.findByIdAndDelete(id);
     
     if (!reward) {
       return NextResponse.json(

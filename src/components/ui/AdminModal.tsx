@@ -75,22 +75,22 @@ export function AdminModal({
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black/50 backdrop-blur-[4px] flex items-center justify-center p-4 z-50 animate-in fade-in duration-300"
     >
       <div
         ref={contentRef}
-        className={`bg-white rounded-xl shadow-2xl w-full ${maxWidthClass} max-h-[${maxHeight}] overflow-hidden animate-in zoom-in-95 duration-200`}
+        className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidthClass} max-h-[${maxHeight}] overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-200`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50/80 backdrop-blur rounded-t-2xl">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg"
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-xl"
           >
-            <FaTimes size={20} />
+            <FaTimes size={18} />
           </button>
         </div>
 

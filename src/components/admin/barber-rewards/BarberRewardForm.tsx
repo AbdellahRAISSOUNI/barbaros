@@ -10,7 +10,11 @@ import {
   FaUsers,
   FaHandshake,
   FaStar,
-  FaAward
+  FaAward,
+  FaTag,
+  FaHashtag,
+  FaCalendar,
+  FaClock
 } from 'react-icons/fa';
 
 interface BarberRewardFormProps {
@@ -145,143 +149,147 @@ export default function BarberRewardForm({ reward, onSubmit, onCancel, isLoading
   }, [formData.requirementType, formData.requirementValue]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {reward ? 'Edit Barber Reward' : 'Create Barber Reward'}
-            </h2>
-            <button
-              onClick={onCancel}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <FaTimes className="w-5 h-5" />
-            </button>
+    <div className="p-6 space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Basic Information */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-gray-900 to-black rounded-xl flex items-center justify-center">
+              <FaTag className="text-white text-lg" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Basic Information</h3>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Reward Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400 ${
+                errors.name ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Enter reward name (e.g., 6 Month Veteran Bonus)"
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-2 font-medium">{errors.name}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              rows={4}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400 resize-none ${
+                errors.description ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Describe the reward and what it's for..."
+            />
+            {errors.description && <p className="text-red-500 text-sm mt-2 font-medium">{errors.description}</p>}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reward Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="e.g., 6 Month Veteran Bonus"
-              />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+        {/* Reward Type & Value */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+              <FaGift className="text-white text-lg" />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description *
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.description ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Describe the reward and what it's for..."
-              />
-              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+            <h3 className="text-xl font-bold text-gray-900">Reward Details</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
+              Reward Type <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {rewardTypes.map((type) => {
+                const Icon = type.icon;
+                return (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, rewardType: type.value }))}
+                    className={`p-4 border-2 rounded-xl flex items-center space-x-4 transition-all duration-200 hover:shadow-md ${
+                      formData.rewardType === type.value
+                        ? 'border-black bg-gray-50 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <Icon className={`w-6 h-6 ${type.color}`} />
+                    <span className="font-semibold text-gray-900">{type.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Reward Type & Value */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Reward Details</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reward Type *
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {rewardTypes.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, rewardType: type.value }))}
-                      className={`p-3 border-2 rounded-lg flex items-center space-x-3 transition-colors ${
-                        formData.rewardType === type.value
-                          ? 'border-[#8B0000] bg-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${type.color}`} />
-                      <span className="font-medium">{type.label}</span>
-                    </button>
-                  );
-                })}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Reward Value <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.rewardValue}
+              onChange={(e) => setFormData(prev => ({ ...prev, rewardValue: e.target.value }))}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400 ${
+                errors.rewardValue ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={
+                formData.rewardType === 'monetary' ? '$100' :
+                formData.rewardType === 'gift' ? 'Premium shaver set' :
+                formData.rewardType === 'time_off' ? '1 day paid leave' :
+                'Employee of the month recognition'
+              }
+            />
+            {errors.rewardValue && <p className="text-red-500 text-sm mt-2 font-medium">{errors.rewardValue}</p>}
+          </div>
+        </div>
+
+        {/* Requirements */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+              <FaStar className="text-white text-lg" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Requirements</h3>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Requirement Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.requirementType}
+              onChange={(e) => setFormData(prev => ({ ...prev, requirementType: e.target.value }))}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black bg-white hover:border-gray-400"
+            >
+              {requirementTypes.map((type) => (
+                <option key={type.value} value={type.value} className="text-black">
+                  {type.label} - {type.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Required Value <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FaHashtag className="h-4 w-4 text-gray-400" />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reward Value *
-              </label>
-              <input
-                type="text"
-                value={formData.rewardValue}
-                onChange={(e) => setFormData(prev => ({ ...prev, rewardValue: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.rewardValue ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={
-                  formData.rewardType === 'monetary' ? '$100' :
-                  formData.rewardType === 'gift' ? 'Premium shaver set' :
-                  formData.rewardType === 'time_off' ? '1 day paid leave' :
-                  'Employee of the month recognition'
-                }
-              />
-              {errors.rewardValue && <p className="text-red-500 text-sm mt-1">{errors.rewardValue}</p>}
-            </div>
-          </div>
-
-          {/* Requirements */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Requirements</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Requirement Type *
-              </label>
-              <select
-                value={formData.requirementType}
-                onChange={(e) => setFormData(prev => ({ ...prev, requirementType: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-              >
-                {requirementTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label} - {type.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Required Value *
-              </label>
               <input
                 type="number"
                 min="1"
                 value={formData.requirementValue}
                 onChange={(e) => setFormData(prev => ({ ...prev, requirementValue: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
+                className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400 ${
                   errors.requirementValue ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder={
@@ -291,150 +299,182 @@ export default function BarberRewardForm({ reward, onSubmit, onCancel, isLoading
                   formData.requirementType === 'client_retention' ? '85' : '100'
                 }
               />
-              {errors.requirementValue && <p className="text-red-500 text-sm mt-1">{errors.requirementValue}</p>}
             </div>
+            {errors.requirementValue && <p className="text-red-500 text-sm mt-2 font-medium">{errors.requirementValue}</p>}
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Requirement Description *
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Requirement Description <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.requirementDescription}
+              onChange={(e) => setFormData(prev => ({ ...prev, requirementDescription: e.target.value }))}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400 ${
+                errors.requirementDescription ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Auto-generated based on requirement type"
+            />
+            {errors.requirementDescription && <p className="text-red-500 text-sm mt-2 font-medium">{errors.requirementDescription}</p>}
+          </div>
+        </div>
+
+        {/* Category & Styling */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+              <FaAward className="text-white text-lg" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Category & Display</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
+              Category
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {categories.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <button
+                    key={category.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
+                    className={`p-4 border-2 rounded-xl flex items-center space-x-4 transition-all duration-200 hover:shadow-md ${
+                      formData.category === category.value
+                        ? 'border-black bg-gray-50 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <Icon className={`w-6 h-6 ${category.color}`} />
+                    <span className="font-semibold text-gray-900">{category.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
+                Icon
               </label>
               <input
                 type="text"
-                value={formData.requirementDescription}
-                onChange={(e) => setFormData(prev => ({ ...prev, requirementDescription: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.requirementDescription ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Auto-generated based on requirement type"
+                value={formData.icon}
+                onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400"
+                placeholder="🏆"
               />
-              {errors.requirementDescription && <p className="text-red-500 text-sm mt-1">{errors.requirementDescription}</p>}
             </div>
-          </div>
 
-          {/* Category & Styling */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Category & Display</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
+                Priority
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <button
-                      key={category.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
-                      className={`p-3 border-2 rounded-lg flex items-center space-x-3 transition-colors ${
-                        formData.category === category.value
-                          ? 'border-[#8B0000] bg-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${category.color}`} />
-                      <span className="font-medium">{category.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Icon
-                </label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                  placeholder="🏆"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                  placeholder="0"
-                />
-              </div>
+              <input
+                type="number"
+                min="0"
+                value={formData.priority}
+                onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400"
+                placeholder="0"
+              />
             </div>
           </div>
+        </div>
 
-          {/* Optional Settings */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Optional Settings</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valid From
-                </label>
+        {/* Optional Settings */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center">
+              <FaClock className="text-white text-lg" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Optional Settings</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
+                Valid From
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <FaCalendar className="h-4 w-4 text-gray-400" />
+                </div>
                 <input
                   type="date"
                   value={formData.validFrom}
                   onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valid Until
-                </label>
-                <input
-                  type="date"
-                  value={formData.validUntil}
-                  onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black bg-white hover:border-gray-400"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Redemptions per Barber
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
+                Valid Until
               </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <FaCalendar className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="date"
+                  value={formData.validUntil}
+                  onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black bg-white hover:border-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Max Redemptions per Barber
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FaHashtag className="h-4 w-4 text-gray-400" />
+              </div>
               <input
                 type="number"
                 min="1"
                 value={formData.maxRedemptions}
                 onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-black/10 focus:border-black transition-all duration-200 text-black placeholder:text-black bg-white hover:border-gray-400"
                 placeholder="Unlimited if empty"
               />
             </div>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-2 bg-[#8B0000] text-white rounded-lg hover:bg-[#A31515] transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Saving...' : (reward ? 'Update Reward' : 'Create Reward')}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t-2 border-gray-200">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-8 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold hover:shadow-md"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="px-8 py-3 bg-gradient-to-r from-gray-900 to-black text-white rounded-xl hover:from-black hover:to-gray-800 transition-all duration-200 disabled:opacity-50 font-semibold hover:shadow-lg"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                Saving...
+              </div>
+            ) : (
+              reward ? 'Update Reward' : 'Create Reward'
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 } 
