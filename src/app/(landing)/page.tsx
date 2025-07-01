@@ -1,335 +1,413 @@
-import Link from 'next/link';
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { FaCalendarAlt, FaUserClock, FaUsers, FaMobileAlt, FaClock, FaCheckCircle, FaArrowRight, FaStar } from 'react-icons/fa';
+import Link from 'next/link';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import CustomCursor from '@/components/landing/CustomCursor';
+import ScrollProgress from '@/components/landing/ScrollProgress';
+import MagneticButton from '@/components/landing/MagneticButton';
+import LoadingScreen from '@/components/landing/LoadingScreen';
 
 export default function LandingPage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const heroImageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isLoading) return;
+    
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Initial page load animation
+    const tl = gsap.timeline();
+    
+    tl.from('.hero-title', {
+      opacity: 0,
+      y: 30,
+      duration: 1.2,
+      ease: 'power3.out',
+    })
+    .from('.hero-subtitle', {
+      opacity: 0,
+      y: 20,
+      duration: 1,
+      ease: 'power3.out',
+    }, '-=0.8')
+    .from('.hero-image', {
+      opacity: 0,
+      scale: 1.1,
+      duration: 1.5,
+      ease: 'power3.out',
+    }, '-=0.8');
+
+    // Parallax effect on hero image
+    if (heroImageRef.current) {
+      gsap.to(heroImageRef.current, {
+        yPercent: 30,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.5,
+        },
+      });
+    }
+
+    // Word reveal animations for sections
+    const revealElements = document.querySelectorAll('.word-reveal');
+    revealElements.forEach((element) => {
+      const words = element.textContent?.split(' ') || [];
+      element.innerHTML = words
+        .map(word => `<span class="inline-block overflow-hidden"><span class="inline-block transform translate-y-full">${word}</span></span>`)
+        .join(' ');
+      
+      const spans = element.querySelectorAll('span span');
+      
+      ScrollTrigger.create({
+        trigger: element,
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to(spans, {
+            y: 0,
+            duration: 0.8,
+            stagger: 0.05,
+            ease: 'power3.out',
+          });
+        },
+      });
+    });
+
+    // Testimonial animations
+    const testimonials = document.querySelectorAll('.testimonial-item');
+    testimonials.forEach((testimonial, index) => {
+      ScrollTrigger.create({
+        trigger: testimonial,
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to(testimonial, {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            delay: index * 0.2,
+            ease: 'power3.out',
+          });
+        },
+      });
+    });
+
+    // Service item animations
+    const serviceItems = document.querySelectorAll('.service-item');
+    serviceItems.forEach((item, index) => {
+      ScrollTrigger.create({
+        trigger: item,
+        start: 'top 85%',
+        onEnter: () => {
+          gsap.from(item, {
+            opacity: 0,
+            x: -30,
+            duration: 0.8,
+            delay: index * 0.15,
+            ease: 'power3.out',
+          });
+        },
+      });
+    });
+
+    // Gallery item animations
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    galleryItems.forEach((item, index) => {
+      ScrollTrigger.create({
+        trigger: item,
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.from(item, {
+            opacity: 0,
+            scale: 0.95,
+            duration: 1,
+            delay: index * 0.1,
+            ease: 'power3.out',
+          });
+        },
+      });
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, [isLoading]);
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission here
+    window.location.href = '/reservations/new';
+  };
+
+  if (isLoading) {
+    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header/Navigation */}
-      <header className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-gray-800 hover:text-black transition-colors duration-200">
-            <Link href="/">Barbaros</Link>
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">Features</Link>
-            <Link href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">How It Works</Link>
-            <Link href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">Contact</Link>
-          </nav>
-          <div className="flex space-x-4">
-            <Link 
-              href="/reservations/new" 
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Book Now
-            </Link>
-            <Link 
-              href="/login" 
-              className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all duration-200"
-            >
-              Login
-            </Link>
-            <Link 
-              href="/register" 
-              className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-all duration-200"
-            >
-              Sign Up
-            </Link>
+    <>
+      <CustomCursor />
+      <ScrollProgress />
+      
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 w-full z-40 mix-blend-difference">
+        <div className="px-6 md:px-16 py-6 md:py-8">
+          <div className="flex justify-between items-center">
+            <div className="text-[var(--dark-brown)]">
+              <span className="text-xs md:text-sm font-light tracking-widest">EST. 1995</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link 
+                href="/login"
+                className="hidden md:block text-sm font-light tracking-widest hover:opacity-60 transition-opacity duration-300"
+                data-cursor-hover
+              >
+                LOGIN
+              </Link>
+              <Link 
+                href="/reservations/new"
+                className="text-xs md:text-sm font-light tracking-widest hover:opacity-60 transition-opacity duration-300"
+                data-cursor-hover
+              >
+                RESERVE
+              </Link>
+            </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-24 flex-1 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        </div>
+      <section ref={heroRef} className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[var(--off-white)]" />
         
-        {/* Content */}
-        <div className="container relative mx-auto px-4 py-20">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            {/* Left Column */}
-            <div className="md:w-1/2 animate-slide-up">
-              {/* Trust Badge */}
-              <div className="inline-flex items-center px-4 py-2 bg-blue-50 rounded-full text-blue-600 mb-8">
-                <FaStar className="text-yellow-400 mr-2" />
-                <span className="text-sm font-medium">Trusted by 10,000+ customers</span>
+        <div className="relative z-10 text-center px-8">
+                     <h1 className="hero-title text-[60px] md:text-[120px] lg:text-[160px] leading-[0.8] tracking-tighter mb-8">
+            BARBAROS
+          </h1>
+          <div className="hero-subtitle flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 text-xs md:text-sm font-light tracking-[0.3em]">
+            <span>PRECISION</span>
+            <span className="hidden md:block w-16 h-[1px] bg-[var(--dark-brown)] opacity-20" />
+            <span>TRADITION</span>
+            <span className="hidden md:block w-16 h-[1px] bg-[var(--dark-brown)] opacity-20" />
+            <span>CRAFT</span>
+          </div>
+        </div>
+
+        <div ref={heroImageRef} className="hero-image absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[600px] h-[400px] opacity-10">
+          <Image
+            src="/images/hero-image.jpg"
+            alt="Master at work"
+            fill
+            className="object-cover filter grayscale"
+            priority
+          />
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="min-h-screen flex items-center bg-[var(--warm-beige)] bg-opacity-10">
+        <div className="w-full max-w-6xl mx-auto px-8 md:px-16">
+          <div className="space-y-16">
+            {[
+              { name: 'CLASSIC CUT', description: 'Traditional barbering excellence', price: '45' },
+              { name: 'BEARD SCULPTURE', description: 'Precision grooming artistry', price: '35' },
+              { name: 'COMPLETE EXPERIENCE', description: 'Cut, beard, and finishing touches', price: '75' },
+            ].map((service, index) => (
+                             <div
+                key={index}
+                className="service-item relative flex justify-between items-baseline border-b border-[var(--dark-brown)] border-opacity-10 pb-4 group"
+              >
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-light mb-2 group-hover:ml-2 transition-all duration-300">
+                    {service.name}
+                  </h3>
+                  <p className="text-sm font-light opacity-60">{service.description}</p>
+                </div>
+                <span className="text-2xl font-light">${service.price}</span>
+                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-[var(--champagne-gold)] group-hover:w-full transition-all duration-500" />
               </div>
-              
-              <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-                Your Style,<br />
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
-                  Our Expertise
-                </span>
-              </h1>
-              
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Experience the perfect blend of traditional barbering and modern convenience. Book your next great look in seconds.
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Philosophy Section */}
+      <section className="min-h-screen flex items-center justify-center">
+        <div className="max-w-4xl mx-auto px-8 md:px-16 text-center">
+          <p className="word-reveal text-2xl md:text-3xl lg:text-4xl leading-relaxed font-light">
+            In the sanctuary of our chair, time slows. Each cut is a meditation, 
+            each stroke deliberate. We honor the ritual of grooming as our 
+            fathers did, with tools that whisper rather than roar.
+          </p>
+        </div>
+      </section>
+
+      {/* Gallery Section */}
+      <section className="min-h-screen py-32 bg-[var(--warm-beige)] bg-opacity-10">
+        <div className="max-w-7xl mx-auto px-8 md:px-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="gallery-item relative aspect-[4/3] overflow-hidden group"
+              >
+                <Image
+                  src="/images/hero-image.jpg"
+                  alt={`Work ${item}`}
+                  fill
+                  className="object-cover filter grayscale transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
+                <div className="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <span className="text-sm font-light">J.S. / OCT 2024</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="min-h-screen flex items-center">
+        <div className="max-w-6xl mx-auto px-8 md:px-16">
+          <div className="space-y-24">
+            {[
+              { quote: 'An experience that transcends the ordinary.', author: 'MICHAEL R.' },
+              { quote: 'Where craftsmanship meets meditation.', author: 'DAVID L.' },
+              { quote: 'The only place I trust with my image.', author: 'JAMES K.' },
+            ].map((testimonial, index) => (
+              <div
+                key={index}
+                className="testimonial-item opacity-0"
+              >
+                <blockquote className="text-2xl md:text-3xl font-light italic mb-4">
+                  "{testimonial.quote}"
+                </blockquote>
+                <cite className="text-sm font-light tracking-widest opacity-60">
+                  — {testimonial.author}
+                </cite>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Master Barber Section */}
+      <section className="min-h-screen flex items-center bg-[var(--warm-beige)] bg-opacity-10">
+        <div className="max-w-6xl mx-auto px-8 md:px-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div className="relative aspect-[3/4] overflow-hidden">
+              <Image
+                src="/images/hero-image.jpg"
+                alt="Master Barber"
+                fill
+                className="object-cover filter grayscale"
+              />
+            </div>
+            <div className="space-y-6">
+              <h2 className="text-3xl md:text-4xl font-light">ALESSANDRO BARBAROS</h2>
+              <p className="text-lg font-light leading-relaxed opacity-80">
+                Three generations of barbering excellence flow through these hands. 
+                Trained in Milano, refined in London, perfected through decades of 
+                devotion to the craft. Every cut tells a story of tradition meeting 
+                contemporary elegance.
               </p>
-              
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-                <Link 
-                  href="/reservations/new" 
-                  className="group px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-blue-200 transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
-                >
-                  <FaCalendarAlt className="inline-block mr-2" />
-                  Book Your Visit
-                  <FaArrowRight className="ml-2 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-200" />
-                </Link>
-                <Link 
-                  href="/register" 
-                  className="px-8 py-4 rounded-xl bg-white text-gray-800 text-center border-2 border-gray-200 hover:border-gray-300 font-semibold shadow-lg hover:shadow-gray-100 transform hover:scale-105 transition-all duration-200"
-                >
-                  Explore Services
-                </Link>
+              <div className="flex items-center gap-8 text-sm font-light tracking-widest opacity-60">
+                <span>29 YEARS</span>
+                <span className="w-8 h-[1px] bg-[var(--dark-brown)] opacity-20" />
+                <span>MASTER BARBER</span>
               </div>
-              
-              {/* Social Proof */}
-              <div className="flex items-center space-x-4 text-gray-600">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white"></div>
-                  ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="min-h-screen flex items-center">
+        <div className="max-w-4xl mx-auto px-8 md:px-16 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div>
+              <h2 className="text-2xl font-light mb-8 tracking-wider">RESERVE YOUR VISIT</h2>
+              <form className="space-y-8" onSubmit={handleFormSubmit}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="NAME"
+                    className="w-full bg-transparent border-b border-[var(--dark-brown)] border-opacity-20 py-3 text-sm tracking-wider placeholder-[var(--dark-brown)] placeholder-opacity-40 focus:outline-none focus:border-[var(--champagne-gold)] transition-colors duration-300"
+                  />
                 </div>
-                <div className="text-sm">
-                  <div className="font-semibold">4.9/5 rating</div>
-                  <div className="text-gray-500">from 2,000+ reviews</div>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    placeholder="PHONE"
+                    className="w-full bg-transparent border-b border-[var(--dark-brown)] border-opacity-20 py-3 text-sm tracking-wider placeholder-[var(--dark-brown)] placeholder-opacity-40 focus:outline-none focus:border-[var(--champagne-gold)] transition-colors duration-300"
+                  />
                 </div>
-              </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="PREFERRED DATE"
+                    className="w-full bg-transparent border-b border-[var(--dark-brown)] border-opacity-20 py-3 text-sm tracking-wider placeholder-[var(--dark-brown)] placeholder-opacity-40 focus:outline-none focus:border-[var(--champagne-gold)] transition-colors duration-300"
+                  />
+                </div>
+                                 <MagneticButton>
+                  <button
+                    type="submit"
+                    className="mt-12 px-12 py-4 bg-[var(--oxblood)] text-white text-sm tracking-widest hover:bg-opacity-90 transition-all duration-300"
+                    data-cursor-hover
+                  >
+                    RESERVE
+                  </button>
+                </MagneticButton>
+              </form>
             </div>
             
-            {/* Right Column */}
-            <div className="md:w-1/2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="relative">
-                {/* Decorative Elements */}
-                <div className="absolute -top-6 -left-6 w-24 h-24 bg-blue-100 rounded-full opacity-50 blur-2xl"></div>
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-100 rounded-full opacity-50 blur-2xl"></div>
-                
-                {/* Main Image */}
-                <div className="relative bg-white p-4 rounded-2xl shadow-xl transform hover:scale-102 transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-50 rounded-2xl"></div>
-                  <div className="relative rounded-xl overflow-hidden">
-                    <Image
-                      src="/images/hero-image.jpg"
-                      alt="Premium Barbershop Experience"
-                      width={600}
-                      height={400}
-                      className="object-cover w-full h-[500px] rounded-xl transform hover:scale-105 transition-all duration-700"
-                      priority
-                    />
-                  </div>
-                  
-                  {/* Floating Stats Card */}
-                  <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                        <FaClock className="text-blue-600 text-xl" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">Average Wait Time</div>
-                        <div className="text-lg font-semibold text-gray-900">15 minutes</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="space-y-12">
+              <div>
+                <h3 className="text-sm font-light tracking-widest opacity-60 mb-4">LOCATION</h3>
+                <p className="text-lg font-light">
+                  123 Madison Avenue<br />
+                  New York, NY 10016
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-light tracking-widest opacity-60 mb-4">HOURS</h3>
+                <p className="text-lg font-light">
+                  Tuesday — Friday: 9AM — 7PM<br />
+                  Saturday: 9AM — 6PM<br />
+                  Sunday — Monday: Closed
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-light tracking-widest opacity-60 mb-4">CONTACT</h3>
+                <p className="text-lg font-light">
+                  +1 (212) 555-0100<br />
+                  reserve@barbaros.com
+                </p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Booking Benefits Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Why Book With Us?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: FaCheckCircle,
-                title: 'Instant Confirmation',
-                description: 'Get immediate confirmation and we\'ll call you to finalize details.',
-                color: 'green'
-              },
-              {
-                icon: FaClock,
-                title: 'Flexible Scheduling',
-                description: 'Choose your preferred time and date that works best for you.',
-                color: 'blue'
-              },
-              {
-                icon: FaUsers,
-                title: 'Expert Barbers',
-                description: 'Professional barbers ready to give you the perfect cut.',
-                color: 'purple'
-              }
-            ].map((benefit, index) => (
-              <div 
-                key={index} 
-                className="card hover:scale-105 transition-all duration-200"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className={`w-16 h-16 bg-${benefit.color}-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  <benefit.icon className={`text-${benefit.color}-600 text-2xl`} />
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-center">{benefit.title}</h3>
-                <p className="text-gray-600 text-center">{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Key Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: FaCalendarAlt,
-                title: 'Easy Scheduling',
-                description: 'Book appointments online and manage your schedule efficiently.',
-                color: 'blue'
-              },
-              {
-                icon: FaUserClock,
-                title: 'Queue Management',
-                description: 'Reduce wait times with our virtual queue system.',
-                color: 'green'
-              },
-              {
-                icon: FaUsers,
-                title: 'Client Management',
-                description: 'Keep track of client preferences and history.',
-                color: 'purple'
-              },
-              {
-                icon: FaMobileAlt,
-                title: 'Mobile Friendly',
-                description: 'Access from any device with our responsive design.',
-                color: 'orange'
-              }
-            ].map((feature, index) => (
-              <div 
-                key={index} 
-                className="card hover:scale-105 transition-all duration-200"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-full flex items-center justify-center mb-4`}>
-                  <feature.icon className={`text-${feature.color}-700 text-xl`} />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                step: 1,
-                title: 'Choose Your Time',
-                description: 'Pick your preferred date and time from available slots.'
-              },
-              {
-                step: 2,
-                title: 'Get Confirmation',
-                description: 'Receive instant confirmation and a call from our team.'
-              },
-              {
-                step: 3,
-                title: 'Enjoy Your Cut',
-                description: 'Arrive on time and enjoy a premium barbering experience.'
-              }
-            ].map((step, index) => (
-              <div 
-                key={index} 
-                className="text-center transform hover:scale-105 transition-all duration-200"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  {step.step}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready for Your Perfect Cut?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied clients who trust us with their style. Book your appointment now!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/reservations/new" 
-              className="group px-8 py-4 rounded-lg bg-white text-blue-600 font-semibold hover:bg-gray-100 inline-block shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
-            >
-              <FaCalendarAlt className="inline-block mr-2" />
-              Book Your Appointment
-              <FaArrowRight className="ml-2 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-200" />
-            </Link>
-            <Link 
-              href="/register" 
-              className="px-8 py-4 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white hover:text-blue-600 inline-block transition-all duration-200 transform hover:scale-105"
-            >
-              Create Account
-            </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="contact" className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">Barbaros</h3>
-              <p className="text-gray-400">Modern barbershop management system for the digital age.</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2">
-                <li><Link href="#features" className="text-gray-400 hover:text-white transition-colors duration-200">Features</Link></li>
-                <li><Link href="#how-it-works" className="text-gray-400 hover:text-white transition-colors duration-200">How It Works</Link></li>
-                <li><Link href="/reservations/new" className="text-gray-400 hover:text-white transition-colors duration-200">Book Appointment</Link></li>
-                <li><Link href="/login" className="text-gray-400 hover:text-white transition-colors duration-200">Login</Link></li>
-                <li><Link href="/register" className="text-gray-400 hover:text-white transition-colors duration-200">Sign Up</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Services</h4>
-              <ul className="space-y-2">
-                <li><span className="text-gray-400">Hair Cutting</span></li>
-                <li><span className="text-gray-400">Beard Styling</span></li>
-                <li><span className="text-gray-400">Hair Washing</span></li>
-                <li><span className="text-gray-400">Styling</span></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contact</h4>
-              <p className="text-gray-400 mb-2">Email: info@barbaros.com</p>
-              <p className="text-gray-400 mb-2">Phone: (123) 456-7890</p>
-              <p className="text-gray-400">Address: 123 Barber St, City</p>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Barbaros. All rights reserved.</p>
-          </div>
+      <footer className="py-12 md:py-16 border-t border-[var(--dark-brown)] border-opacity-10">
+        <div className="max-w-6xl mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="text-xs md:text-sm font-light tracking-widest opacity-60">
+            © {new Date().getFullYear()} BARBAROS
+          </span>
+          <span className="text-xs md:text-sm font-light tracking-widest opacity-60">
+            CRAFTED WITH PRECISION
+          </span>
         </div>
       </footer>
-    </div>
+    </>
   );
-} 
+}
