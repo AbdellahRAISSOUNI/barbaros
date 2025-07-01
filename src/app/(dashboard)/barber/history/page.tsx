@@ -25,6 +25,13 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
+interface Service {
+  _id: string;
+  name: string;
+  price: number;
+  category?: string;
+}
+
 interface Visit {
   _id: string;
   visitDate: string;
@@ -81,6 +88,7 @@ export default function BarberHistoryPage() {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [services, setServices] = useState<Service[]>([]);
   const [filters, setFilters] = useState<Filters>({
     search: '',
     dateFrom: '',
@@ -95,6 +103,7 @@ export default function BarberHistoryPage() {
     if (session?.user?.id) {
       fetchVisitHistory();
     }
+    fetchServices();
   }, [session, currentPage, filters]);
 
   const fetchVisitHistory = async () => {
@@ -156,6 +165,20 @@ export default function BarberHistoryPage() {
       setVisits([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('/api/services');
+      const data = await response.json();
+      if (data.success) {
+        setServices(data.services);
+      } else {
+        console.error('Failed to fetch services');
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
     }
   };
 
@@ -297,19 +320,113 @@ export default function BarberHistoryPage() {
               </div>
             </div>
             
-            {/* Mobile Filter Toggle */}
+            {/* Filter Toggle */}
             <button
               onClick={() => setFiltersOpen(!filtersOpen)}
-              className="lg:hidden bg-white/20 backdrop-blur-sm rounded-lg p-2 hover:bg-white/30 transition-colors"
+              className="bg-white/20 backdrop-blur-sm rounded-lg p-2 hover:bg-white/30 transition-colors flex items-center space-x-2"
             >
               <FaFilter className="w-4 h-4" />
+              <span className="hidden md:inline text-sm">Filters</span>
             </button>
+          </div>
+        </div>
+
+        {/* Filters - Animated Collapsible */}
+        <div 
+          className={`transform transition-all duration-300 ease-in-out origin-top overflow-hidden ${
+            filtersOpen 
+              ? 'opacity-100 scale-y-100 max-h-[500px]' 
+              : 'opacity-0 scale-y-0 max-h-0'
+          }`}
+        >
+          <div className="bg-white rounded-xl shadow-sm border border-stone-200">
+            <div className="p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base md:text-lg font-semibold text-stone-800 flex items-center">
+                  <FaFilter className="w-4 h-4 mr-2 text-emerald-600" />
+                  Filters
+                </h3>
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="text-stone-400 hover:text-stone-600 transition-colors"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-4">
+                {/* Search */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-stone-600 mb-1">Search Client</label>
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-3 h-3" />
+                    <input
+                      type="text"
+                      placeholder="Client name or phone..."
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange('search', e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-stone-500 text-stone-800"
+                    />
+                  </div>
+                </div>
+
+                {/* Date From */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">From Date</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-stone-800"
+                  />
+                </div>
+
+                {/* Date To */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">To Date</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-stone-800"
+                  />
+                </div>
+
+                {/* Service Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">Service</label>
+                  <select
+                    value={filters.service}
+                    onChange={(e) => handleFilterChange('service', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-stone-800 cursor-pointer appearance-none"
+                    style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                  >
+                    <option value="" className="text-stone-600">All Services</option>
+                    {services.map((service) => (
+                      <option key={service._id} value={service.name} className="py-1 text-stone-800">
+                        {service.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Clear Filters */}
+                <div className="flex items-end">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Statistics */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <StatCard
               icon={FaCut}
               title="Total Visits"
@@ -340,85 +457,6 @@ export default function BarberHistoryPage() {
             />
           </div>
         )}
-
-        {/* Filters - Mobile Collapsible */}
-        <div className={`bg-white rounded-xl shadow-sm border border-stone-200 ${filtersOpen ? 'block' : 'hidden lg:block'}`}>
-          <div className="p-4 md:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base md:text-lg font-semibold text-stone-800 flex items-center">
-                <FaFilter className="w-4 h-4 mr-2 text-emerald-600" />
-                Filters
-              </h3>
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="lg:hidden text-stone-400 hover:text-stone-600"
-              >
-                <FaTimes className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-4">
-              {/* Search */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-stone-600 mb-1">Search Client</label>
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-3 h-3" />
-                  <input
-                    type="text"
-                    placeholder="Client name or phone..."
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* Date From */}
-              <div>
-                <label className="block text-xs font-medium text-stone-600 mb-1">From Date</label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Date To */}
-              <div>
-                <label className="block text-xs font-medium text-stone-600 mb-1">To Date</label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Service Filter */}
-              <div>
-                <label className="block text-xs font-medium text-stone-600 mb-1">Service</label>
-                <input
-                  type="text"
-                  placeholder="Service type..."
-                  value={filters.service}
-                  onChange={(e) => handleFilterChange('service', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Clear Filters */}
-              <div className="flex items-end">
-                <button
-                  onClick={clearFilters}
-                  className="w-full px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Visit List */}
         <div className="bg-white rounded-xl shadow-sm border border-stone-200">
