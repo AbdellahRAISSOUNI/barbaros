@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap');
 
-:root {
+/* Landing page specific CSS variables */
+.landing-page {
   --off-white: #F8F6F2;
   --warm-beige: #EAE2D6;
   --dark-brown: #2D1B14;
@@ -13,12 +14,12 @@ body.landing-page-active * {
   cursor: none;
 }
 
-::selection {
+.landing-page ::selection {
   background: var(--champagne-gold);
   color: var(--dark-brown);
 }
 
-body {
+.landing-page {
   background-color: var(--off-white);
   color: var(--dark-brown);
   font-family: 'Inter', -apple-system, sans-serif;
@@ -27,52 +28,55 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3 {
+.landing-page h1,
+.landing-page h2,
+.landing-page h3 {
   font-family: 'Playfair Display', 'Optima', serif;
   font-weight: 400;
   letter-spacing: -0.02em;
 }
 
-.fade-in {
+.landing-page .fade-in {
   opacity: 0;
   transform: translateY(20px);
 }
 
-.word-reveal {
+.landing-page .word-reveal {
   overflow: hidden;
   display: inline-block;
 }
 
-.word-reveal span {
+.landing-page .word-reveal span {
   display: inline-block;
   transform: translateY(100%);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
+/* Custom scrollbar - only for landing page */
+.landing-page ::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+.landing-page ::-webkit-scrollbar-track {
   background: var(--off-white);
 }
 
-::-webkit-scrollbar-thumb {
+.landing-page ::-webkit-scrollbar-thumb {
   background: var(--warm-beige);
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.landing-page ::-webkit-scrollbar-thumb:hover {
   background: var(--champagne-gold);
 }
 
 /* Smooth transitions */
-a, button {
+.landing-page a,
+.landing-page button {
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Input focus styles */
-input:focus {
+.landing-page input:focus {
   outline: none;
 }
 
@@ -92,11 +96,11 @@ input:focus {
     cursor: auto;
   }
   
-  body {
+  .landing-page {
     font-size: 14px;
   }
   
-  h1 {
+  .landing-page h1 {
     font-size: 60px !important;
   }
 } 

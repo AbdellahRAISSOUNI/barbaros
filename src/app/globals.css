@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Global CSS variables - these won't affect landing page due to scoping */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -21,7 +22,8 @@
   }
 }
 
-body {
+/* Global styles - these won't affect landing page due to scoping */
+body:not(.landing-page-active) {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
@@ -121,41 +123,41 @@ body {
   animation: slideUp 0.5s ease-out;
 }
 
-/* Form styles */
-.form-input {
+/* Form styles - these won't affect landing page forms */
+:not(.landing-page) .form-input {
   @apply appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm;
   @apply placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black;
   @apply text-gray-900 bg-white;
 }
 
-.form-input.error {
+:not(.landing-page) .form-input.error {
   @apply border-red-300 focus:ring-red-500 focus:border-red-500;
 }
 
-.form-label {
+:not(.landing-page) .form-label {
   @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
-.btn-primary {
+:not(.landing-page) .btn-primary {
   @apply px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black;
 }
 
-.btn-secondary {
+:not(.landing-page) .btn-secondary {
   @apply px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md;
   @apply hover:bg-gray-50 transition-colors duration-200;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500;
 }
 
-/* Card styles */
-.card {
+/* Card styles - these won't affect landing page */
+:not(.landing-page) .card {
   @apply bg-white rounded-lg shadow-sm p-6;
   @apply border border-gray-200;
   @apply hover:shadow-md transition-shadow duration-200;
 }
 
-/* Link styles */
-.link {
+/* Link styles - these won't affect landing page */
+:not(.landing-page) .link {
   @apply text-black hover:text-gray-800 transition-colors duration-200;
   @apply underline-offset-2 hover:underline;
 }
