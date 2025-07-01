@@ -9,7 +9,7 @@
   --charcoal: #1A1A1A;
 }
 
-* {
+body.landing-page-active * {
   cursor: none;
 }
 
@@ -88,7 +88,7 @@ input:focus {
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  * {
+  body.landing-page-active * {
     cursor: auto;
   }
   

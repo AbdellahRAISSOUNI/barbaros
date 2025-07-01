@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaCalendarAlt, FaClock, FaUser, FaCheck, FaArrowLeft, FaStar, FaSignInAlt } from 'react-icons/fa';
@@ -9,7 +8,6 @@ import toast from 'react-hot-toast';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 export default function GuestReservationPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   
   const [formData, setFormData] = useState({
@@ -22,13 +20,6 @@ export default function GuestReservationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [reservationDetails, setReservationDetails] = useState<any>(null);
-
-  // Redirect if user is logged in
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      router.push('/client');
-    }
-  }, [session, status, router]);
 
   // Generate available time slots
   const generateTimeSlots = () => {

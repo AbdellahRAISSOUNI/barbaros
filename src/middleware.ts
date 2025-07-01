@@ -70,6 +70,7 @@ export default withAuth(
           pathname === '/' ||
           pathname === '/login' ||
           pathname === '/register' ||
+          pathname === '/reservations/new' ||
           pathname.startsWith('/api/auth') ||
           pathname.startsWith('/api/register') ||
           pathname.startsWith('/api/db-status') ||

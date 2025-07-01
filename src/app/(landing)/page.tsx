@@ -151,7 +151,6 @@ export default function LandingPage() {
 
   return (
     <>
-      <CustomCursor />
       <ScrollProgress />
       
       {/* Navigation */}
