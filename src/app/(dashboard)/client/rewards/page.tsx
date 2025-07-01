@@ -218,21 +218,21 @@ export default function RewardsPage() {
           </div>
         </motion.div>
 
-        {/* Quick Stats - Mobile Optimized */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        {/* Quick Stats - Premium Mobile Optimized */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all"
+            className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all hover:shadow-xl group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-md">
-                <FaHistory className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
+                <FaHistory className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-5 md:h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Visits</p>
-                <p className="text-xl font-bold text-gray-900">{totalVisits}</p>
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">Total Visits</p>
+                <p className="text-lg sm:text-xl md:text-xl font-bold text-gray-900 leading-tight">{totalVisits}</p>
               </div>
             </div>
           </motion.div>
@@ -241,15 +241,15 @@ export default function RewardsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all"
+            className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all hover:shadow-xl group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                <FaFire className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
+                <FaFire className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-5 md:h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Current Streak</p>
-                <p className="text-xl font-bold text-gray-900">{currentProgressVisits}</p>
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">Current Streak</p>
+                <p className="text-lg sm:text-xl md:text-xl font-bold text-gray-900 leading-tight">{currentProgressVisits}</p>
               </div>
             </div>
           </motion.div>
@@ -258,15 +258,15 @@ export default function RewardsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-2xl p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all"
+            className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all hover:shadow-xl group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                <FaGift className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
+                <FaGift className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-5 md:h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Redeemed</p>
-                <p className="text-xl font-bold text-gray-900">{rewardsRedeemed}</p>
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">Redeemed</p>
+                <p className="text-lg sm:text-xl md:text-xl font-bold text-gray-900 leading-tight">{rewardsRedeemed}</p>
               </div>
             </div>
           </motion.div>
@@ -275,15 +275,15 @@ export default function RewardsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-2xl p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all"
+            className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-lg border border-amber-100/50 hover:border-amber-200/50 transition-all hover:shadow-xl group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                <FaStar className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
+                <FaStar className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-5 md:h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Available</p>
-                <p className="text-xl font-bold text-gray-900">{eligibleRewards.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">Available</p>
+                <p className="text-lg sm:text-xl md:text-xl font-bold text-gray-900 leading-tight">{eligibleRewards.length}</p>
               </div>
             </div>
           </motion.div>
