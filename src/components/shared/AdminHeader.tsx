@@ -5,7 +5,11 @@ import { useSession, signOut } from 'next-auth/react';
 import { FaUserCircle, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import Link from 'next/link';
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  className?: string;
+}
+
+export function AdminHeader({ className = '' }: AdminHeaderProps) {
   const { data: session } = useSession();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -29,7 +33,7 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="bg-white shadow-sm fixed w-full lg:static z-20 px-4 py-4 lg:px-8">
+    <header className={`bg-white shadow-sm fixed w-full lg:static z-20 px-4 py-4 lg:px-8 ${className}`}>
       <div className="flex justify-between items-center">
         <div className="lg:hidden">
           {/* Space for mobile menu toggle button */}

@@ -24,9 +24,9 @@ export default function AdminDashboardLayout({
             sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'
           }`}
         >
-          <AdminHeader />
+          <AdminHeader className="hidden lg:flex" />
           <main 
-            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-20 lg:pt-8 transition-all duration-300`}
+            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-4 lg:pt-8 transition-all duration-300`}
           >
             {children}
           </main>
