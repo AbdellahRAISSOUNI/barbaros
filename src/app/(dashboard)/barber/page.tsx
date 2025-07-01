@@ -2,7 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FaCut, FaUsers, FaCalendarAlt, FaTrophy, FaChartLine, FaQrcode, FaHistory, FaCrown, FaAward, FaMedal, FaFire } from 'react-icons/fa';
+import { 
+  FaCut, 
+  FaUsers, 
+  FaCalendarAlt, 
+  FaTrophy, 
+  FaChartLine, 
+  FaQrcode, 
+  FaHistory, 
+  FaCrown, 
+  FaAward, 
+  FaMedal, 
+  FaFire,
+  FaClock,
+  FaCheckCircle,
+  FaArrowRight,
+  FaBullseye,
+  FaSync,
+  FaPercentage,
+  FaStar
+} from 'react-icons/fa';
 import Link from 'next/link';
 
 interface BarberStats {
@@ -28,9 +47,39 @@ interface BarberStats {
   serviceVariety?: number;
 }
 
+interface BarberRewardProgress {
+  rewardId: string;
+  name: string;
+  description: string;
+  rewardType: 'monetary' | 'gift' | 'time_off' | 'recognition';
+  rewardValue: string;
+  requirementType: 'visits' | 'clients' | 'months_worked' | 'client_retention' | 'custom';
+  requirementValue: number;
+  requirementDescription: string;
+  category: string;
+  icon: string;
+  color: string;
+  priority: number;
+  currentValue: number;
+  isEligible: boolean;
+  isEarned: boolean;
+  isRedeemed: boolean;
+  earnedAt?: Date;
+  redeemedAt?: Date;
+  progressPercentage: number;
+  redemptionId?: string;
+  durationProgress?: {
+    totalDays: number;
+    months: number;
+    remainingDays: number;
+    displayText: string;
+  };
+}
+
 export default function BarberDashboardPage() {
   const { data: session } = useSession();
   const [stats, setStats] = useState<BarberStats | null>(null);
+  const [topProgressReward, setTopProgressReward] = useState<BarberRewardProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +113,18 @@ export default function BarberDashboardPage() {
             if (rewardsData.success) {
               enhancedStats.earnedRewards = rewardsData.statistics.earnedRewards;
               enhancedStats.redeemedRewards = rewardsData.statistics.redeemedRewards;
+              
+              // Find the reward with highest progress that's not yet earned
+              const inProgressRewards = rewardsData.rewards.filter(
+                (r: BarberRewardProgress) => !r.isEarned && r.progressPercentage > 0
+              );
+              
+              if (inProgressRewards.length > 0) {
+                const highest = inProgressRewards.reduce((prev: BarberRewardProgress, current: BarberRewardProgress) => 
+                  current.progressPercentage > prev.progressPercentage ? current : prev
+                );
+                setTopProgressReward(highest);
+              }
             }
           }
           
@@ -95,6 +156,24 @@ export default function BarberDashboardPage() {
     if (!stats?.monthlyStats || stats.monthlyStats.length === 0) return null;
     return stats.monthlyStats
       .sort((a, b) => b.month.localeCompare(a.month))[0];
+  };
+
+  const formatProgress = (reward: BarberRewardProgress) => {
+    if (reward.requirementType === 'months_worked' && reward.durationProgress) {
+      return `${reward.durationProgress.displayText} / ${reward.requirementValue} months`;
+    }
+    switch (reward.requirementType) {
+      case 'visits':
+        return `${reward.currentValue.toLocaleString()} / ${reward.requirementValue.toLocaleString()} visits`;
+      case 'clients':
+        return `${reward.currentValue.toLocaleString()} / ${reward.requirementValue.toLocaleString()} clients`;
+      case 'months_worked':
+        return `${reward.currentValue} / ${reward.requirementValue} months`;
+      case 'client_retention':
+        return `${reward.currentValue}% / ${reward.requirementValue}% retention`;
+      default:
+        return `${reward.currentValue} / ${reward.requirementValue}`;
+    }
   };
 
   const MetricCard = ({ icon: Icon, title, value, subtitle, gradient }: {
@@ -188,6 +267,55 @@ export default function BarberDashboardPage() {
           />
         </div>
       </div>
+
+        {/* Achievement Progress Section */}
+        {topProgressReward && (
+          <Link href="/barber/achievements" className="block">
+            <div className="bg-gradient-to-r from-[#8B0000] to-[#A31515] rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-4">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                    <FaBullseye className="w-5 h-5 md:w-6 md:h-6 text-red-100" />
+                  </div>
+                  <div>
+                    <h2 className="text-base md:text-lg font-bold leading-tight">Achievement Progress</h2>
+                    <p className="text-xs md:text-sm text-red-100">Your next milestone awaits</p>
+                  </div>
+                </div>
+                <FaArrowRight className="w-4 h-4 md:w-5 md:h-5 text-red-200 flex-shrink-0" />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm md:text-base font-semibold text-white truncate pr-2">
+                    {topProgressReward.name}
+                  </h3>
+                  <span className="text-xs md:text-sm font-bold text-red-100 bg-white/10 px-2 py-1 rounded-full">
+                    {topProgressReward.progressPercentage}%
+                  </span>
+                </div>
+                
+                <div className="relative">
+                  <div className="w-full bg-white/20 rounded-full h-2 md:h-3 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-white/90 to-white/70 h-full rounded-full transition-all duration-500 shadow-sm"
+                      style={{ width: `${topProgressReward.progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs md:text-sm">
+                  <span className="text-red-100">
+                    {formatProgress(topProgressReward)}
+                  </span>
+                  <span className="text-red-200 font-medium">
+                    {topProgressReward.rewardValue}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Performance Metrics */}
       <div>
@@ -293,36 +421,44 @@ export default function BarberDashboardPage() {
               </div>
             )}
 
-              {/* Professional Insights */}
+              {/* Enhanced Professional Stats */}
               <div className="bg-gradient-to-br from-emerald-50 to-amber-50 border border-emerald-200/60 rounded-xl p-4 md:p-5 shadow-sm">
-                <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-3 flex items-center">
-                  <FaFire className="w-4 h-4 mr-2 text-emerald-600" />
+                <h3 className="text-sm md:text-base font-semibold text-stone-800 mb-4 flex items-center">
+                  <FaStar className="w-4 h-4 mr-2 text-emerald-600" />
                   Professional Stats
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
-                    <div className="text-lg mb-1">📊</div>
-                    <div className="text-xs md:text-sm font-semibold text-stone-800">Efficiency</div>
-                    <div className="text-xs text-stone-600">{stats.averageVisitsPerDay?.toFixed(1) || 0}/day</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/60 text-center hover:shadow-md transition-all duration-300">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <FaChartLine className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
+                    <div className="text-sm md:text-base font-semibold text-stone-800 mb-1">Efficiency</div>
+                    <div className="text-xs md:text-sm text-stone-600 font-medium">{stats.averageVisitsPerDay?.toFixed(1) || 0}/day</div>
+                  </div>
                   
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
-                    <div className="text-lg mb-1">⏱️</div>
-                    <div className="text-xs md:text-sm font-semibold text-stone-800">Avg Time</div>
-                    <div className="text-xs text-stone-600">{stats.averageServiceTime || 0} min</div>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/60 text-center hover:shadow-md transition-all duration-300">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-amber-500 to-amber-400 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <FaClock className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
+                    <div className="text-sm md:text-base font-semibold text-stone-800 mb-1">Avg Time</div>
+                    <div className="text-xs md:text-sm text-stone-600 font-medium">{Math.round(stats.averageServiceTime || 0)} min</div>
+                  </div>
                   
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
-                    <div className="text-lg mb-1">🎯</div>
-                    <div className="text-xs md:text-sm font-semibold text-stone-800">Retention</div>
-                    <div className="text-xs text-stone-600">{stats.clientRetentionRate?.toFixed(0) || 0}%</div>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/60 text-center hover:shadow-md transition-all duration-300">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-400 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <FaSync className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
+                    <div className="text-sm md:text-base font-semibold text-stone-800 mb-1">Retention</div>
+                    <div className="text-xs md:text-sm text-stone-600 font-medium">{Math.round(stats.clientRetentionRate || 0)}%</div>
+                  </div>
                   
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-white/60 text-center">
-                    <div className="text-lg mb-1">🏅</div>
-                    <div className="text-xs md:text-sm font-semibold text-stone-800">Variety</div>
-                    <div className="text-xs text-stone-600">{stats.serviceVariety || 0} types</div>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/60 text-center hover:shadow-md transition-all duration-300">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-purple-400 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <FaCut className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
+                    <div className="text-sm md:text-base font-semibold text-stone-800 mb-1">Variety</div>
+                    <div className="text-xs md:text-sm text-stone-600 font-medium">{stats.serviceVariety || 0} types</div>
+                  </div>
                 </div>
                 </div>
               </div>

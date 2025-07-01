@@ -13,7 +13,10 @@ import {
   FaHandshake,
   FaStar,
   FaAward,
-  FaUsers
+  FaUsers,
+  FaCrown,
+  FaFire,
+  FaChartLine
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -131,99 +134,117 @@ export default function BarberRewardsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-[#8B0000] to-[#A31515] rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
-              <FaTrophy className="w-8 h-8 text-amber-200" />
+      <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
+        
+        {/* Premium Header Section */}
+        <div className="bg-gradient-to-r from-[#8B0000] to-[#A31515] rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <FaCrown className="w-5 h-5 md:w-6 md:h-6 text-amber-200" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Rewards Center</h1>
-              <p className="text-red-100">Track your progress and earn rewards for your dedication</p>
+              <h1 className="text-lg md:text-2xl font-bold leading-tight">Achievement Center</h1>
+              <p className="text-xs md:text-sm text-red-100">Your dedication deserves recognition</p>
             </div>
           </div>
           
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stats.totalRewards}</div>
-                <div className="text-sm text-red-100">Total Rewards</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">{stats.totalRewards}</div>
+                <div className="text-xs md:text-sm text-red-100">Total</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stats.earnedRewards}</div>
-                <div className="text-sm text-red-100">Earned</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">{stats.earnedRewards}</div>
+                <div className="text-xs md:text-sm text-red-100">Earned</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stats.redeemedRewards}</div>
-                <div className="text-sm text-red-100">Redeemed</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">{stats.redeemedRewards}</div>
+                <div className="text-xs md:text-sm text-red-100">Redeemed</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stats.eligibleRewards}</div>
-                <div className="text-sm text-red-100">Eligible</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">{stats.eligibleRewards}</div>
+                <div className="text-xs md:text-sm text-red-100">Ready</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stats.inProgressRewards}</div>
-                <div className="text-sm text-red-100">In Progress</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">{stats.inProgressRewards}</div>
+                <div className="text-xs md:text-sm text-red-100">Active</div>
               </div>
             </div>
           )}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-8 md:py-12">
+            <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-[#8B0000]/20 border-t-[#8B0000] rounded-full animate-spin"></div>
+          </div>
+        )}
+
         {/* Reward Categories */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {loading ? (
-            <div className="col-span-full flex items-center justify-center py-12">
-              <FaSpinner className="w-8 h-8 animate-spin text-[#8B0000]" />
-            </div>
-          ) : (
-            <>
-              {/* Earned & Eligible Rewards */}
-              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
-                <div className="p-4 border-b border-stone-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <FaCheck className="w-5 h-5 text-green-600" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-stone-800">Available Rewards</h2>
-                  </div>
-                </div>
-                <div className="p-4 space-y-4">
+        {!loading && (
+          <div className="space-y-4 md:space-y-6">
+            {/* Available Rewards Section */}
+            {rewards.filter(r => r.isEarned || r.isEligible).length > 0 && (
+              <div>
+                <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1 flex items-center">
+                  <FaFire className="w-4 h-4 mr-2 text-[#8B0000]" />
+                  Available Rewards
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   {rewards
                     .filter(r => r.isEarned || r.isEligible)
                     .map(reward => (
                       <RewardCard key={reward.rewardId} reward={reward} />
                     ))}
-                  {rewards.filter(r => r.isEarned || r.isEligible).length === 0 && (
-                    <p className="text-gray-500 text-center py-4">No available rewards yet. Keep working!</p>
-                  )}
                 </div>
               </div>
+            )}
 
-              {/* In Progress Rewards */}
-              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
-                <div className="p-4 border-b border-stone-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <FaClock className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-stone-800">In Progress</h2>
-                  </div>
-                </div>
-                <div className="p-4 space-y-4">
+            {/* In Progress Rewards Section */}
+            {rewards.filter(r => !r.isEarned && !r.isEligible).length > 0 && (
+              <div>
+                <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1 flex items-center">
+                  <FaChartLine className="w-4 h-4 mr-2 text-emerald-600" />
+                  Progress Tracker
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   {rewards
                     .filter(r => !r.isEarned && !r.isEligible)
                     .map(reward => (
                       <RewardCard key={reward.rewardId} reward={reward} />
                     ))}
-                  {rewards.filter(r => !r.isEarned && !r.isEligible).length === 0 && (
-                    <p className="text-gray-500 text-center py-4">All rewards earned! Great job!</p>
-                  )}
                 </div>
               </div>
-            </>
-          )}
-        </div>
+            )}
+
+            {/* Completed/Redeemed Rewards Section */}
+            {rewards.filter(r => r.isRedeemed).length > 0 && (
+              <div>
+                <h2 className="text-base md:text-lg font-semibold text-stone-800 mb-3 px-1 flex items-center">
+                  <FaCheck className="w-4 h-4 mr-2 text-emerald-600" />
+                  Completed Achievements
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  {rewards
+                    .filter(r => r.isRedeemed)
+                    .map(reward => (
+                      <RewardCard key={reward.rewardId} reward={reward} />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {rewards.length === 0 && !loading && (
+              <div className="bg-gradient-to-br from-stone-50 to-amber-50/50 border border-stone-200/60 rounded-xl p-6 md:p-8 text-center">
+                <FaTrophy className="w-12 h-12 md:w-16 md:h-16 text-stone-300 mx-auto mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-stone-600 mb-2">No achievements yet</h3>
+                <p className="text-sm md:text-base text-stone-500">Start working to unlock your first rewards!</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -282,69 +303,105 @@ const RewardCard = ({ reward }: { reward: BarberReward }) => {
   }
 
   return (
-    <div className={`bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-lg p-4 transition-all duration-300 hover:shadow-md ${
+    <div className={`bg-gradient-to-br from-stone-50 to-amber-50/50 backdrop-blur-sm border border-stone-200/60 rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300 ${
       reward.isRedeemed ? 'opacity-75' : ''
     }`}>
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-lg ${
+        <div className="flex items-start space-x-3 flex-1 min-w-0">
+          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 ${
             reward.isRedeemed ? 'bg-gray-100' : 
-            reward.isEarned ? 'bg-[#8B0000]/10' : 'bg-stone-100'
+            reward.isEarned ? 'bg-gradient-to-r from-[#8B0000] to-[#A31515]' : 
+            reward.progressPercentage >= 75 ? 'bg-gradient-to-r from-amber-600 to-amber-500' :
+            reward.progressPercentage >= 50 ? 'bg-gradient-to-r from-emerald-600 to-emerald-500' :
+            'bg-gradient-to-r from-stone-600 to-stone-500'
           }`}>
-            <span className="text-lg">{reward.icon}</span>
+            <span className={`text-sm md:text-base ${reward.isRedeemed ? 'opacity-50' : 'text-white'}`}>
+              {reward.icon}
+            </span>
           </div>
-          <div>
-            <h3 className="font-semibold text-stone-800">{reward.name}</h3>
-            <p className="text-sm text-stone-600">{reward.description}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm md:text-base font-semibold text-stone-800 leading-tight truncate">
+              {reward.name}
+            </h3>
+            <p className="text-xs md:text-sm text-stone-600 mt-1 line-clamp-2">
+              {reward.description}
+            </p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <RewardTypeIcon className="w-4 h-4 text-green-600" />
-          <CategoryIcon className="w-4 h-4 text-blue-600" />
+        
+        <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
+          <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-100 rounded-full flex items-center justify-center">
+            <RewardTypeIcon className="w-2.5 h-2.5 md:w-3 md:h-3 text-emerald-600" />
+          </div>
+          <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center">
+            <CategoryIcon className="w-2.5 h-2.5 md:w-3 md:h-3 text-blue-600" />
+          </div>
         </div>
       </div>
 
-      <div className="mb-3">
-        <div className="flex items-center justify-between text-sm text-stone-600 mb-1">
-          <span>{reward.rewardValue}</span>
-          {reward.isRedeemed && <span className="text-gray-500 font-medium">✓ Redeemed</span>}
+      <div className="space-y-2 md:space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs md:text-sm font-medium text-stone-700">
+            {reward.rewardValue}
+          </span>
+          {reward.isRedeemed && (
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              Redeemed
+            </span>
+          )}
           {reward.isEarned && !reward.isRedeemed && (
-            <span className="text-[#8B0000] font-medium">🎉 Earned! Contact admin</span>
+            <span className="text-xs font-medium text-[#8B0000] bg-red-50 px-2 py-1 rounded-full">
+              Ready!
+            </span>
           )}
         </div>
-      </div>
 
-      <div className="relative h-2 bg-stone-100 rounded-full overflow-hidden">
-        <div 
-          className={`absolute left-0 top-0 h-full ${progressColor} transition-all duration-500`}
-          style={{ width: progressWidth }}
-        />
-      </div>
-      <div className="flex justify-between mt-2">
-        <span className="text-xs font-medium text-stone-600">
-          {formatProgress(reward)}
-        </span>
-        <span className="text-xs font-medium text-stone-600">
-          {reward.progressPercentage}%
-        </span>
+        <div className="relative h-1.5 md:h-2 bg-stone-100 rounded-full overflow-hidden">
+          <div 
+            className={`absolute left-0 top-0 h-full ${progressColor} transition-all duration-500 shadow-sm`}
+            style={{ width: progressWidth }}
+          />
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <span className="text-xs font-medium text-stone-600">
+            {formatProgress(reward)}
+          </span>
+          <span className="text-xs font-bold text-stone-700 bg-stone-100 px-1.5 py-0.5 rounded">
+            {reward.progressPercentage}%
+          </span>
+        </div>
       </div>
 
       {reward.isEarned && !reward.isRedeemed && (
-        <div className="mt-4 p-3 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-lg text-center">
-          <p className="font-semibold text-yellow-800">
-            🎉 Reward Earned!
-          </p>
-          <p className="text-xs text-yellow-700">
-            Redemption pending admin approval.
-          </p>
+        <div className="mt-3 p-2 md:p-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/60 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <FaTrophy className="w-3 h-3 md:w-4 md:h-4 text-amber-600 flex-shrink-0" />
+            <div>
+              <p className="text-xs md:text-sm font-semibold text-amber-800">
+                Achievement Unlocked!
+              </p>
+              <p className="text-xs text-amber-700">
+                Contact admin for redemption
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {reward.isRedeemed && (
-        <div className="mt-4 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg text-center">
-          <p className="font-semibold text-emerald-800">
-            ✅ Redeemed on {new Date(reward.redeemedAt!).toLocaleDateString()}
-          </p>
+        <div className="mt-3 p-2 md:p-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200/60 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <FaCheck className="w-3 h-3 md:w-4 md:h-4 text-emerald-600 flex-shrink-0" />
+            <div>
+              <p className="text-xs md:text-sm font-semibold text-emerald-800">
+                Completed
+              </p>
+              <p className="text-xs text-emerald-700">
+                {new Date(reward.redeemedAt!).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
