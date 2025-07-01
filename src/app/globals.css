@@ -27,6 +27,14 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Grid Pattern Background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+    linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* Mobile Bottom Navigation Improvements */
 .mobile-nav-backdrop {
   backdrop-filter: blur(20px);

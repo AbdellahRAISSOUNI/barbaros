@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaCalendarAlt, FaUserClock, FaUsers, FaMobileAlt, FaClock, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { FaCalendarAlt, FaUserClock, FaUsers, FaMobileAlt, FaClock, FaCheckCircle, FaArrowRight, FaStar } from 'react-icons/fa';
 
 export default function LandingPage() {
   return (
@@ -40,59 +40,98 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 flex-1 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4 py-20">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-10 md:mb-0 animate-slide-up">
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Modern Barbershop Management System
+      <section className="relative pt-24 flex-1 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50">
+          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="container relative mx-auto px-4 py-20">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            {/* Left Column */}
+            <div className="md:w-1/2 animate-slide-up">
+              {/* Trust Badge */}
+              <div className="inline-flex items-center px-4 py-2 bg-blue-50 rounded-full text-blue-600 mb-8">
+                <FaStar className="text-yellow-400 mr-2" />
+                <span className="text-sm font-medium">Trusted by 10,000+ customers</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                Your Style,<br />
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
+                  Our Expertise
+                </span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Streamline your barbershop operations with our all-in-one appointment booking and client management system.
+              
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Experience the perfect blend of traditional barbering and modern convenience. Book your next great look in seconds.
               </p>
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+              
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
                 <Link 
                   href="/reservations/new" 
-                  className="group px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
+                  className="group px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-blue-200 transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
                 >
                   <FaCalendarAlt className="inline-block mr-2" />
-                  Make Reservation
+                  Book Your Visit
                   <FaArrowRight className="ml-2 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-200" />
                 </Link>
                 <Link 
                   href="/register" 
-                  className="px-8 py-4 rounded-lg bg-black text-white text-center hover:bg-gray-800 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                  className="px-8 py-4 rounded-xl bg-white text-gray-800 text-center border-2 border-gray-200 hover:border-gray-300 font-semibold shadow-lg hover:shadow-gray-100 transform hover:scale-105 transition-all duration-200"
                 >
-                  Get Started
+                  Explore Services
                 </Link>
               </div>
               
-              {/* Quick Reservation CTA */}
-              <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-100 transform hover:scale-102 transition-all duration-200">
-                <div className="flex items-center text-blue-800">
-                  <FaClock className="mr-2 text-xl" />
-                  <span className="font-medium text-lg">Need a quick appointment?</span>
+              {/* Social Proof */}
+              <div className="flex items-center space-x-4 text-gray-600">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white"></div>
+                  ))}
                 </div>
-                <p className="text-blue-600 mt-2">
-                  Book your slot in under 30 seconds - no account required!
-                </p>
+                <div className="text-sm">
+                  <div className="font-semibold">4.9/5 rating</div>
+                  <div className="text-gray-500">from 2,000+ reviews</div>
+                </div>
               </div>
             </div>
-            <div className="md:w-1/2 md:pl-10 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="bg-white p-8 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300">
-                <div 
-                  className="rounded-xl w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden"
-                  style={{ height: '400px' }}
-                >
-                  {/* Replace with your actual hero image */}
-                  <Image
-                    src="/images/hero-image.jpg"
-                    alt="Barbershop Management"
-                    width={600}
-                    height={400}
-                    className="object-cover w-full h-full rounded-xl"
-                    priority
-                  />
+            
+            {/* Right Column */}
+            <div className="md:w-1/2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="relative">
+                {/* Decorative Elements */}
+                <div className="absolute -top-6 -left-6 w-24 h-24 bg-blue-100 rounded-full opacity-50 blur-2xl"></div>
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-100 rounded-full opacity-50 blur-2xl"></div>
+                
+                {/* Main Image */}
+                <div className="relative bg-white p-4 rounded-2xl shadow-xl transform hover:scale-102 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-50 rounded-2xl"></div>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <Image
+                      src="/images/hero-image.jpg"
+                      alt="Premium Barbershop Experience"
+                      width={600}
+                      height={400}
+                      className="object-cover w-full h-[500px] rounded-xl transform hover:scale-105 transition-all duration-700"
+                      priority
+                    />
+                  </div>
+                  
+                  {/* Floating Stats Card */}
+                  <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                        <FaClock className="text-blue-600 text-xl" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Average Wait Time</div>
+                        <div className="text-lg font-semibold text-gray-900">15 minutes</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
