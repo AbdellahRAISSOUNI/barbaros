@@ -196,18 +196,18 @@ export default function AdminLeaderboardPage() {
                   placeholder="Search by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 placeholder-gray-500"
                 />
               </div>
             </div>
 
-            {/* Ranking Type */}
+            {/* Leaderboard Type Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Ranking Metric</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Leaderboard Type</label>
               <select
                 value={leaderboardType}
                 onChange={(e) => setLeaderboardType(e.target.value as LeaderboardType)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 bg-white"
               >
                 {leaderboardTypes.map((type) => (
                   <option key={type.id} value={type.id}>
@@ -217,13 +217,13 @@ export default function AdminLeaderboardPage() {
               </select>
             </div>
 
-            {/* Time Period */}
+            {/* Time Period Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
               <select
                 value={timePeriod}
                 onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 bg-white"
               >
                 {timePeriods.map((period) => (
                   <option key={period.id} value={period.id}>

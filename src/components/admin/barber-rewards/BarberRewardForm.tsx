@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  FaTimes, 
   FaMoneyBillWave, 
   FaGift, 
   FaCalendarAlt, 
@@ -21,25 +20,18 @@ interface BarberRewardFormProps {
 }
 
 const rewardTypes = [
-  { value: 'monetary', label: 'Money', icon: FaMoneyBillWave, color: 'text-green-600' },
+  { value: 'monetary', label: 'Monetary', icon: FaMoneyBillWave, color: 'text-green-600' },
   { value: 'gift', label: 'Gift', icon: FaGift, color: 'text-purple-600' },
-  { value: 'time_off', label: 'Time Off', icon: FaCalendarAlt, color: 'text-blue-600' },
-  { value: 'recognition', label: 'Recognition', icon: FaTrophy, color: 'text-yellow-600' }
+  { value: 'recognition', label: 'Recognition', icon: FaTrophy, color: 'text-yellow-600' },
+  { value: 'time_off', label: 'Time Off', icon: FaCalendarAlt, color: 'text-blue-600' }
 ];
 
 const requirementTypes = [
-  { value: 'visits', label: 'Total Visits', description: 'Total number of visits completed' },
-  { value: 'clients', label: 'Unique Clients', description: 'Number of different clients served' },
-  { value: 'months_worked', label: 'Months Worked', description: 'Months of employment' },
-  { value: 'client_retention', label: 'Client Retention Rate', description: 'Percentage of returning clients' },
-  { value: 'custom', label: 'Custom Metric', description: 'Custom requirement (admin managed)' }
-];
-
-const categories = [
-  { value: 'milestone', label: 'Milestone', icon: FaAward, color: 'text-red-600' },
-  { value: 'performance', label: 'Performance', icon: FaStar, color: 'text-yellow-600' },
-  { value: 'loyalty', label: 'Loyalty', icon: FaHandshake, color: 'text-blue-600' },
-  { value: 'quality', label: 'Quality', icon: FaUsers, color: 'text-green-600' }
+  { value: 'visits', label: 'Total Visits', description: 'Based on total client visits', icon: FaUsers },
+  { value: 'clients', label: 'Unique Clients', description: 'Based on number of unique clients served', icon: FaHandshake },
+  { value: 'months_worked', label: 'Months Worked', description: 'Based on employment duration', icon: FaCalendarAlt },
+  { value: 'client_retention', label: 'Client Retention', description: 'Based on client return rate', icon: FaStar },
+  { value: 'custom', label: 'Custom Achievement', description: 'Custom metric or achievement', icon: FaAward }
 ];
 
 export default function BarberRewardForm({ reward, onSubmit, onCancel, isLoading }: BarberRewardFormProps) {
@@ -145,296 +137,244 @@ export default function BarberRewardForm({ reward, onSubmit, onCancel, isLoading
   }, [formData.requirementType, formData.requirementValue]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {reward ? 'Edit Barber Reward' : 'Create Barber Reward'}
-            </h2>
+    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      {/* Basic Information */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Reward Name *
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+              errors.name ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder="e.g., 6 Month Veteran Bonus"
+          />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description *
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={3}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+              errors.description ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder="Describe the reward and what it's for..."
+          />
+          {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+        </div>
+      </div>
+
+      {/* Reward Type & Value */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Reward Details</h3>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Reward Type *
+          </label>
+          <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={onCancel}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, rewardType: 'monetary' }))}
+              className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
+                formData.rewardType === 'monetary'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
             >
-              <FaTimes className="w-5 h-5" />
+              <div className="p-2 bg-green-100 rounded-lg">
+                <FaMoneyBillWave className="w-5 h-5 text-green-600" />
+              </div>
+              <span className="text-gray-900 font-medium">Monetary</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, rewardType: 'gift' }))}
+              className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
+                formData.rewardType === 'gift'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <FaGift className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-gray-900 font-medium">Gift</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, rewardType: 'recognition' }))}
+              className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
+                formData.rewardType === 'recognition'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <FaTrophy className="w-5 h-5 text-yellow-600" />
+              </div>
+              <span className="text-gray-900 font-medium">Recognition</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, rewardType: 'time_off' }))}
+              className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
+                formData.rewardType === 'time_off'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <FaCalendarAlt className="w-5 h-5 text-blue-600" />
+              </div>
+              <span className="text-gray-900 font-medium">Time Off</span>
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reward Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="e.g., 6 Month Veteran Bonus"
-              />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description *
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.description ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Describe the reward and what it's for..."
-              />
-              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-            </div>
-          </div>
-
-          {/* Reward Type & Value */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Reward Details</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reward Type *
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {rewardTypes.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, rewardType: type.value }))}
-                      className={`p-3 border-2 rounded-lg flex items-center space-x-3 transition-colors ${
-                        formData.rewardType === type.value
-                          ? 'border-[#8B0000] bg-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${type.color}`} />
-                      <span className="font-medium">{type.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reward Value *
-              </label>
-              <input
-                type="text"
-                value={formData.rewardValue}
-                onChange={(e) => setFormData(prev => ({ ...prev, rewardValue: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.rewardValue ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={
-                  formData.rewardType === 'monetary' ? '$100' :
-                  formData.rewardType === 'gift' ? 'Premium shaver set' :
-                  formData.rewardType === 'time_off' ? '1 day paid leave' :
-                  'Employee of the month recognition'
-                }
-              />
-              {errors.rewardValue && <p className="text-red-500 text-sm mt-1">{errors.rewardValue}</p>}
-            </div>
-          </div>
-
-          {/* Requirements */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Requirements</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Requirement Type *
-              </label>
-              <select
-                value={formData.requirementType}
-                onChange={(e) => setFormData(prev => ({ ...prev, requirementType: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-              >
-                {requirementTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label} - {type.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Required Value *
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.requirementValue}
-                onChange={(e) => setFormData(prev => ({ ...prev, requirementValue: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.requirementValue ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={
-                  formData.requirementType === 'visits' ? '1000' :
-                  formData.requirementType === 'clients' ? '500' :
-                  formData.requirementType === 'months_worked' ? '6' :
-                  formData.requirementType === 'client_retention' ? '85' : '100'
-                }
-              />
-              {errors.requirementValue && <p className="text-red-500 text-sm mt-1">{errors.requirementValue}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Requirement Description *
-              </label>
-              <input
-                type="text"
-                value={formData.requirementDescription}
-                onChange={(e) => setFormData(prev => ({ ...prev, requirementDescription: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent ${
-                  errors.requirementDescription ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Auto-generated based on requirement type"
-              />
-              {errors.requirementDescription && <p className="text-red-500 text-sm mt-1">{errors.requirementDescription}</p>}
-            </div>
-          </div>
-
-          {/* Category & Styling */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Category & Display</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <button
-                      key={category.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
-                      className={`p-3 border-2 rounded-lg flex items-center space-x-3 transition-colors ${
-                        formData.category === category.value
-                          ? 'border-[#8B0000] bg-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${category.color}`} />
-                      <span className="font-medium">{category.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Icon
-                </label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                  placeholder="🏆"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Optional Settings */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Optional Settings</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valid From
-                </label>
-                <input
-                  type="date"
-                  value={formData.validFrom}
-                  onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valid Until
-                </label>
-                <input
-                  type="date"
-                  value={formData.validUntil}
-                  onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Redemptions per Barber
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.maxRedemptions}
-                onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B0000] focus:border-transparent"
-                placeholder="Unlimited if empty"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-2 bg-[#8B0000] text-white rounded-lg hover:bg-[#A31515] transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Saving...' : (reward ? 'Update Reward' : 'Create Reward')}
-            </button>
-          </div>
-        </form>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Reward Value *
+          </label>
+          <input
+            type="text"
+            value={formData.rewardValue}
+            onChange={(e) => setFormData(prev => ({ ...prev, rewardValue: e.target.value }))}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+              errors.rewardValue ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder={
+              formData.rewardType === 'monetary' ? '$100' :
+              formData.rewardType === 'gift' ? 'Premium shaver set' :
+              formData.rewardType === 'time_off' ? '1 day paid leave' :
+              'Employee of the month recognition'
+            }
+          />
+          {errors.rewardValue && <p className="text-red-500 text-sm mt-1">{errors.rewardValue}</p>}
+        </div>
       </div>
-    </div>
+
+      {/* Requirements */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Requirements</h3>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Requirement Type *
+          </label>
+          <select
+            value={formData.requirementType}
+            onChange={(e) => setFormData(prev => ({ ...prev, requirementType: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          >
+            {requirementTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label} - {type.description}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Required Value *
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.requirementValue}
+            onChange={(e) => setFormData(prev => ({ ...prev, requirementValue: e.target.value }))}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+              errors.requirementValue ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder={
+              formData.requirementType === 'visits' ? '1000' :
+              formData.requirementType === 'clients' ? '500' :
+              formData.requirementType === 'months_worked' ? '6' :
+              formData.requirementType === 'client_retention' ? '85' : '100'
+            }
+          />
+          {errors.requirementValue && <p className="text-red-500 text-sm mt-1">{errors.requirementValue}</p>}
+        </div>
+      </div>
+
+      {/* Optional Settings */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Optional Settings</h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Valid From
+            </label>
+            <input
+              type="date"
+              value={formData.validFrom}
+              onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Valid Until
+            </label>
+            <input
+              type="date"
+              value={formData.validUntil}
+              onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Max Redemptions per Barber
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.maxRedemptions}
+            onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+            placeholder="Unlimited if empty"
+          />
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          disabled={isLoading}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isLoading ? 'Saving...' : (reward ? 'Update Reward' : 'Create Reward')}
+        </button>
+      </div>
+    </form>
   );
 } 

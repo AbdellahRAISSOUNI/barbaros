@@ -5,6 +5,7 @@ import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaGift, FaDollarSign,
 import { toast } from 'react-hot-toast';
 import BarberRewardForm from '@/components/admin/barber-rewards/BarberRewardForm';
 import { AdminModal } from '@/components/ui/AdminModal';
+import BarberRewardsSearch from '@/components/admin/barber-rewards/BarberRewardsSearch';
 
 interface BarberReward {
   _id: string;
@@ -243,28 +244,26 @@ export default function BarberRewardsPage() {
     }
   };
 
-  // Filter and sort rewards
+  // Add filtered rewards computation
   const filteredRewards = rewards.filter(reward => {
     const matchesSearch = reward.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reward.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || reward.category === filterCategory;
     const matchesType = filterType === 'all' || reward.rewardType === filterType;
-    
     return matchesSearch && matchesCategory && matchesType;
-  });
-
-  const sortedRewards = [...filteredRewards].sort((a, b) => {
+  }).sort((a, b) => {
     switch (sortBy) {
       case 'name':
         return a.name.localeCompare(b.name);
-      case 'category':
-        return a.category.localeCompare(b.category);
       case 'type':
         return a.rewardType.localeCompare(b.rewardType);
+      case 'category':
+        return a.category.localeCompare(b.category);
       case 'created':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      default: // priority
-        return a.priority - b.priority;
+      case 'priority':
+      default:
+        return b.priority - a.priority;
     }
   });
 
@@ -288,6 +287,16 @@ export default function BarberRewardsPage() {
     }
   };
 
+  const getRewardTypeDescription = (type: string) => {
+    switch (type) {
+      case 'monetary': return 'Monetary Reward';
+      case 'gift': return 'Gift Reward';
+      case 'time_off': return 'Time Off Reward';
+      case 'recognition': return 'Recognition Reward';
+      default: return 'Unknown Reward Type';
+    }
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'milestone': return 'bg-indigo-100 text-indigo-800';
@@ -295,6 +304,17 @@ export default function BarberRewardsPage() {
       case 'loyalty': return 'bg-pink-100 text-pink-800';
       case 'quality': return 'bg-emerald-100 text-emerald-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatRequirement = (type: string, value: number) => {
+    switch (type) {
+      case 'visits': return `${value} visits`;
+      case 'clients': return `${value} clients`;
+      case 'months_worked': return `${value} months worked`;
+      case 'client_retention': return `${value}% client retention`;
+      case 'custom': return type;
+      default: return 'Unknown Requirement';
     }
   };
 
@@ -320,14 +340,25 @@ export default function BarberRewardsPage() {
               <p className="text-gray-600 mt-1">Manage rewards and redemptions for your barber team</p>
             </div>
             <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+              onClick={() => {
+                setEditingReward(null);
+                setShowForm(true);
+              }}
+              className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
             >
               <FaPlus className="h-4 w-4" />
-              Create Reward
+              <span>New Reward</span>
             </button>
           </div>
         </div>
+
+        {/* Search and Filters */}
+        <BarberRewardsSearch
+          onSearch={setSearchTerm}
+          onCategoryChange={setFilterCategory}
+          onTypeChange={setFilterType}
+          onSortChange={setSortBy}
+        />
 
         {/* Pending Redemptions Section */}
         {pendingRedemptions.length > 0 && (
@@ -381,7 +412,7 @@ export default function BarberRewardsPage() {
                     onClick={() => setRedemptionToConfirm(redemption)}
                     className="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                   >
-                    Mark as Redeemed
+                    Mark Redeemed
                   </button>
                 </div>
               ))}
@@ -397,163 +428,88 @@ export default function BarberRewardsPage() {
           </div>
         )}
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="lg:col-span-2">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search rewards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="all">All Categories</option>
-                <option value="milestone">Milestone</option>
-                <option value="performance">Performance</option>
-                <option value="loyalty">Loyalty</option>
-                <option value="quality">Quality</option>
-              </select>
-            </div>
-
-            {/* Type Filter */}
-            <div>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="all">All Types</option>
-                <option value="monetary">Monetary</option>
-                <option value="gift">Gift</option>
-                <option value="time_off">Time Off</option>
-                <option value="recognition">Recognition</option>
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="priority">Sort by Priority</option>
-                <option value="name">Sort by Name</option>
-                <option value="category">Sort by Category</option>
-                <option value="type">Sort by Type</option>
-                <option value="created">Sort by Created</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Rewards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {sortedRewards.map((reward) => {
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredRewards.map((reward) => {
             const IconComponent = getRewardIcon(reward.rewardType);
             return (
               <div
                 key={reward._id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
               >
-                {/* Card Header */}
-                <div className="p-5 border-b border-gray-100">
-                  <div className="flex items-start justify-between">
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${reward.color || 'bg-gray-100'}`}>
-                        <IconComponent className="h-5 w-5 text-white" />
+                      <div className={`p-2.5 rounded-lg ${getRewardTypeColor(reward.rewardType)}`}>
+                        <IconComponent className="w-5 h-5" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {reward.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                          {reward.description}
-                        </p>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{reward.description}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleToggleActive(reward._id, reward.isActive)}
-                      className={`ml-2 flex-shrink-0 ${
-                        reward.isActive ? 'text-green-600' : 'text-gray-400'
-                      }`}
-                    >
-                      {reward.isActive ? <FaToggleOn className="h-5 w-5" /> : <FaToggleOff className="h-5 w-5" />}
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => handleToggleActive(reward._id, !reward.isActive)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          reward.isActive ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-50'
+                        }`}
+                      >
+                        {reward.isActive ? <FaToggleOn className="w-5 h-5" /> : <FaToggleOff className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Card Body */}
-                <div className="p-5">
+                  {/* Details */}
                   <div className="space-y-3">
-                    {/* Reward Value */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Reward Value:</span>
-                      <span className="font-semibold text-gray-900">{reward.rewardValue}</span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-500">Reward Value</div>
+                      <div className="text-gray-900">{reward.rewardValue}</div>
                     </div>
-
-                    {/* Requirement */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Requirement:</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {reward.requirementValue} {reward.requirementType.replace('_', ' ')}
-                      </span>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getRewardTypeColor(reward.rewardType)}`}>
-                        {reward.rewardType.replace('_', ' ')}
-                      </span>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(reward.category)}`}>
-                        {reward.category}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                        Priority {reward.priority}
-                      </span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-500">Requirement</div>
+                      <div className="text-gray-900">
+                        {formatRequirement(reward.requirementType, reward.requirementValue)}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Card Actions */}
-                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs ${reward.isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                      {reward.isActive ? 'Active' : 'Inactive'}
+                  {/* Tags */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                      reward.rewardType === 'monetary' ? 'bg-green-50 text-green-700' :
+                      reward.rewardType === 'gift' ? 'bg-purple-50 text-purple-700' :
+                      reward.rewardType === 'time_off' ? 'bg-blue-50 text-blue-700' :
+                      'bg-yellow-50 text-yellow-700'
+                    }`}>
+                      {reward.rewardType.replace('_', ' ')}
                     </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingReward(reward);
-                          setShowForm(true);
-                        }}
-                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Edit"
-                      >
-                        <FaEdit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteReward(reward._id)}
-                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <FaTrash className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getCategoryColor(reward.category)}`}>
+                      {reward.category}
+                    </span>
+                    <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                      Priority {reward.priority}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingReward(reward);
+                        setShowForm(true);
+                      }}
+                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <FaEdit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteReward(reward._id)}
+                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <FaTrash className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -562,27 +518,15 @@ export default function BarberRewardsPage() {
         </div>
 
         {/* Empty State */}
-        {sortedRewards.length === 0 && (
-          <div className="text-center py-12">
-            <FaGift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {rewards.length === 0 ? 'No rewards created yet' : 'No rewards match your filters'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {rewards.length === 0 
-                ? 'Create your first barber reward to motivate your team.'
-                : 'Try adjusting your search or filter criteria.'
-              }
+        {filteredRewards.length === 0 && !loading && (
+          <div className="mt-8 text-center py-12 bg-white rounded-xl border border-gray-100">
+            <FaGift className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Rewards Found</h3>
+            <p className="text-gray-500">
+              {rewards.length === 0
+                ? "Create your first barber reward to get started."
+                : "No rewards match your current filters."}
             </p>
-            {rewards.length === 0 && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                <FaPlus className="h-4 w-4" />
-                Create First Reward
-              </button>
-            )}
           </div>
         )}
 
