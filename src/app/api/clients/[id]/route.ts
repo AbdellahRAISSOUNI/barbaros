@@ -16,7 +16,7 @@ export async function GET(
     // Check authentication
     if (!session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -25,7 +25,7 @@ export async function GET(
     
     if (!id) {
       return NextResponse.json(
-        { error: 'Client ID is required' },
+        { success: false, message: 'Client ID is required' },
         { status: 400 }
       );
     }
@@ -40,12 +40,15 @@ export async function GET(
     
     if (!client) {
       return NextResponse.json(
-        { error: 'Client not found' },
+        { success: false, message: 'Client not found' },
         { status: 404 }
       );
     }
     
-    return NextResponse.json(client);
+    return NextResponse.json({
+      success: true,
+      client: client
+    });
   } catch (error: any) {
     console.error('Error fetching client:', error);
     return NextResponse.json(
@@ -86,26 +89,71 @@ export async function PUT(
     // Parse request body
     const updateData = await request.json();
     
+    // Validate required fields
+    if (updateData.firstName && !updateData.firstName.trim()) {
+      return NextResponse.json(
+        { success: false, message: 'First name cannot be empty' },
+        { status: 400 }
+      );
+    }
+    
+    if (updateData.lastName && !updateData.lastName.trim()) {
+      return NextResponse.json(
+        { success: false, message: 'Last name cannot be empty' },
+        { status: 400 }
+      );
+    }
+    
+    if (updateData.phoneNumber && !updateData.phoneNumber.trim()) {
+      return NextResponse.json(
+        { success: false, message: 'Phone number cannot be empty' },
+        { status: 400 }
+      );
+    }
+    
     // Remove sensitive fields that shouldn't be updated directly
     delete updateData.passwordHash;
     delete updateData._id;
     delete updateData.dateCreated;
+    delete updateData.clientId;
+    delete updateData.qrCodeId;
+    delete updateData.qrCodeUrl;
     
     // Update client
-    const client = await updateClient(id, updateData);
-    
-    if (!client) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
+    try {
+      const client = await updateClient(id, updateData);
+      
+      if (!client) {
+        return NextResponse.json(
+          { success: false, message: 'Client not found' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json({
+        success: true,
+        client: client,
+        message: 'Profile updated successfully'
+      });
+    } catch (error: any) {
+      // Check for duplicate phone number error
+      if (error.message.includes('duplicate key error') && error.message.includes('phoneNumber')) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: 'This phone number is already registered to another client. Please use a different phone number.',
+            field: 'phoneNumber'
+          },
+          { status: 400 }
+        );
+      }
+      
+      throw error; // Re-throw other errors to be caught by the outer catch block
     }
-    
-    return NextResponse.json(client);
   } catch (error: any) {
     console.error('Error updating client:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update client' },
+      { success: false, message: error.message || 'Failed to update client' },
       { status: 500 }
     );
   }
@@ -125,7 +173,7 @@ export async function DELETE(
     // Check authentication
     if (!session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -134,7 +182,7 @@ export async function DELETE(
     
     if (!id) {
       return NextResponse.json(
-        { error: 'Client ID is required' },
+        { success: false, message: 'Client ID is required' },
         { status: 400 }
       );
     }
@@ -142,11 +190,14 @@ export async function DELETE(
     // Delete client
     await deleteClient(id);
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Client deleted successfully'
+    });
   } catch (error: any) {
     console.error('Error deleting client:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete client' },
+      { success: false, message: error.message || 'Failed to delete client' },
       { status: 500 }
     );
   }
