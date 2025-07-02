@@ -14,18 +14,19 @@ interface ClientInfo {
   clientId: string;
   firstName: string;
   lastName: string;
-  email: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   visitCount: number;
   rewardsEarned: number;
   rewardsRedeemed: number;
-  qrCodeUrl: string;
+  qrCodeUrl?: string;
   lastVisit?: Date;
   accountActive: boolean;
   dateCreated: Date;
   totalLifetimeVisits: number;
   currentProgressVisits: number;
   loyaltyStatus: string;
+  totalSpent?: number;
+  averageVisitValue?: number;
 }
 
 type ViewMode = 'info' | 'recording' | 'history' | 'rewards';
@@ -66,7 +67,13 @@ export default function ClientDetailPage() {
       }
       
       const data = await response.json();
-      setClientInfo(data);
+      
+      // The API returns { success: true, client: {...} }
+      if (data.success && data.client) {
+        setClientInfo(data.client);
+      } else {
+        throw new Error(data.message || 'Failed to fetch client information');
+      }
     } catch (err) {
       console.error('Error fetching client info:', err);
       setError(err instanceof Error ? err.message : 'Failed to load client information');
@@ -255,22 +262,23 @@ export default function ClientDetailPage() {
                       <p className="text-gray-900">{clientInfo.lastName}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <p className="text-gray-900">{clientInfo.email}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <p className="text-gray-900">{clientInfo.phoneNumber}</p>
                     </div>
-                    {clientInfo.phoneNumber && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <p className="text-gray-900">{clientInfo.phoneNumber}</p>
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Client ID</label>
+                      <p className="text-gray-900">{clientInfo.clientId}</p>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
                       <p className="text-gray-900">
-                        {new Date(clientInfo.dateCreated).toLocaleDateString()}
+                        {clientInfo.dateCreated 
+                          ? new Date(clientInfo.dateCreated).toLocaleDateString()
+                          : 'Unknown'
+                        }
                       </p>
                     </div>
                     <div>
@@ -295,7 +303,7 @@ export default function ClientDetailPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Loyalty Status</label>
                       <span className="inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {clientInfo.loyaltyStatus}
+                        {clientInfo.loyaltyStatus || 'new'}
                       </span>
                     </div>
                   </div>
@@ -310,24 +318,24 @@ export default function ClientDetailPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Total Visits</span>
-                    <span className="font-semibold text-gray-900">{clientInfo.visitCount}</span>
+                    <span className="font-semibold text-gray-900">{clientInfo.visitCount || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Lifetime Visits</span>
-                    <span className="font-semibold text-gray-900">{clientInfo.totalLifetimeVisits || clientInfo.visitCount}</span>
+                    <span className="font-semibold text-gray-900">{clientInfo.totalLifetimeVisits || clientInfo.visitCount || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Rewards Earned</span>
-                    <span className="font-semibold text-gray-900">{clientInfo.rewardsEarned}</span>
+                    <span className="font-semibold text-gray-900">{clientInfo.rewardsEarned || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Rewards Redeemed</span>
-                    <span className="font-semibold text-gray-900">{clientInfo.rewardsRedeemed}</span>
+                    <span className="font-semibold text-gray-900">{clientInfo.rewardsRedeemed || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Available Rewards</span>
                     <span className="font-semibold text-green-600">
-                      {clientInfo.rewardsEarned - clientInfo.rewardsRedeemed}
+                      {(clientInfo.rewardsEarned || 0) - (clientInfo.rewardsRedeemed || 0)}
                     </span>
                   </div>
                 </div>
@@ -338,7 +346,14 @@ export default function ClientDetailPage() {
 
         {viewMode === 'recording' && (
           <VisitRecordingForm
-            clientInfo={clientInfo}
+            clientInfo={{
+              _id: clientInfo._id,
+              firstName: clientInfo.firstName,
+              lastName: clientInfo.lastName,
+              email: '', // Not available in our client model
+              visitCount: clientInfo.visitCount,
+              phone: clientInfo.phoneNumber
+            }}
             onVisitCreated={handleVisitCreated}
             onCancel={() => setViewMode('info')}
             onNavigateToRewards={(clientId) => setViewMode('rewards')}
