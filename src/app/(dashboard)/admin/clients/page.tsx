@@ -27,7 +27,10 @@ import {
   FaTimesCircle,
   FaChevronLeft,
   FaChevronRight,
-  FaColumns
+  FaColumns,
+  FaKey,
+  FaLock,
+  FaEyeSlash
 } from 'react-icons/fa';
 import { ClientForm } from '@/components/ui/ClientForm';
 import { QRCodeModal } from '@/components/ui/QRCodeModal';
@@ -143,6 +146,14 @@ export default function ClientsPage() {
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // State for password change modal
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordChangeClient, setPasswordChangeClient] = useState<Client | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   // State for client statistics
   const [clientStats, setClientStats] = useState({
     totalClients: 0,
@@ -157,10 +168,68 @@ export default function ClientsPage() {
     averageSpentPerClient: 0
   });
 
-  // Fetch clients on component mount and when filters/pagination changes
+  // Add state for sorted clients
+  const [sortedClients, setSortedClients] = useState<Client[]>([]);
+
+  // Fetch clients on component mount and when filters/pagination changes (but not sortConfig)
   useEffect(() => {
     fetchClients();
-  }, [currentPage, pageSize, sortConfig, filters]);
+  }, [currentPage, pageSize, filters]);
+
+  // Sort clients locally for immediate feedback
+  useEffect(() => {
+    if (!sortConfig.field) {
+      setSortedClients(clients);
+      return;
+    }
+
+    const sorted = [...clients].sort((a, b) => {
+      const aValue = a[sortConfig.field as keyof Client];
+      const bValue = b[sortConfig.field as keyof Client];
+      
+      if (aValue === bValue) return 0;
+      
+      // Handle undefined values
+      if (aValue === undefined || aValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bValue === undefined || bValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
+      
+      // Special handling for different field types
+      let compareResult = 0;
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        compareResult = aValue < bValue ? -1 : 1;
+      } else if (sortConfig.field === 'lastVisit' || sortConfig.field === 'createdAt' || sortConfig.field === 'updatedAt') {
+        // Handle date string comparison
+        const aDate = new Date(aValue as string);
+        const bDate = new Date(bValue as string);
+        compareResult = aDate.getTime() < bDate.getTime() ? -1 : 1;
+      } else if (sortConfig.field === 'accountActive') {
+        // Handle boolean sorting (active first when ascending)
+        const aBool = Boolean(aValue);
+        const bBool = Boolean(bValue);
+        compareResult = aBool === bBool ? 0 : (aBool ? -1 : 1);
+      } else if (sortConfig.field === 'rewardsEarned' || sortConfig.field === 'rewardsRedeemed' || 
+                 sortConfig.field === 'visitCount' || sortConfig.field === 'totalLifetimeVisits' ||
+                 sortConfig.field === 'currentProgressVisits' || sortConfig.field === 'totalSpent' ||
+                 sortConfig.field === 'averageVisitValue') {
+        // Handle numeric fields that might be undefined
+        const aNum = Number(aValue) || 0;
+        const bNum = Number(bValue) || 0;
+        compareResult = aNum < bNum ? -1 : 1;
+      } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+        compareResult = aValue.toLowerCase() < bValue.toLowerCase() ? -1 : 1;
+      } else {
+        // Convert to strings for comparison
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
+        compareResult = aStr < bStr ? -1 : 1;
+      }
+      
+      return sortConfig.direction === 'asc' ? compareResult : -compareResult;
+    });
+
+    setSortedClients(sorted);
+  }, [clients, sortConfig]);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -246,7 +315,7 @@ export default function ClientsPage() {
       setTotalClients(data.totalClients);
       setTotalPages(data.totalPages);
 
-      // Calculate enhanced client statistics
+      // Calculate enhanced client statistics from current page data
       const activeCount = data.clients.filter((c: Client) => c.accountActive).length;
       const newCount = data.clients.filter((c: Client) => c.loyaltyStatus === 'new').length;
       const loyaltyCount = data.clients.filter((c: Client) => c.loyaltyStatus === 'active' || c.loyaltyStatus === 'milestone_reached').length;
@@ -257,14 +326,14 @@ export default function ClientsPage() {
       setClientStats({
         totalClients: data.totalClients,
         activeClients: activeCount,
-        inactiveClients: data.totalClients - activeCount,
+        inactiveClients: data.clients.length - activeCount, // Use current page for visible stats
         newClients: newCount,
         loyaltyMembers: loyaltyCount,
         totalVisits,
         totalRewards,
         totalSpent,
-        averageVisitsPerClient: data.totalClients > 0 ? Math.round((totalVisits / data.totalClients) * 10) / 10 : 0,
-        averageSpentPerClient: data.totalClients > 0 ? Math.round((totalSpent / data.totalClients) * 100) / 100 : 0
+        averageVisitsPerClient: data.clients.length > 0 ? Math.round((totalVisits / data.clients.length) * 10) / 10 : 0,
+        averageSpentPerClient: data.clients.length > 0 ? Math.round((totalSpent / data.clients.length) * 100) / 100 : 0
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -274,10 +343,28 @@ export default function ClientsPage() {
     }
   };
 
-  const handleSort = (field: keyof Client) => {
+  const handleSort = (field: keyof Client | ColumnKey) => {
+    // Map column keys to actual client fields for sorting
+    const fieldMap: Record<ColumnKey, keyof Client> = {
+      clientId: 'clientId',
+      name: 'lastName', // Sort by last name for name column
+      phone: 'phoneNumber',
+      visits: 'totalLifetimeVisits',
+      totalSpent: 'totalSpent',
+      lastVisit: 'lastVisit',
+      loyaltyStatus: 'loyaltyStatus',
+      status: 'accountActive',
+      rewards: 'rewardsEarned',
+      avgValue: 'averageVisitValue',
+      daysSince: 'lastVisit', // Will calculate days in sorting
+      progress: 'currentProgressVisits'
+    };
+
+    const actualField = fieldMap[field as ColumnKey] || field as keyof Client;
+    
     setSortConfig(prev => ({
-      field,
-      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+      field: actualField,
+      direction: prev.field === actualField && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
   };
 
@@ -334,6 +421,76 @@ export default function ClientsPage() {
   const handleDeleteClick = (client: Client) => {
     setClientToDelete(client);
     setShowDeleteModal(true);
+  };
+
+  const handlePasswordChangeClick = (client: Client) => {
+    setPasswordChangeClient(client);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError(null);
+    setShowPasswordModal(true);
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordChangeClient) return;
+    
+    setPasswordError(null);
+    
+    // Validate passwords
+    if (!newPassword.trim()) {
+      setPasswordError('Password is required');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      const response = await fetch(`/api/admin/clients/${passwordChangeClient._id}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newPassword
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setShowPasswordModal(false);
+        setPasswordChangeClient(null);
+        setNewPassword('');
+        setConfirmPassword('');
+        toast.success('Client password changed successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to change password');
+      }
+    } catch (err: any) {
+      console.error('Error changing password:', err);
+      setPasswordError(err.message || 'Failed to change password');
+      toast.error(err.message || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handlePasswordModalClose = () => {
+    setShowPasswordModal(false);
+    setPasswordChangeClient(null);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError(null);
   };
 
   const handleClientSubmit = async (clientData: any) => {
@@ -539,8 +696,26 @@ export default function ClientsPage() {
     }
   };
 
-  const getSortIcon = (field: string) => {
-    if (sortConfig.field !== field) return <FaSort className="w-3 h-3 text-gray-400" />;
+  const getSortIcon = (columnKey: string) => {
+    // Map column keys to actual client fields for icon display
+    const fieldMap: Record<ColumnKey, keyof Client> = {
+      clientId: 'clientId',
+      name: 'lastName', 
+      phone: 'phoneNumber',
+      visits: 'totalLifetimeVisits',
+      totalSpent: 'totalSpent',
+      lastVisit: 'lastVisit',
+      loyaltyStatus: 'loyaltyStatus',
+      status: 'accountActive',
+      rewards: 'rewardsEarned',
+      avgValue: 'averageVisitValue',
+      daysSince: 'lastVisit',
+      progress: 'currentProgressVisits'
+    };
+
+    const actualField = fieldMap[columnKey as ColumnKey] || columnKey;
+    
+    if (sortConfig.field !== actualField) return <FaSort className="w-3 h-3 text-gray-400" />;
     return sortConfig.direction === 'asc' 
       ? <FaSortUp className="w-3 h-3 text-gray-600" />
       : <FaSortDown className="w-3 h-3 text-gray-600" />;
@@ -863,7 +1038,7 @@ export default function ClientsPage() {
                     className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
                       column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
                     }`}
-                    onClick={() => column.sortable && handleSort(column.key as keyof Client)}
+                    onClick={() => column.sortable && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-1">
                       {column.label}
@@ -877,7 +1052,7 @@ export default function ClientsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {clients.map((client) => (
+              {sortedClients.map((client) => (
                 <tr key={client._id} className="hover:bg-gray-50 transition-colors">
                   {visibleColumns.map((column) => (
                     <td key={column.key} className="px-6 py-4 whitespace-nowrap">
@@ -899,6 +1074,13 @@ export default function ClientsPage() {
                         title="View QR Code"
                       >
                         <FaQrcode size={16} />
+                      </button>
+                      <button
+                        onClick={() => handlePasswordChangeClick(client)}
+                        className="text-purple-600 hover:text-purple-900 transition-colors"
+                        title="Change Password"
+                      >
+                        <FaKey size={16} />
                       </button>
                       <button
                         onClick={() => handleEditClient(client)}
@@ -924,7 +1106,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Empty State */}
-      {!isLoading && clients.length === 0 && (
+      {!isLoading && sortedClients.length === 0 && (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
           <FaUsers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -1044,6 +1226,91 @@ export default function ClientsPage() {
           onCancel={() => setShowDeleteModal(false)}
           isDeleting={isDeleting}
         />
+      )}
+
+      {showPasswordModal && passwordChangeClient && (
+        <AdminModal
+          isOpen={showPasswordModal}
+          onClose={handlePasswordModalClose}
+          title="Change Client Password"
+        >
+          <div className="space-y-6">
+            <div className="text-center">
+              <FaLock className="mx-auto h-12 w-12 text-purple-600 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900">
+                Change Password for {passwordChangeClient.firstName} {passwordChangeClient.lastName}
+              </h3>
+              <p className="text-sm text-gray-500 mt-2">
+                As an admin, you can change this client's password without knowing their current password.
+              </p>
+            </div>
+            
+            {passwordError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 text-sm">{passwordError}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={isChangingPassword}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={isChangingPassword}
+                />
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <button
+                onClick={handlePasswordModalClose}
+                disabled={isChangingPassword}
+                className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasswordChange}
+                disabled={isChangingPassword || !newPassword || !confirmPassword}
+                className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isChangingPassword ? (
+                  <>
+                    <FaSpinner className="animate-spin h-4 w-4 mr-2 inline" />
+                    Changing Password...
+                  </>
+                ) : (
+                  <>
+                    <FaKey className="h-4 w-4 mr-2 inline" />
+                    Change Password
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </AdminModal>
       )}
     </div>
   );
