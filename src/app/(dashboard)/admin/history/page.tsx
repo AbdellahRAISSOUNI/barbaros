@@ -16,7 +16,9 @@ import {
   FaUserTie,
   FaSpinner,
   FaTimes,
-  FaChartLine
+  FaChartLine,
+  FaChevronLeft,
+  FaChevronRight
 } from 'react-icons/fa';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
@@ -104,7 +106,7 @@ export default function AdminHistoryPage() {
     totalClients: 0
   });
 
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     fetchVisits();
@@ -299,357 +301,368 @@ export default function AdminHistoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Toaster position="top-right" />
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <FaHistory className="mr-3 text-black" />
-            Visit History
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Track and manage all barbershop visits and services
-          </p>
-        </div>
-        <button
-          onClick={exportHistory}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-black to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-black transition-all duration-200 shadow-lg font-medium"
-        >
-          <FaDownload size={16} />
-          Export Data
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-600 text-sm font-medium">Total Visits</p>
-              <p className="text-2xl font-bold text-blue-900">{stats.totalVisits}</p>
-            </div>
-            <FaHistory className="h-8 w-8 text-blue-600" />
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Visit History</h1>
+            <p className="mt-1 text-sm text-gray-600">View and manage all visit records</p>
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-600 text-sm font-medium">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-900">{formatCurrency(stats.totalRevenue)}</p>
-            </div>
-            <FaDollarSign className="h-8 w-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-600 text-sm font-medium">Average Value</p>
-              <p className="text-2xl font-bold text-purple-900">{formatCurrency(stats.averageValue)}</p>
-            </div>
-            <FaChartLine className="h-8 w-8 text-purple-600" />
-          </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-600 text-sm font-medium">Unique Clients</p>
-              <p className="text-2xl font-bold text-orange-900">{stats.totalClients}</p>
-            </div>
-            <FaUser className="h-8 w-8 text-orange-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-4">
-          {/* Search */}
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search visits, clients, barbers..."
-                value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all hover:border-gray-400"
-              />
-            </div>
-          </div>
-
-          {/* Filter Toggle */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={exportHistory}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FaDownload className="w-4 h-4" />
+              Export Data
+            </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                showFilters ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
-              <FaFilter size={14} />
-              Filters
+              <FaFilter className="w-4 h-4" />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            {Object.values(filters).some(value => value && value !== 'all') && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FaTimes size={12} />
-                Clear
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-              <input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-              <input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Barber</label>
-              <select
-                value={filters.barber}
-                onChange={(e) => setFilters(prev => ({ ...prev, barber: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="">All Barbers</option>
-                {availableBarbers.map(barber => (
-                  <option key={barber._id} value={barber.name}>{barber.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
-              <select
-                value={filters.service}
-                onChange={(e) => setFilters(prev => ({ ...prev, service: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="">All Services</option>
-                {availableServices.map(service => (
-                  <option key={service._id} value={service._id}>{service.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Min Amount</label>
-              <input
-                type="number"
-                placeholder="0.00"
-                value={filters.minAmount}
-                onChange={(e) => setFilters(prev => ({ ...prev, minAmount: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max Amount</label>
-              <input
-                type="number"
-                placeholder="100.00"
-                value={filters.maxAmount}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxAmount: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rewards</label>
-              <select
-                value={filters.rewardFilter}
-                onChange={(e) => setFilters(prev => ({ ...prev, rewardFilter: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                <option value="all">All Visits</option>
-                <option value="reward_only">With Rewards</option>
-                <option value="no_reward">No Rewards</option>
-              </select>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FaHistory className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Visits</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.totalVisits}</p>
+              </div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Results */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {filteredVisits.length === 0 ? (
-          <div className="text-center py-12">
-            <FaHistory className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No visits found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
-          </div>
-        ) : (
-          <>
-            <div className="px-6 py-4 border-b border-gray-200">
-              <p className="text-sm text-gray-600">
-                Showing {filteredVisits.length} of {visits.length} visits
-              </p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <FaDollarSign className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-semibold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+              </div>
             </div>
-            
-            {/* Desktop Table */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barber</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredVisits.map((visit) => (
-                    <tr key={visit._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium text-gray-900">#{visit.visitNumber}</span>
-                          {visit.rewardRedeemed && (
-                            <FaGift className="ml-2 h-4 w-4 text-green-500" title="Reward redeemed" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Link 
-                          href={`/admin/clients/${visit.clientId._id}/view`}
-                          className="flex items-center hover:text-blue-600 transition-colors cursor-pointer"
-                        >
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 hover:text-blue-600">
-                              {visit.clientId.firstName} {visit.clientId.lastName}
-                            </div>
-                            {visit.clientId.phoneNumber && (
-                              <div className="text-sm text-gray-500">{visit.clientId.phoneNumber}</div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <FaChartLine className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Average Value</p>
+                <p className="text-2xl font-semibold text-gray-900">{formatCurrency(stats.averageValue)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <FaUser className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Clients</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.totalClients}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className={`transform transition-all duration-300 ease-in-out ${showFilters ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 h-0 overflow-hidden'}`}>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Search */}
+              <div className="col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, phone, or service..."
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Date Range */}
+              <div className="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                  />
+                </div>
+              </div>
+
+              {/* Barber Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Barber</label>
+                <select
+                  value={filters.barber}
+                  onChange={(e) => setFilters({ ...filters, barber: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  <option value="">All Barbers</option>
+                  {availableBarbers.map((barber) => (
+                    <option key={barber._id} value={barber.name}>
+                      {barber.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Service Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+                <select
+                  value={filters.service}
+                  onChange={(e) => setFilters({ ...filters, service: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  <option value="">All Services</option>
+                  {availableServices.map((service) => (
+                    <option key={service._id} value={service._id}>
+                      {service.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Amount Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Min Amount</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={filters.minAmount}
+                    onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Amount</label>
+                  <input
+                    type="number"
+                    placeholder="1000"
+                    value={filters.maxAmount}
+                    onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Actions */}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Results header */}
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing {filteredVisits.length} of {visits.length} visits
+            </p>
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600">Show per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1); // Reset to first page when changing items per page
+                }}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          {filteredVisits.length === 0 ? (
+            <div className="text-center py-12">
+              <FaHistory className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No visits found</h3>
+              <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barber</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredVisits.map((visit) => (
+                      <tr key={visit._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">#{visit.visitNumber}</span>
+                            {visit.rewardRedeemed && (
+                              <FaGift className="ml-2 h-4 w-4 text-green-500" title="Reward redeemed" />
                             )}
                           </div>
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {visit.barber ? (
-                          <button
-                            onClick={() => handleBarberClick(visit.barber!)}
-                            className="flex items-center text-sm text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Link 
+                            href={`/admin/clients/${visit.clientId._id}/view`}
+                            className="flex items-center hover:text-blue-600 transition-colors cursor-pointer"
                           >
-                            <FaUserTie className="mr-2 h-4 w-4" />
-                            {visit.barber}
-                          </button>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not assigned</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="max-w-xs">
-                          {visit.services.map((service, index) => (
-                            <div key={index} className="text-sm text-gray-900">
-                              {service.serviceName || service.name}
-                              {index < visit.services.length - 1 && ', '}
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                                {visit.clientId.firstName} {visit.clientId.lastName}
+                              </div>
+                              {visit.clientId.phoneNumber && (
+                                <div className="text-sm text-gray-500">{visit.clientId.phoneNumber}</div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatCurrency(visit.totalPrice)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(visit.visitDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link
-                          href={`/admin/clients/${visit.clientId._id}/view?tab=history`}
-                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                          title="View Details"
-                        >
-                          <FaEye className="h-4 w-4" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {visit.barber ? (
+                            <button
+                              onClick={() => handleBarberClick(visit.barber!)}
+                              className="flex items-center text-sm text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                            >
+                              <FaUserTie className="mr-2 h-4 w-4" />
+                              {visit.barber}
+                            </button>
+                          ) : (
+                            <span className="text-sm text-gray-500">Not assigned</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="max-w-xs">
+                            {visit.services.map((service, index) => (
+                              <div key={index} className="text-sm text-gray-900">
+                                {service.serviceName || service.name}
+                                {index < visit.services.length - 1 && ', '}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">
+                            {formatCurrency(visit.totalPrice)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(visit.visitDate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <Link
+                            href={`/admin/clients/${visit.clientId._id}/view?tab=history`}
+                            className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                            title="View Details"
+                          >
+                            <FaEye className="h-4 w-4" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Mobile Cards */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {filteredVisits.map((visit) => (
-                <div key={visit._id} className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center">
-                      <span className="text-lg font-semibold text-gray-900">#{visit.visitNumber}</span>
-                      {visit.rewardRedeemed && (
-                        <FaGift className="ml-2 h-4 w-4 text-green-500" title="Reward redeemed" />
-                      )}
+              {/* Mobile Cards */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {filteredVisits.map((visit) => (
+                  <div key={visit._id} className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center">
+                        <span className="text-lg font-semibold text-gray-900">#{visit.visitNumber}</span>
+                        {visit.rewardRedeemed && (
+                          <FaGift className="ml-2 h-4 w-4 text-green-500" title="Reward redeemed" />
+                        )}
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">{formatCurrency(visit.totalPrice)}</span>
                     </div>
-                    <span className="text-lg font-bold text-gray-900">{formatCurrency(visit.totalPrice)}</span>
-                  </div>
-                  
-                  <div className="space-y-2 mb-4">
-                    <Link 
-                      href={`/admin/clients/${visit.clientId._id}/view`}
-                      className="flex items-center text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
-                    >
-                      <FaUser className="mr-2 h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{visit.clientId.firstName} {visit.clientId.lastName}</span>
-                    </Link>
                     
-                    {visit.barber && (
-                      <button
-                        onClick={() => handleBarberClick(visit.barber!)}
-                        className="flex items-center text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                    <div className="space-y-2 mb-4">
+                      <Link 
+                        href={`/admin/clients/${visit.clientId._id}/view`}
+                        className="flex items-center text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
                       >
-                        <FaUserTie className="mr-2 h-4 w-4 text-gray-400" />
-                        <span>{visit.barber}</span>
-                      </button>
-                    )}
-                    
-                    <div className="flex items-center text-gray-600">
-                      <FaCalendarAlt className="mr-2 h-4 w-4 text-gray-400" />
-                      <span>{formatDate(visit.visitDate)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Services:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {visit.services.map((service, index) => (
-                        <span 
-                          key={index}
-                          className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                        <FaUser className="mr-2 h-4 w-4 text-gray-400" />
+                        <span className="font-medium">{visit.clientId.firstName} {visit.clientId.lastName}</span>
+                      </Link>
+                      
+                      {visit.barber && (
+                        <button
+                          onClick={() => handleBarberClick(visit.barber!)}
+                          className="flex items-center text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                         >
-                          {service.serviceName || service.name}
-                        </span>
-                      ))}
+                          <FaUserTie className="mr-2 h-4 w-4 text-gray-400" />
+                          <span>{visit.barber}</span>
+                        </button>
+                      )}
+                      
+                      <div className="flex items-center text-gray-600">
+                        <FaCalendarAlt className="mr-2 h-4 w-4 text-gray-400" />
+                        <span>{formatDate(visit.visitDate)}</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex justify-end">
+                    
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Services:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {visit.services.map((service, index) => (
+                          <span 
+                            key={index}
+                            className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                          >
+                            {service.serviceName || service.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end">
                                           <Link
                         href={`/admin/clients/${visit.clientId._id}/view?tab=history`}
                         className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors text-sm cursor-pointer"
@@ -658,53 +671,102 @@ export default function AdminHistoryPage() {
                       View Details
                     </Link>
                   </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Enhanced Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredVisits.length)} of {filteredVisits.length} entries
                 </div>
-              ))}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaChevronLeft className="w-3 h-3" />
+                    <FaChevronLeft className="w-3 h-3 -ml-2" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaChevronLeft className="w-3 h-3" />
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`min-w-[2.5rem] h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === pageNum
+                              ? 'bg-purple-600 text-white'
+                              : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaChevronRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaChevronRight className="w-3 h-3" />
+                    <FaChevronRight className="w-3 h-3 -ml-2" />
+                  </button>
+                </div>
+              </div>
             </div>
-          </>
+          )}
+        </div>
+
+        {/* Barber Stats Modal */}
+        {showBarberStats && selectedBarber && (
+          <BarberStatsModal
+            barber={selectedBarber}
+            onClose={() => {
+              setShowBarberStats(false);
+              setSelectedBarber(null);
+            }}
+            onEdit={() => {
+              setShowBarberStats(false);
+              // Navigate to barbers page - you can customize this navigation
+              window.location.href = '/admin/barbers';
+            }}
+          />
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="px-3 py-2 text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Barber Stats Modal */}
-      {showBarberStats && selectedBarber && (
-        <BarberStatsModal
-          barber={selectedBarber}
-          onClose={() => {
-            setShowBarberStats(false);
-            setSelectedBarber(null);
-          }}
-          onEdit={() => {
-            setShowBarberStats(false);
-            // Navigate to barbers page - you can customize this navigation
-            window.location.href = '/admin/barbers';
-          }}
-        />
-      )}
     </div>
   );
 } 

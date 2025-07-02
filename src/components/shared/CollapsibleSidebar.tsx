@@ -238,7 +238,7 @@ export function CollapsibleSidebar({
         )}
       </button>
       
-      {/* Mobile sidebar overlay - Only show when mobile menu is actually open */}
+      {/* Mobile sidebar overlay */}
       {isMobileMenuOpen && (
         <div 
           className="lg:hidden fixed inset-0 z-30 bg-black/10 backdrop-blur-[2px] transition-opacity duration-300"
@@ -247,31 +247,15 @@ export function CollapsibleSidebar({
         />
       )}
       
-      {/* Desktop collapse toggle button */}
-      <button 
-        className="hidden lg:flex fixed top-4 z-30 w-9 h-9 rounded-r-xl bg-white shadow-md border border-l-0 border-gray-200 hover:bg-gray-50 hover:shadow-lg active:scale-95 transition-all duration-300 items-center justify-center backdrop-blur-sm"
-        style={{ 
-          left: isCollapsed ? '64px' : '240px'
-        }}
-        onClick={toggleCollapsed}
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {isCollapsed ? (
-          <FaChevronRight size={14} className="text-gray-600" />
-        ) : (
-          <FaChevronLeft size={14} className="text-gray-600" />
-        )}
-      </button>
-      
       {/* Sidebar */}
       <aside 
-        className={`fixed lg:static inset-y-0 left-0 z-40 bg-white shadow-sm border-r border-gray-200 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-40 bg-white shadow-sm border-r border-gray-200 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } ${
           isCollapsed ? 'lg:w-16' : 'lg:w-60'
         } w-80 sm:w-72`}
       >
-        {/* Logo/Brand Section - Minimal */}
+        {/* Logo/Brand Section */}
         <div className={`h-16 sm:h-14 border-b border-gray-100 flex items-center transition-all duration-300 ${
           isCollapsed ? 'lg:px-2 lg:justify-center' : 'px-6 lg:px-4'
         }`}>
@@ -298,10 +282,23 @@ export function CollapsibleSidebar({
           </div>
         </div>
         
-        {/* Navigation - Non-scrollable, fixed height with better responsiveness */}
-        <nav className="h-[calc(100vh-64px)] sm:h-[calc(100vh-56px)] flex flex-col py-6 sm:py-4 overflow-hidden">
+        {/* Navigation */}
+        <nav className="h-[calc(100vh-3.5rem)]">
           <NavItems mobile={isMobileMenuOpen} />
         </nav>
+
+        {/* Desktop collapse toggle button - Positioned relative to sidebar */}
+        <button 
+          className="hidden lg:flex absolute -right-9 top-4 z-30 w-9 h-9 rounded-r-xl bg-white shadow-md border border-l-0 border-gray-200 hover:bg-gray-50 hover:shadow-lg active:scale-95 transition-all duration-300 items-center justify-center backdrop-blur-sm"
+          onClick={toggleCollapsed}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? (
+            <FaChevronRight size={14} className="text-gray-600" />
+          ) : (
+            <FaChevronLeft size={14} className="text-gray-600" />
+          )}
+        </button>
       </aside>
     </>
   );

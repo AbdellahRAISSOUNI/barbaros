@@ -14,20 +14,16 @@ export default function AdminDashboardLayout({
 
   return (
     <AuthCheck adminOnly>
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
-        <AdminSidebar onCollapsedChange={setSidebarCollapsed} />
+        <div className="flex-shrink-0">
+          <AdminSidebar onCollapsedChange={setSidebarCollapsed} />
+        </div>
 
         {/* Main Content */}
-        <div 
-          className={`flex-1 flex flex-col transition-all duration-300 ${
-            sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'
-          }`}
-        >
+        <div className="flex-1 flex flex-col min-w-0">
           <AdminHeader className="hidden lg:flex" />
-          <main 
-            className={`flex-1 overflow-x-hidden overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 pt-4 lg:pt-8 transition-all duration-300`}
-          >
+          <main className="flex-1">
             {children}
           </main>
         </div>
