@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FaGift, FaPercentage, FaEye, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaCalendarAlt, FaRedoAlt } from 'react-icons/fa';
+import { FaGift, FaPercentage, FaEye, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaCalendarAlt, FaRedoAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { HiEye, HiPencil, HiTrash, HiClock, HiGift } from 'react-icons/hi2';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Pagination } from '@/components/ui/Pagination';
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 
@@ -61,6 +63,7 @@ export default function RewardsTable({
     rewardName: ''
   });
   const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
+  const [expandedServices, setExpandedServices] = useState<{ [key: string]: boolean }>({});
 
   const handleDelete = (reward: Reward) => {
     setDeleteModal({
@@ -95,6 +98,13 @@ export default function RewardsTable({
     }
   };
 
+  const toggleServicesExpansion = (rewardId: string) => {
+    setExpandedServices(prev => ({
+      ...prev,
+      [rewardId]: !prev[rewardId]
+    }));
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -107,7 +117,7 @@ export default function RewardsTable({
     if (reward.rewardType === 'free') {
       return (
         <div className="flex items-center gap-2">
-          <FaGift className="w-4 h-4 text-green-600" />
+          <HiGift className="w-4 h-4 text-green-600" />
           <span className="text-green-600 font-medium">Free</span>
         </div>
       );
@@ -120,6 +130,164 @@ export default function RewardsTable({
       );
     }
   };
+
+  const ServicesDisplay = ({ reward }: { reward: Reward }) => {
+    const maxVisible = 2;
+    const hasMore = reward.applicableServices.length > maxVisible;
+    const isExpanded = expandedServices[reward._id];
+    const visibleServices = isExpanded 
+      ? reward.applicableServices 
+      : reward.applicableServices.slice(0, maxVisible);
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-900 font-medium">
+            {reward.applicableServices.length} service{reward.applicableServices.length !== 1 ? 's' : ''}
+          </p>
+          {hasMore && (
+            <button
+              onClick={() => toggleServicesExpansion(reward._id)}
+              className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium"
+            >
+              {isExpanded ? (
+                <>
+                  <span>Show less</span>
+                  <FaChevronUp className="w-3 h-3" />
+                </>
+              ) : (
+                <>
+                  <span>Show all</span>
+                  <FaChevronDown className="w-3 h-3" />
+                </>
+              )}
+            </button>
+          )}
+        </div>
+        
+        <AnimatePresence>
+          <motion.div 
+            className="grid grid-cols-1 gap-1"
+            layout
+          >
+            {visibleServices.map((service, index) => (
+              <motion.span
+                key={service._id}
+                initial={isExpanded && index >= maxVisible ? { opacity: 0, height: 0 } : false}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs truncate"
+                title={service.name}
+              >
+                {service.name}
+              </motion.span>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const MobileRewardCard = ({ reward }: { reward: Reward }) => (
+    <motion.div
+      layout
+      className="bg-white border border-gray-200 rounded-xl p-4 space-y-4"
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 truncate">{reward.name}</h3>
+          <p className="text-sm text-gray-600 line-clamp-2 mt-1">{reward.description}</p>
+        </div>
+        <div className="ml-3 flex items-center gap-2">
+          <button
+            onClick={() => handleToggleStatus(reward._id)}
+            disabled={actionLoading[reward._id]}
+            className="flex items-center gap-1 transition-colors disabled:opacity-50"
+          >
+            {reward.isActive ? (
+              <FaToggleOn className="w-5 h-5 text-green-600" />
+            ) : (
+              <FaToggleOff className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Details Grid */}
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p className="text-gray-500 mb-1">Type</p>
+          {getRewardTypeDisplay(reward)}
+        </div>
+        <div>
+          <p className="text-gray-500 mb-1">Visits Required</p>
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {reward.visitsRequired} visits
+          </span>
+        </div>
+      </div>
+
+      {/* Services */}
+      <div>
+        <p className="text-gray-500 text-sm mb-2">Applicable Services</p>
+        <ServicesDisplay reward={reward} />
+      </div>
+
+      {/* Details and Created Date */}
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p className="text-gray-500 mb-1">Details</p>
+          <div className="space-y-1">
+            {reward.maxRedemptions && (
+              <div className="flex items-center gap-1 text-xs text-gray-600">
+                <FaRedoAlt className="w-3 h-3" />
+                <span>Max {reward.maxRedemptions}</span>
+              </div>
+            )}
+            {reward.validForDays && (
+              <div className="flex items-center gap-1 text-xs text-gray-600">
+                <FaCalendarAlt className="w-3 h-3" />
+                <span>{reward.validForDays} days</span>
+              </div>
+            )}
+            {!reward.maxRedemptions && !reward.validForDays && (
+              <span className="text-xs text-gray-500">No limits</span>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="text-gray-500 mb-1">Created</p>
+          <span className="text-xs text-gray-600">{formatDate(reward.createdAt)}</span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+        <button
+          onClick={() => onView(reward)}
+          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          title="View Details"
+        >
+          <HiEye className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onEdit(reward)}
+          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+          title="Edit Reward"
+        >
+          <HiPencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleDelete(reward)}
+          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          title="Delete Reward"
+        >
+          <HiTrash className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
 
   if (isLoading) {
     return (
@@ -155,7 +323,17 @@ export default function RewardsTable({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="overflow-x-auto">
+      {/* Mobile View */}
+      <div className="block lg:hidden">
+        <div className="p-4 space-y-4">
+          {rewards.map((reward) => (
+            <MobileRewardCard key={reward._id} reward={reward} />
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -171,10 +349,14 @@ export default function RewardsTable({
           </thead>
           <tbody className="divide-y divide-gray-200">
             {rewards.map((reward) => (
-              <tr key={reward._id} className="hover:bg-gray-50 transition-colors">
+              <motion.tr 
+                key={reward._id} 
+                layout
+                className="hover:bg-gray-50 transition-colors"
+              >
                 <td className="px-6 py-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                  <div className="max-w-xs">
+                    <h3 className="font-medium text-gray-900 truncate">{reward.name}</h3>
                     <p className="text-sm text-gray-600 line-clamp-2">{reward.description}</p>
                   </div>
                 </td>
@@ -184,33 +366,14 @@ export default function RewardsTable({
                 </td>
                 
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {reward.visitsRequired} visits
-                    </span>
-                  </div>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {reward.visitsRequired} visits
+                  </span>
                 </td>
                 
                 <td className="px-6 py-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-900 font-medium">
-                      {reward.applicableServices.length} service{reward.applicableServices.length !== 1 ? 's' : ''}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {reward.applicableServices.slice(0, 2).map((service) => (
-                        <span
-                          key={service._id}
-                          className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
-                        >
-                          {service.name}
-                        </span>
-                      ))}
-                      {reward.applicableServices.length > 2 && (
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                          +{reward.applicableServices.length - 2} more
-                        </span>
-                      )}
-                    </div>
+                  <div className="max-w-xs">
+                    <ServicesDisplay reward={reward} />
                   </div>
                 </td>
                 
@@ -267,25 +430,25 @@ export default function RewardsTable({
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="View Details"
                     >
-                      <FaEye className="w-4 h-4" />
+                      <HiEye className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => onEdit(reward)}
                       className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                       title="Edit Reward"
                     >
-                      <FaEdit className="w-4 h-4" />
+                      <HiPencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(reward)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete Reward"
                     >
-                      <FaTrash className="w-4 h-4" />
+                      <HiTrash className="w-4 h-4" />
                     </button>
                   </div>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
@@ -293,7 +456,7 @@ export default function RewardsTable({
 
       {/* Pagination */}
       {pagination.pages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200">
+        <div className="px-4 lg:px-6 py-4 border-t border-gray-200">
           <Pagination
             currentPage={pagination.page}
             totalPages={pagination.pages}

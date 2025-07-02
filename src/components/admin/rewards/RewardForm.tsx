@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { FaGift, FaPercentage, FaTags, FaCalendarAlt, FaRedoAlt } from 'react-icons/fa';
+import { HiMagnifyingGlass, HiAdjustmentsHorizontal } from 'react-icons/hi2';
 
 interface Service {
   _id: string;
   name: string;
   category?: {
+    _id: string;
     name: string;
   };
   price: number;
   isActive: boolean;
+}
+
+interface Category {
+  _id: string;
+  name: string;
 }
 
 interface Reward {
@@ -46,9 +53,12 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
     isActive: true
   });
   const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [serviceSearch, setServiceSearch] = useState('');
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [servicesLoading, setServicesLoading] = useState(true);
 
   // Initialize form data when editing
   useEffect(() => {
@@ -72,33 +82,49 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
     }
   }, [reward]);
 
-  // Fetch services
+  // Fetch services and categories
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/services?isActive=true&limit=100');
-        const data = await response.json();
-        if (data.success) {
-          setServices(data.services || []);
+        setServicesLoading(true);
+        
+        // Fetch services and categories in parallel
+        const [servicesResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/services?isActive=true&limit=100'),
+          fetch('/api/service-categories?isActive=true')
+        ]);
+
+        const [servicesData, categoriesData] = await Promise.all([
+          servicesResponse.json(),
+          categoriesResponse.json()
+        ]);
+
+        if (servicesData.success) {
+          setServices(servicesData.services || []);
           
           // If editing, populate selected services
           if (reward && reward.applicableServices) {
-            // Check if applicableServices contains IDs or objects
             const serviceIds = Array.isArray(reward.applicableServices) 
               ? reward.applicableServices.map(s => typeof s === 'string' ? s : (s as Service)._id)
               : [];
               
-            const selected = data.services.filter((service: Service) => 
+            const selected = servicesData.services.filter((service: Service) => 
               serviceIds.includes(service._id)
             );
             setSelectedServices(selected);
           }
         }
+
+        if (categoriesData.success) {
+          setCategories(categoriesData.categories || []);
+        }
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching data:', error);
+      } finally {
+        setServicesLoading(false);
       }
     };
-    fetchServices();
+    fetchData();
   }, [reward]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -189,27 +215,17 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
     }
   };
 
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
-    (service.category?.name && service.category.name.toLowerCase().includes(serviceSearch.toLowerCase()))
-  );
+  const filteredServices = services.filter(service => {
+    const matchesSearch = service.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+      (service.category?.name && service.category.name.toLowerCase().includes(serviceSearch.toLowerCase()));
+    
+    const matchesCategory = !selectedCategory || service.category?._id === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg">
-          <FaGift className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            {reward ? 'Edit Reward' : 'Create New Reward'}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {reward ? 'Update reward details' : 'Set up a new loyalty reward for your clients'}
-          </p>
-        </div>
-      </div>
-
+    <div className="p-4 sm:p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -222,7 +238,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               name="name"
               value={formData.name || ''}
               onChange={handleInputChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
                 errors.name ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="e.g., Free Haircut After 10 Visits"
@@ -240,7 +256,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               value={formData.visitsRequired || ''}
               onChange={handleInputChange}
               min="1"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
                 errors.visitsRequired ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="10"
@@ -258,7 +274,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
             value={formData.description || ''}
             onChange={handleInputChange}
             rows={3}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
               errors.description ? 'border-red-300' : 'border-gray-300'
             }`}
             placeholder="Describe the reward and how it works..."
@@ -271,7 +287,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reward Type *
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                 formData.rewardType === 'free'
@@ -321,7 +337,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               onChange={handleInputChange}
               min="1"
               max="100"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
                 errors.discountPercentage ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="25"
@@ -343,7 +359,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               value={formData.maxRedemptions || ''}
               onChange={handleInputChange}
               min="1"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
                 errors.maxRedemptions ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="Leave blank for unlimited"
@@ -362,7 +378,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               value={formData.validForDays || ''}
               onChange={handleInputChange}
               min="1"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 ${
                 errors.validForDays ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="Leave blank for no expiration"
@@ -379,59 +395,57 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
               Applicable Services *
             </label>
           </div>
-          
-          <input
-            type="text"
-            value={serviceSearch}
-            onChange={(e) => setServiceSearch(e.target.value)}
-            placeholder="Search services..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
 
-          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
-            {filteredServices.map((service) => {
-              const isSelected = selectedServices.some(s => s._id === service._id);
-              return (
-                <div
-                  key={service._id}
-                  className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                    isSelected ? 'bg-purple-50 border-purple-200' : ''
-                  }`}
-                  onClick={() => handleServiceToggle(service)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{service.name}</h4>
-                      <p className="text-sm text-gray-600">{service.category?.name || 'No Category'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-green-600">${service.price}</p>
-                      {isSelected && (
-                        <p className="text-xs text-purple-600">Selected</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Service Search and Category Filter */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="relative">
+              <HiMagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                value={serviceSearch}
+                onChange={(e) => setServiceSearch(e.target.value)}
+                placeholder="Search services..."
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+              />
+            </div>
+            <div className="relative">
+              <HiAdjustmentsHorizontal className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+              >
+                <option value="">All Categories</option>
+                {categories.map(category => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
+          {errors.applicableServices && (
+            <p className="text-red-500 text-sm mb-3">{errors.applicableServices}</p>
+          )}
+
+          {/* Selected Services */}
           {selectedServices.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm text-gray-600 mb-2">
-                Selected Services ({selectedServices.length}):
+            <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <p className="text-sm font-medium text-purple-900 mb-2">
+                Selected Services ({selectedServices.length})
               </p>
               <div className="flex flex-wrap gap-2">
-                {selectedServices.map((service) => (
+                {selectedServices.map(service => (
                   <span
                     key={service._id}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-sm"
                   >
                     {service.name}
                     <button
                       type="button"
                       onClick={() => handleServiceToggle(service)}
-                      className="ml-1 text-purple-600 hover:text-purple-800"
+                      className="text-purple-600 hover:text-purple-800"
                     >
                       ×
                     </button>
@@ -441,23 +455,63 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
             </div>
           )}
 
-          {errors.applicableServices && <p className="text-red-500 text-sm mt-1">{errors.applicableServices}</p>}
+          {/* Available Services */}
+          <div className="border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
+            {servicesLoading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                <p className="text-gray-500 text-sm">Loading services...</p>
+              </div>
+            ) : filteredServices.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {filteredServices.map(service => {
+                  const isSelected = selectedServices.some(s => s._id === service._id);
+                  return (
+                    <label
+                      key={service._id}
+                      className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        isSelected ? 'bg-purple-50' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleServiceToggle(service)}
+                        className="mr-3 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{service.name}</div>
+                        {service.category && (
+                          <div className="text-sm text-gray-500">{service.category.name}</div>
+                        )}
+                        <div className="text-sm text-gray-600">${service.price}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                {serviceSearch || selectedCategory ? 'No services found matching your criteria' : 'No services available'}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Form Actions */}
-        <div className="flex items-center justify-end gap-4 pt-6 border-t">
+        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="w-full sm:flex-1 px-4 py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             disabled={isLoading}
           >
             Cancel
           </button>
           <button
             type="submit"
+            className="w-full sm:flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             disabled={isLoading}
-            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Saving...' : reward ? 'Update Reward' : 'Create Reward'}
           </button>

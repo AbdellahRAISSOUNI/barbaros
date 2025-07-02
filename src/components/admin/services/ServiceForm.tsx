@@ -204,9 +204,9 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-900"
                 >
-                  <FaUpload size={14} />
+                  <FaUpload size={14} className="text-gray-900" />
                   {imagePreview ? 'Change Image' : 'Upload Image'}
                 </button>
                 <span className="text-sm text-gray-500">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaPhone, FaEye, FaEyeSlash, FaTrash, FaFilter, FaBell, FaSearch, FaCheckCircle, FaTimesCircle, FaClock, FaUser, FaUsers } from 'react-icons/fa';
+import { HiCalendarDays, HiPhone, HiEye, HiEyeSlash, HiTrash, HiMagnifyingGlass, HiCheckCircle, HiXCircle, HiClock, HiUser, HiUserGroup, HiBell, HiChatBubbleLeftRight } from 'react-icons/hi2';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
@@ -61,11 +62,11 @@ export default function AdminReservationsPage() {
   };
 
   const statusIcons = {
-    pending: FaClock,
-    contacted: FaPhone,
-    confirmed: FaCheckCircle,
-    cancelled: FaTimesCircle,
-    completed: FaCheckCircle
+    pending: HiClock,
+    contacted: HiPhone,
+    confirmed: HiCheckCircle,
+    cancelled: HiXCircle,
+    completed: HiCheckCircle
   };
 
   useEffect(() => {
@@ -223,9 +224,9 @@ export default function AdminReservationsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-6 transition-all duration-200 hover:shadow-lg ${
-          isNew ? 'border-yellow-300 bg-yellow-50 shadow-lg' : 'border-gray-200'
-        }`}
+        className={`bg-white rounded-2xl shadow-sm border ${
+          isNew ? 'border-yellow-300 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-yellow-100' : 'border-gray-200 hover:border-gray-300'
+        } p-5 transition-all duration-200 hover:shadow-md`}
       >
         {/* New Badge */}
         {isNew && (
@@ -233,59 +234,69 @@ export default function AdminReservationsPage() {
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
-              className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-full text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-sm font-medium shadow-sm"
             >
-              <FaBell className="h-3 w-3" />
+              <HiBell className="h-4 w-4" />
               NEW RESERVATION
             </motion.div>
-            <span className="text-xs text-gray-500">{formatRelativeTime(reservation.createdAt)}</span>
+            <span className="text-xs text-gray-500 font-medium">{formatRelativeTime(reservation.createdAt)}</span>
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900">{reservation.displayName}</h3>
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border self-start ${statusColors[reservation.status]}`}>
-                <StatusIcon className="h-3 w-3" />
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                {reservation.source === 'guest' ? 
+                  <HiUser className="h-5 w-5 text-gray-500" /> : 
+                  <HiUserGroup className="h-5 w-5 text-gray-500" />
+                }
+                {reservation.displayName}
+              </h3>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${statusColors[reservation.status]}`}>
+                <StatusIcon className="h-4 w-4" />
                 {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
               </span>
             </div>
             
-            <div className="space-y-2 text-sm text-gray-600 mb-3">
-              <div className="flex items-center gap-2">
-                <FaCalendarAlt className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">{reservation.formattedDateTime}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {reservation.source === 'guest' ? <FaUser className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" /> : <FaUsers className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />}
-                <span className="text-xs sm:text-sm truncate">{reservation.contactInfo}</span>
-                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full flex-shrink-0">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-gray-600">
+                <div className="flex items-center gap-2">
+                  <HiCalendarDays className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm font-medium">{reservation.formattedDateTime}</span>
+                </div>
+                <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                <div className="flex items-center gap-2">
+                  <HiPhone className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm font-medium">{reservation.contactInfo}</span>
+                </div>
+                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full font-medium text-gray-600">
                   {reservation.source === 'guest' ? 'Guest' : 'Account'}
                 </span>
               </div>
-            </div>
 
-            {reservation.notes && (
-              <div className="mb-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-700">
-                  <strong>Notes:</strong> {reservation.notes}
-                </p>
-              </div>
-            )}
+              {reservation.notes && (
+                <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <HiChatBubbleLeftRight className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-gray-700">
+                    {reservation.notes}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:ml-4 justify-end sm:justify-start">
+          <div className="flex items-center gap-2 sm:ml-4">
             <button
               onClick={() => updateReservationStatus(reservation._id, reservation.isRead ? 'mark_unread' : 'mark_read')}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-xl transition-all ${
                 reservation.isRead 
-                  ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100' 
-                  : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                  ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 hover:shadow-sm' 
+                  : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:shadow-sm'
               }`}
               title={reservation.isRead ? 'Mark as unread' : 'Mark as read'}
             >
-              {reservation.isRead ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+              {reservation.isRead ? <HiEyeSlash className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
             </button>
             
             <button
@@ -293,53 +304,57 @@ export default function AdminReservationsPage() {
                 setSelectedReservation(reservation);
                 setShowDetailsModal(true);
               }}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all hover:shadow-sm"
               title="View details"
             >
-              <FaSearch className="h-4 w-4" />
+              <HiMagnifyingGlass className="h-5 w-5" />
             </button>
             
             <button
               onClick={() => deleteReservation(reservation._id)}
-              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all hover:shadow-sm"
               title="Delete reservation"
             >
-              <FaTrash className="h-4 w-4" />
+              <HiTrash className="h-5 w-5" />
             </button>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
           {reservation.status === 'pending' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'contacted')}
-              className="px-3 py-1.5 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded-xl hover:shadow-md hover:from-blue-700 hover:to-blue-800 transition-all flex items-center gap-2"
             >
+              <HiPhone className="h-4 w-4" />
               Mark Contacted
             </button>
           )}
           {reservation.status === 'contacted' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'confirmed')}
-              className="px-3 py-1.5 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 transition-colors flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm rounded-xl hover:shadow-md hover:from-green-700 hover:to-green-800 transition-all flex items-center gap-2"
             >
+              <HiCheckCircle className="h-4 w-4" />
               Confirm
             </button>
           )}
           {['pending', 'contacted'].includes(reservation.status) && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'cancelled')}
-              className="px-3 py-1.5 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm rounded-xl hover:shadow-md hover:from-red-700 hover:to-red-800 transition-all flex items-center gap-2"
             >
+              <HiXCircle className="h-4 w-4" />
               Cancel
             </button>
           )}
           {reservation.status === 'confirmed' && (
             <button
               onClick={() => updateReservationStatus(reservation._id, 'update_status', 'completed')}
-              className="px-3 py-1.5 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm rounded-xl hover:shadow-md hover:from-gray-700 hover:to-gray-800 transition-all flex items-center gap-2"
             >
+              <HiCheckCircle className="h-4 w-4" />
               Complete
             </button>
           )}
@@ -376,7 +391,7 @@ export default function AdminReservationsPage() {
                   transition={{ repeat: Infinity, duration: 2 }}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg shadow-lg"
                 >
-                  <FaBell className="h-4 w-4" />
+                  <HiBell className="h-4 w-4" />
                   <span className="font-semibold">{stats.overview.unread} New</span>
                 </motion.div>
               )}
@@ -427,7 +442,7 @@ export default function AdminReservationsPage() {
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
               <div className="flex items-center gap-2">
-                <FaFilter className="text-gray-500" />
+                <HiMagnifyingGlass className="text-gray-500" />
                 <span className="font-medium text-gray-700 text-sm sm:text-base">Filters:</span>
               </div>
               
@@ -468,7 +483,7 @@ export default function AdminReservationsPage() {
 
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                  <HiMagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                   <input
                     type="text"
                     placeholder="Search reservations..."
@@ -491,7 +506,7 @@ export default function AdminReservationsPage() {
               ))
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <FaCalendarAlt className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                <HiCalendarDays className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No reservations found</h3>
                 <p className="text-gray-500">No reservations match your current filters.</p>
               </div>
@@ -501,62 +516,158 @@ export default function AdminReservationsPage() {
 
         {/* Details Modal */}
         {showDetailsModal && selectedReservation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold">Reservation Details</h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Name</label>
-                    <p className="text-lg">{selectedReservation.displayName}</p>
+          <div 
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowDetailsModal(false);
+              }
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden relative"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-gray-200 flex justify-between items-center">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-xl bg-gray-100">
+                    <HiCalendarDays className="h-5 w-5 text-gray-700" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Contact</label>
-                    <p className="text-lg">{selectedReservation.contactInfo}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Date & Time</label>
-                    <p className="text-lg">{selectedReservation.formattedDateTime}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Source</label>
-                    <p className="text-lg capitalize">{selectedReservation.source.replace('_', ' ')}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
-                    <p className="text-lg capitalize">{selectedReservation.status}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Created</label>
-                    <p className="text-lg">{new Date(selectedReservation.createdAt).toLocaleString()}</p>
+                    <h2 className="text-lg font-semibold text-gray-900">Reservation Details</h2>
+                    <p className="text-sm text-gray-500">View complete reservation information</p>
                   </div>
                 </div>
-                
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <HiXCircle className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-5 space-y-5">
+                {/* Main Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Name</label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <HiUser className="h-4 w-4 text-gray-500" />
+                      <p className="text-sm font-medium">{selectedReservation.displayName}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Contact</label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <HiPhone className="h-4 w-4 text-gray-500" />
+                      <p className="text-sm font-medium">{selectedReservation.contactInfo}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Date & Time</label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <HiCalendarDays className="h-4 w-4 text-gray-500" />
+                      <p className="text-sm font-medium">{selectedReservation.formattedDateTime}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Source</label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      {selectedReservation.source === 'guest' ? 
+                        <HiUser className="h-4 w-4 text-gray-500" /> : 
+                        <HiUserGroup className="h-4 w-4 text-gray-500" />
+                      }
+                      <p className="text-sm font-medium capitalize">{selectedReservation.source.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${statusColors[selectedReservation.status]}`}>
+                        {statusIcons[selectedReservation.status]({ className: "h-4 w-4" })}
+                        {selectedReservation.status.charAt(0).toUpperCase() + selectedReservation.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Created</label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <HiClock className="h-4 w-4 text-gray-500" />
+                      <p className="text-sm font-medium">{new Date(selectedReservation.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
                 {selectedReservation.notes && (
-                  <div>
+                  <div className="space-y-1.5">
                     <label className="text-sm font-medium text-gray-500">Notes</label>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedReservation.notes}</p>
+                    <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                      <HiChatBubbleLeftRight className="h-4 w-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-gray-700">{selectedReservation.notes}</p>
+                    </div>
                   </div>
                 )}
-                
+
+                {/* Contact History */}
                 {selectedReservation.contactedAt && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Contacted At</label>
-                    <p className="text-gray-700">{new Date(selectedReservation.contactedAt).toLocaleString()}</p>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-500">Contact History</label>
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <HiPhone className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">
+                          Contacted on {new Date(selectedReservation.contactedAt).toLocaleString()}
+                        </p>
+                        {selectedReservation.contactedBy && (
+                          <p className="text-xs text-blue-700">
+                            by {selectedReservation.contactedBy.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-              <div className="p-6 border-t border-gray-200 flex justify-end">
+
+              {/* Footer */}
+              <div className="p-5 border-t border-gray-200 flex justify-end gap-2.5">
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  className="px-3 py-1.5 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm"
                 >
                   Close
                 </button>
+                {selectedReservation.status === 'pending' && (
+                  <button
+                    onClick={() => {
+                      updateReservationStatus(selectedReservation._id, 'update_status', 'contacted');
+                      setShowDetailsModal(false);
+                    }}
+                    className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-md hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm flex items-center gap-1.5"
+                  >
+                    <HiPhone className="h-3.5 w-3.5" />
+                    Mark Contacted
+                  </button>
+                )}
+                {selectedReservation.status === 'contacted' && (
+                  <button
+                    onClick={() => {
+                      updateReservationStatus(selectedReservation._id, 'update_status', 'confirmed');
+                      setShowDetailsModal(false);
+                    }}
+                    className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:shadow-md hover:from-green-700 hover:to-green-800 transition-all font-medium text-sm flex items-center gap-1.5"
+                  >
+                    <HiCheckCircle className="h-3.5 w-3.5" />
+                    Confirm
+                  </button>
+                )}
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
