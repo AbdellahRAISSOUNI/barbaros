@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { FaUpload, FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
+import { FaUpload, FaUser, FaEnvelope, FaLock, FaPhone, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { AdminModal } from '@/components/ui/AdminModal';
 
@@ -33,6 +33,8 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
     phoneNumber: barber?.phoneNumber || '',
   });
   
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(barber?.profilePicture || '');
   const [loading, setLoading] = useState(false);
@@ -251,9 +253,9 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm text-gray-900"
                   >
-                    <FaUpload size={14} />
+                    <FaUpload size={14} className="text-gray-900" />
                     {imagePreview ? 'Change Photo' : 'Upload Photo'}
                   </button>
                 </div>
@@ -354,16 +356,25 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                       <FaLock className="inline mr-2" />
                       {isEditing ? 'New Password (leave blank to keep current)' : 'Password *'}
                     </label>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
-                      placeholder="Enter password"
-                      required={!isEditing}
-                    />
+                    <div className="relative">
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black pr-10"
+                        placeholder="Enter password"
+                        required={!isEditing}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 p-1"
+                      >
+                        {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -371,16 +382,25 @@ export default function BarberForm({ barber, onSubmit, onCancel, isEditing = fal
                       <FaLock className="inline mr-2" />
                       Confirm Password {!isEditing && '*'}
                     </label>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
-                      placeholder="Confirm password"
-                      required={!isEditing && !!formData.password}
-                    />
+                    <div className="relative">
+                      <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black pr-10"
+                        placeholder="Confirm password"
+                        required={!isEditing && !!formData.password}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 p-1"
+                      >
+                        {showConfirmPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
