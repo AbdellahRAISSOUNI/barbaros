@@ -23,7 +23,7 @@ export default function AdminDashboardLayout({
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           <AdminHeader className="hidden lg:flex" />
-          <main className="flex-1">
+          <main className="flex-1 p-6">
             {children}
           </main>
         </div>

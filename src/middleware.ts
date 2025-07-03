@@ -73,6 +73,7 @@ export default withAuth(
           pathname === '/reservations/new' ||
           pathname.startsWith('/api/auth') ||
           pathname.startsWith('/api/register') ||
+          pathname.startsWith('/api/reservations') ||
           pathname.startsWith('/api/db-status') ||
           pathname.startsWith('/api/test-db') ||
           pathname.startsWith('/_next') ||

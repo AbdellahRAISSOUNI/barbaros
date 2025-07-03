@@ -31,18 +31,18 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
         scaleY: 0,
         duration: 1,
         ease: 'power3.inOut',
-      })
-      .to(text, {
+    })
+    .to(text, {
         letterSpacing: '0.5em',
         duration: 0.8,
         ease: 'power2.out',
       }, '-=0.4')
       .to([text, mask], {
-        opacity: 0,
+      opacity: 0,
         duration: 0.6,
         delay: 0.5,
-        ease: 'power3.in',
-      });
+      ease: 'power3.in',
+    });
 
   }, [onComplete]);
 

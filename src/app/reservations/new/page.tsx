@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaCalendarAlt, FaClock, FaUser, FaCheck, FaArrowLeft, FaStar, FaSignInAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaUser, FaCheck, FaArrowLeft, FaStar, FaSignInAlt, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
@@ -136,24 +136,27 @@ export default function GuestReservationPage() {
     }
   };
 
-
-
   if (isSuccess && reservationDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--off-white)] flex items-center justify-center p-4" style={{
+        '--off-white': '#FAFAF8',
+        '--deep-green': '#1B3B36',
+        '--dark-red': '#8B2635',
+        '--dark-brown': '#1A1A1A',
+        '--warm-beige': '#F0EBE3',
+        '--premium-green': '#2A5A4B', 
+      } as React.CSSProperties}>
         <div className="max-w-2xl w-full">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FaCheck className="h-10 w-10 text-green-600" />
-            </div>
+          <div className="bg-white p-12 border border-[var(--deep-green)] border-opacity-10 text-center">
+            <FaCheck className="h-16 w-16 text-[var(--deep-green)] mx-auto mb-8" />
             
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Reservation Sent Successfully!
+            <h1 className="text-3xl md:text-4xl font-light text-[var(--deep-green)] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Reservation Sent Successfully
             </h1>
             
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-left">
-              <h3 className="font-semibold text-green-800 mb-4">Reservation Details:</h3>
-              <div className="space-y-2 text-green-700">
+            <div className="bg-[var(--warm-beige)] bg-opacity-30 border border-[var(--deep-green)] border-opacity-10 p-8 mb-8 text-left">
+              <h3 className="font-light text-[var(--deep-green)] mb-6 text-lg tracking-wider">RESERVATION DETAILS</h3>
+              <div className="space-y-3 text-[var(--dark-brown)] font-light">
                 <p><strong>Name:</strong> {reservationDetails.displayName}</p>
                 <p><strong>Date & Time:</strong> {reservationDetails.formattedDateTime}</p>
                 <p><strong>Status:</strong> <span className="capitalize">{reservationDetails.status}</span></p>
@@ -161,8 +164,8 @@ export default function GuestReservationPage() {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-              <p className="text-blue-700 text-sm">
+            <div className="bg-[var(--deep-green)] p-6 mb-8">
+              <p className="text-white text-sm font-light">
                 Your reservation has been received. We'll contact you shortly to confirm your appointment.
               </p>
             </div>
@@ -170,21 +173,21 @@ export default function GuestReservationPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/"
-                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="px-8 py-3 bg-[var(--deep-green)] text-white text-sm font-light tracking-wider hover:bg-[var(--premium-green)] transition-colors duration-300"
               >
                 <FaArrowLeft className="inline-block mr-2" />
-                Back to Home
+                BACK TO HOME
               </Link>
               <Link 
                 href="/reservations/new"
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-8 py-3 bg-[var(--dark-red)] text-white text-sm font-light tracking-wider hover:bg-opacity-80 transition-colors duration-300"
                 onClick={() => {
                   setIsSuccess(false);
                   setReservationDetails(null);
                   setFormData({ guestName: '', guestPhone: '', preferredDate: '', preferredTime: '', notes: '' });
                 }}
               >
-                Make Another Reservation
+                MAKE ANOTHER RESERVATION
               </Link>
             </div>
           </div>
@@ -194,68 +197,75 @@ export default function GuestReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-[var(--off-white)]" style={{
+      '--off-white': '#FAFAF8',
+      '--deep-green': '#1B3B36',
+      '--dark-red': '#8B2635',
+      '--dark-brown': '#1A1A1A',
+      '--warm-beige': '#F0EBE3',
+      '--premium-green': '#2A5A4B',
+    } as React.CSSProperties}>
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-800">
-            Barbaros
+      <header className="bg-white border-b border-[var(--deep-green)] border-opacity-10">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <Link href="/" className="text-2xl font-light text-[var(--deep-green)]" style={{ fontFamily: 'Playfair Display, serif' }}>
+            BARBAROS
           </Link>
           <div className="flex items-center gap-4">
             <Link 
               href="/login"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-[var(--deep-green)] text-white text-sm font-light tracking-wider hover:bg-[var(--premium-green)] transition-colors duration-300"
             >
               <FaSignInAlt className="h-4 w-4" />
-              Login to Book with Account
+              LOGIN TO BOOK
             </Link>
             <Link 
               href="/"
-              className="px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 text-[var(--deep-green)] hover:text-[var(--dark-red)] transition-colors duration-300 text-sm font-light tracking-wider"
             >
               <FaArrowLeft className="inline-block mr-2" />
-              Back
+              BACK
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="max-w-6xl mx-auto">
           {/* Page Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-[var(--deep-green)] mb-4 sm:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
               Guest Reservation
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl font-light text-[var(--dark-brown)] opacity-80 max-w-2xl mx-auto mb-6">
               Book your appointment quickly without creating an account
             </p>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 max-w-md mx-auto">
-              <p className="text-blue-800 text-sm">
-                <strong>Have an account?</strong> <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">Login here</Link> to book with your client profile and track your reservation history.
+            <div className="max-w-md mx-auto p-4 sm:p-6 bg-[var(--deep-green)]">
+              <p className="text-white text-sm font-light">
+                Have an account? <Link href="/login" className="underline hover:text-[var(--warm-beige)] transition-colors duration-300">Login here</Link> to book with your client profile and track your reservation history.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-12">
             {/* Booking Form */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-xl p-8">
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <FaUser className="text-blue-600" />
-                    Guest Information
+              <div className="bg-white p-6 sm:p-12 border border-[var(--deep-green)] border-opacity-10">
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="text-xl font-light mb-4 flex items-center gap-3 text-[var(--deep-green)] tracking-wider">
+                    <FaUser className="text-[var(--deep-green)]" />
+                    GUEST INFORMATION
                   </h3>
-                  <p className="text-gray-600 text-sm">No account needed - just fill in your details below</p>
+                  <p className="text-[var(--dark-brown)] text-sm font-light opacity-70">No account needed - just fill in your details below</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10">
                   {/* Guest Information */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-6 sm:space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                       <div>
-                        <label htmlFor="guestName" className="block text-sm font-medium text-gray-700 mb-2">
-                          Full Name *
+                        <label htmlFor="guestName" className="block text-sm font-light text-[var(--deep-green)] mb-3 tracking-wider">
+                          FULL NAME *
                         </label>
                         <input
                           type="text"
@@ -264,13 +274,13 @@ export default function GuestReservationPage() {
                           value={formData.guestName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300"
                           placeholder="Enter your full name"
                         />
                       </div>
                       <div>
-                        <label htmlFor="guestPhone" className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number *
+                        <label htmlFor="guestPhone" className="block text-sm font-light text-[var(--deep-green)] mb-3 tracking-wider">
+                          PHONE NUMBER *
                         </label>
                         <input
                           type="tel"
@@ -279,7 +289,7 @@ export default function GuestReservationPage() {
                           value={formData.guestPhone}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300"
                           placeholder="(123) 456-7890"
                         />
                       </div>
@@ -287,15 +297,15 @@ export default function GuestReservationPage() {
                   </div>
 
                   {/* Date and Time Selection */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <FaCalendarAlt className="text-blue-600" />
-                      Preferred Date & Time
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-light flex items-center gap-3 text-[var(--deep-green)] tracking-wider">
+                      <FaCalendarAlt className="text-[var(--deep-green)]" />
+                      PREFERRED DATE & TIME
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                       <div>
-                        <label htmlFor="preferredDate" className="block text-sm font-medium text-gray-700 mb-2">
-                          Preferred Date *
+                        <label htmlFor="preferredDate" className="block text-sm font-light text-[var(--deep-green)] mb-3 tracking-wider">
+                          PREFERRED DATE *
                         </label>
                         <input
                           type="date"
@@ -306,12 +316,12 @@ export default function GuestReservationPage() {
                           min={getMinDate()}
                           max={getMaxDate()}
                           required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300"
                         />
                       </div>
                       <div>
-                        <label htmlFor="preferredTime" className="block text-sm font-medium text-gray-700 mb-2">
-                          Preferred Time *
+                        <label htmlFor="preferredTime" className="block text-sm font-light text-[var(--deep-green)] mb-3 tracking-wider">
+                          PREFERRED TIME *
                         </label>
                         <select
                           id="preferredTime"
@@ -319,7 +329,7 @@ export default function GuestReservationPage() {
                           value={formData.preferredTime}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300"
                         >
                           <option value="">Select time</option>
                           {timeSlots.map(slot => (
@@ -334,121 +344,123 @@ export default function GuestReservationPage() {
 
                   {/* Additional Notes */}
                   <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                      Special Requests (Optional)
+                    <label htmlFor="notes" className="block text-sm font-light text-[var(--deep-green)] mb-3 tracking-wider">
+                      SPECIAL REQUESTS (OPTIONAL)
                     </label>
                     <textarea
                       id="notes"
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={4}
+                      className="w-full bg-transparent border border-[var(--deep-green)] border-opacity-20 p-4 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300"
                       placeholder="Any specific requests or preferences..."
                       maxLength={500}
                     />
-                    <div className="text-right text-sm text-gray-500 mt-1">
+                    <div className="text-right text-xs text-[var(--dark-brown)] opacity-60 mt-2 font-light">
                       {formData.notes.length}/500 characters
                     </div>
                   </div>
 
                   {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Sending Reservation...
-                      </div>
-                    ) : (
-                      <>
-                        <FaCalendarAlt className="inline-block mr-2" />
-                        Send Reservation Request
-                      </>
-                    )}
-                  </button>
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full px-8 sm:px-12 py-4 bg-[var(--dark-red)] text-white text-sm font-light tracking-wider hover:bg-[var(--premium-green)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+                    >
+                      {isSubmitting ? (
+                        <span className="inline-flex items-center justify-center">
+                          <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                          SENDING RESERVATION...
+                        </span>
+                      ) : (
+                        <>
+                          <FaCalendarAlt className="inline-block mr-2" />
+                          SEND RESERVATION REQUEST
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
 
             {/* Sidebar Info */}
-            <div className="space-y-6">
+            <div className="space-y-6 sm:space-y-8">
               {/* Account Benefits */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-200">
-                <h3 className="text-lg font-semibold mb-4 text-blue-800">
-                  <FaStar className="inline-block mr-2 text-yellow-500" />
-                  Want More Benefits?
+              <div className="bg-white p-6 sm:p-8 border border-[var(--deep-green)] border-opacity-10">
+                <h3 className="text-lg font-light mb-6 text-[var(--deep-green)] tracking-wider">
+                  <FaStar className="inline-block mr-2 text-[var(--dark-red)]" />
+                  WANT MORE BENEFITS?
                 </h3>
-                <ul className="space-y-3 text-sm text-blue-700 mb-4">
+                <ul className="space-y-3 text-sm text-[var(--dark-brown)] font-light mb-6 opacity-80">
                   <li>• Track all your reservations</li>
                   <li>• Earn loyalty points</li>
                   <li>• Access exclusive rewards</li>
-                  <li>• Faster booking process</li>
-                  <li>• View visit history</li>
+                  <li>• Get priority booking</li>
+                  <li>• Receive special offers</li>
                 </ul>
                 <Link
-                  href="/login"
-                  className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  href="/register"
+                  className="block w-full text-center px-6 py-3 bg-[var(--deep-green)] text-white text-sm font-light tracking-wider hover:bg-[var(--premium-green)] transition-colors duration-300"
                 >
-                  Login / Create Account
+                  CREATE AN ACCOUNT
                 </Link>
               </div>
 
               {/* Booking Process */}
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">How It Works</h3>
-                <div className="space-y-4">
+              <div className="bg-white p-8 border border-[var(--deep-green)] border-opacity-10">
+                <h3 className="text-lg font-light mb-6 text-[var(--deep-green)] tracking-wider">HOW IT WORKS</h3>
+                <div className="space-y-6">
                   <div className="flex items-start">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-blue-600 font-bold text-sm">1</span>
+                    <div className="w-8 h-8 bg-[var(--deep-green)] bg-opacity-10 flex items-center justify-center mr-4 mt-1">
+                      <span className="text-[var(--deep-green)] font-light text-sm">1</span>
                     </div>
                     <div>
-                      <div className="font-medium">Fill Form</div>
-                      <div className="text-sm text-gray-600">Enter your details and preferred time</div>
+                      <div className="font-light text-[var(--dark-brown)] tracking-wider">FILL FORM</div>
+                      <div className="text-sm text-[var(--dark-brown)] opacity-70 font-light">Enter your details and preferred time</div>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-blue-600 font-bold text-sm">2</span>
+                    <div className="w-8 h-8 bg-[var(--deep-green)] bg-opacity-10 flex items-center justify-center mr-4 mt-1">
+                      <span className="text-[var(--deep-green)] font-light text-sm">2</span>
                     </div>
                     <div>
-                      <div className="font-medium">Get Confirmation Call</div>
-                      <div className="text-sm text-gray-600">We'll call within 24 hours</div>
+                      <div className="font-light text-[var(--dark-brown)] tracking-wider">GET CONFIRMATION CALL</div>
+                      <div className="text-sm text-[var(--dark-brown)] opacity-70 font-light">We'll call within 24 hours</div>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-blue-600 font-bold text-sm">3</span>
+                    <div className="w-8 h-8 bg-[var(--deep-green)] bg-opacity-10 flex items-center justify-center mr-4 mt-1">
+                      <span className="text-[var(--deep-green)] font-light text-sm">3</span>
                     </div>
                     <div>
-                      <div className="font-medium">Visit Us</div>
-                      <div className="text-sm text-gray-600">Arrive on time for your appointment</div>
+                      <div className="font-light text-[var(--dark-brown)] tracking-wider">VISIT US</div>
+                      <div className="text-sm text-[var(--dark-brown)] opacity-70 font-light">Arrive on time for your appointment</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Business Hours */}
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="bg-white p-8 border border-[var(--deep-green)] border-opacity-10">
+                <h3 className="text-lg font-light mb-6 text-[var(--deep-green)] tracking-wider">
                   <FaClock className="inline-block mr-2" />
-                  Business Hours
+                  BUSINESS HOURS
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm font-light text-[var(--dark-brown)]">
                   <div className="flex justify-between">
-                    <span>Monday - Friday</span>
-                    <span>9:00 AM - 7:00 PM</span>
+                    <span>Tuesday — Friday</span>
+                    <span>9:00 AM — 7:00 PM</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday</span>
-                    <span>9:00 AM - 6:00 PM</span>
+                    <span>9:00 AM — 6:00 PM</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Sunday</span>
-                    <span>10:00 AM - 5:00 PM</span>
+                    <span>Sunday — Monday</span>
+                    <span>Closed</span>
                   </div>
                 </div>
               </div>

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { signIn } from 'next-auth/react';
-import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
+import { FaArrowLeft, FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 // Define validation schema with Zod
 const registerSchema = z.object({
@@ -34,6 +34,8 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
   
   const {
@@ -96,154 +98,179 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
-      <div className="absolute top-4 left-4">
+    <div className="min-h-screen bg-[var(--off-white)] flex flex-col justify-center py-12 sm:px-6 lg:px-8" style={{
+      '--off-white': '#FAFAF8',
+      '--deep-green': '#1B3B36',
+      '--dark-red': '#8B2635',
+      '--dark-brown': '#1A1A1A',
+      '--warm-beige': '#F0EBE3',
+      '--premium-green': '#2A5A4B',
+    } as React.CSSProperties}>
+      <div className="absolute top-6 left-6">
         <Link 
           href="/" 
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          className="inline-flex items-center text-[var(--deep-green)] hover:text-[var(--dark-red)] transition-colors duration-300 text-sm font-light tracking-wider"
         >
           <FaArrowLeft className="mr-2" />
-          Back to Home
+          BACK TO HOME
         </Link>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-slide-up">
-        <h1 className="text-center text-4xl font-extrabold text-gray-900 mb-2">Barbaros</h1>
-        <h2 className="text-center text-2xl font-bold text-gray-900">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h1 className="text-center text-4xl md:text-5xl font-light text-[var(--deep-green)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          BARBAROS
+        </h1>
+        <h2 className="text-center text-xl font-light text-[var(--dark-brown)] mb-2">
           Create your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-[var(--dark-brown)] opacity-70 font-light">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-black hover:text-gray-800 transition-colors duration-200">
+          <Link href="/login" className="text-[var(--deep-green)] hover:text-[var(--dark-red)] transition-colors duration-300 font-normal">
             Sign in
           </Link>
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-xl sm:px-10 border border-gray-100">
+      <div className="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-12 px-8 border border-[var(--deep-green)] border-opacity-10">
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative animate-fade-in" role="alert">
-              <span className="block sm:inline">{error}</span>
+            <div className="mb-6 bg-[var(--dark-red)] text-white px-4 py-3 text-sm font-light" role="alert">
+              <span className="block">{error}</span>
             </div>
           )}
           
           {success && (
-            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative animate-fade-in" role="alert">
-              <span className="block sm:inline">{success}</span>
+            <div className="mb-6 bg-[var(--deep-green)] text-white px-4 py-3 text-sm font-light" role="alert">
+              <span className="block">{success}</span>
             </div>
           )}
           
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="firstName" className="form-label">
-                  First name
+                <label htmlFor="firstName" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                  FIRST NAME
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="firstName"
-                    type="text"
-                    autoComplete="given-name"
-                    className={`form-input ${errors.firstName ? 'error' : ''}`}
-                    {...register('firstName')}
-                  />
-                  {errors.firstName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-                  )}
-                </div>
+                <input
+                  id="firstName"
+                  type="text"
+                  autoComplete="given-name"
+                  className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                    errors.firstName ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                  }`}
+                  {...register('firstName')}
+                />
+                {errors.firstName && (
+                  <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.firstName.message}</p>
+                )}
               </div>
 
               <div>
-                <label htmlFor="lastName" className="form-label">
-                  Last name
+                <label htmlFor="lastName" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                  LAST NAME
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="lastName"
-                    type="text"
-                    autoComplete="family-name"
-                    className={`form-input ${errors.lastName ? 'error' : ''}`}
-                    {...register('lastName')}
-                  />
-                  {errors.lastName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="phoneNumber" className="form-label">
-                Phone number
-              </label>
-              <div className="mt-1">
                 <input
-                  id="phoneNumber"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+1234567890"
-                  className={`form-input ${errors.phoneNumber ? 'error' : ''}`}
-                  {...register('phoneNumber')}
+                  id="lastName"
+                  type="text"
+                  autoComplete="family-name"
+                  className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                    errors.lastName ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                  }`}
+                  {...register('lastName')}
                 />
-                {errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>
+                {errors.lastName && (
+                  <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.lastName.message}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="form-label">
-                Password
+              <label htmlFor="phoneNumber" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                PHONE NUMBER
               </label>
-              <div className="mt-1">
+              <input
+                id="phoneNumber"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+1234567890"
+                className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                  errors.phoneNumber ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                }`}
+                {...register('phoneNumber')}
+              />
+              {errors.phoneNumber && (
+                <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.phoneNumber.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                PASSWORD
+              </label>
+              <div className="relative">
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={`form-input ${errors.password ? 'error' : ''}`}
+                  className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                    errors.password ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                  }`}
                   {...register('password')}
                 />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </button>
               </div>
+              {errors.password && (
+                <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.password.message}</p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="form-label">
-                Confirm password
+              <label htmlFor="confirmPassword" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                CONFIRM PASSWORD
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
                   id="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                  className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                    errors.confirmPassword ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                  }`}
                   {...register('confirmPassword')}
                 />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showConfirmPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isLoading ? (
-                  <>
-                    <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
-                    Creating account...
-                  </>
-                ) : (
-                  'Create account'
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[var(--dark-red)] text-white py-4 text-sm font-light tracking-wider hover:bg-[var(--premium-green)] transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <span className="inline-flex items-center">
+                  <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                  Creating Account...
+                </span>
+              ) : (
+                'CREATE ACCOUNT'
+              )}
+            </button>
           </form>
         </div>
       </div>

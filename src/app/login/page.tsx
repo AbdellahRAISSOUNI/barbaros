@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
+import { FaArrowLeft, FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 // Define validation schema with Zod
 const loginSchema = z.object({
@@ -41,6 +41,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   
   const {
@@ -109,50 +110,59 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
-      <div className="absolute top-4 left-4">
+    <div className="min-h-screen bg-[var(--off-white)] flex flex-col justify-center py-12 sm:px-6 lg:px-8" style={{
+      '--off-white': '#FAFAF8',
+      '--deep-green': '#1B3B36',
+      '--dark-red': '#8B2635',
+      '--dark-brown': '#1A1A1A',
+      '--warm-beige': '#F0EBE3',
+      '--premium-green': '#2A5A4B',
+    } as React.CSSProperties}>
+      <div className="absolute top-6 left-6">
         <Link 
           href="/" 
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          className="inline-flex items-center text-[var(--deep-green)] hover:text-[var(--dark-red)] transition-colors duration-300 text-sm font-light tracking-wider"
         >
           <FaArrowLeft className="mr-2" />
-          Back to Home
+          BACK TO HOME
         </Link>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-slide-up">
-        <h1 className="text-center text-4xl font-extrabold text-gray-900 mb-2">Barbaros</h1>
-        <h2 className="text-center text-2xl font-bold text-gray-900">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h1 className="text-center text-4xl md:text-5xl font-light text-[var(--deep-green)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          BARBAROS
+        </h1>
+        <h2 className="text-center text-xl font-light text-[var(--dark-brown)] mb-2">
           Welcome back
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-[var(--dark-brown)] opacity-70 font-light">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-black hover:text-gray-800 transition-colors duration-200">
+          <Link href="/register" className="text-[var(--deep-green)] hover:text-[var(--dark-red)] transition-colors duration-300 font-normal">
             Sign up
           </Link>
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-xl sm:px-10 border border-gray-100">
+      <div className="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-12 px-8 border border-[var(--deep-green)] border-opacity-10">
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative animate-fade-in" role="alert">
-              <span className="block sm:inline">{error}</span>
+            <div className="mb-6 bg-[var(--dark-red)] text-white px-4 py-3 text-sm font-light" role="alert">
+              <span className="block">{error}</span>
             </div>
           )}
           
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                I am a
+              <label className="block text-sm font-light text-[var(--deep-green)] mb-4 tracking-wider">
+                I AM A
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`flex items-center justify-center px-3 py-2 border rounded-lg shadow-sm text-sm font-medium transition-all duration-200 ${
+                  <label className={`flex items-center justify-center px-4 py-3 border text-sm font-light tracking-wider transition-all duration-300 cursor-pointer ${
                     userType === 'client' 
-                      ? 'bg-black text-white border-black' 
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  } cursor-pointer`}>
+                      ? 'bg-[var(--deep-green)] text-white border-[var(--deep-green)]' 
+                      : 'bg-white text-[var(--dark-brown)] border-[var(--deep-green)] border-opacity-20 hover:border-[var(--deep-green)] hover:border-opacity-40'
+                  }`}>
                     <input
                       type="radio"
                       value="client"
@@ -161,15 +171,15 @@ export default function LoginPage() {
                         onChange: (e) => handleUserTypeChange(e.target.value as 'client' | 'admin')
                       })}
                     />
-                    Client
+                    CLIENT
                   </label>
                 </div>
                 <div>
-                  <label className={`flex items-center justify-center px-3 py-2 border rounded-lg shadow-sm text-sm font-medium transition-all duration-200 ${
+                  <label className={`flex items-center justify-center px-4 py-3 border text-sm font-light tracking-wider transition-all duration-300 cursor-pointer ${
                     userType === 'admin' 
-                      ? 'bg-black text-white border-black' 
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  } cursor-pointer`}>
+                      ? 'bg-[var(--deep-green)] text-white border-[var(--deep-green)]' 
+                      : 'bg-white text-[var(--dark-brown)] border-[var(--deep-green)] border-opacity-20 hover:border-[var(--deep-green)] hover:border-opacity-40'
+                  }`}>
                     <input
                       type="radio"
                       value="admin"
@@ -178,85 +188,86 @@ export default function LoginPage() {
                         onChange: (e) => handleUserTypeChange(e.target.value as 'client' | 'admin')
                       })}
                     />
-                    Admin/Barber
+                    ADMIN/BARBER
                   </label>
                 </div>
               </div>
             </div>
 
             <div>
-              <label htmlFor="identifier" className="form-label">
-                {userType === 'admin' ? 'Email or Phone number' : 'Phone number'}
+              <label htmlFor="identifier" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                {userType === 'admin' ? 'EMAIL OR PHONE NUMBER' : 'PHONE NUMBER'}
               </label>
-              <div className="mt-1">
-                <input
-                  id="identifier"
-                  type="text"
-                  autoComplete={userType === 'admin' ? 'email' : 'tel'}
-                  placeholder={userType === 'admin' ? 'admin@barbaros.com or +1234567890' : '+1234567890'}
-                  className={`form-input ${errors.identifier ? 'error' : ''}`}
-                  {...register('identifier')}
-                />
-                {errors.identifier && (
-                  <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
-                )}
-              </div>
+              <input
+                id="identifier"
+                type="text"
+                autoComplete={userType === 'admin' ? 'email' : 'tel'}
+                placeholder={userType === 'admin' ? 'email@example.com or phone' : '+1234567890'}
+                className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                  errors.identifier ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                }`}
+                {...register('identifier')}
+              />
+              {errors.identifier && (
+                <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.identifier.message}</p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="password" className="form-label">
-                Password
+              <label htmlFor="password" className="block text-sm font-light text-[var(--deep-green)] mb-2 tracking-wider">
+                PASSWORD
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  className={`form-input ${errors.password ? 'error' : ''}`}
+                  className={`w-full bg-transparent border-b border-[var(--deep-green)] border-opacity-20 py-3 text-sm font-light tracking-wider text-[var(--dark-brown)] placeholder-gray-400 focus:outline-none focus:border-[var(--deep-green)] transition-colors duration-300 ${
+                    errors.password ? 'border-[var(--dark-red)] border-opacity-60' : ''
+                  }`}
                   {...register('password')}
                 />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </button>
               </div>
+              {errors.password && (
+                <p className="mt-2 text-xs text-[var(--dark-red)] font-light">{errors.password.message}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  id="remember-me"
+                  id="rememberMe"
                   type="checkbox"
-                  className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded transition-colors duration-200"
+                  className="h-4 w-4 text-[var(--deep-green)] border-[var(--deep-green)] border-opacity-20 rounded focus:ring-[var(--deep-green)]"
                   {...register('rememberMe')}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-[var(--dark-brown)] font-light">
                   Remember me
                 </label>
               </div>
-
-              <div className="text-sm">
-                <Link href="#" className="link">
-                  Forgot password?
-                </Link>
-              </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isLoading ? (
-                  <>
-                    <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[var(--dark-red)] text-white py-4 text-sm font-light tracking-wider hover:bg-[var(--premium-green)] transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <span className="inline-flex items-center">
+                  <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                  Signing in...
+                </span>
+              ) : (
+                'SIGN IN'
+              )}
+            </button>
           </form>
         </div>
       </div>
