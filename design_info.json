@@ -1,0 +1,82 @@
+{
+  "landing_page": {
+    "colors": {
+      "off_white": "#F8F6F2",
+      "warm_beige": "#EAE2D6",
+      "dark_brown": "#2D1B14",
+      "champagne_gold": "#E6D7B8",
+      "oxblood": "#8B0000",
+      "charcoal": "#1A1A1A",
+      "deep_green": "#1B3B36",
+      "dark_red": "#8B2635"
+    },
+    "fonts": {
+      "primary": "Inter, -apple-system, sans-serif",
+      "headings": "Playfair Display, Optima, serif"
+    },
+    "design_elements": {
+      "background": "var(--off-white)",
+      "text_color": "var(--dark-brown)",
+      "highlight": "var(--champagne-gold)",
+      "navigation": "Fixed top with backdrop blur, using off-white background with 95% opacity",
+      "animations": "GSAP animations for hero section, scroll-triggered reveals for other sections",
+      "cursor": "Custom cursor with hover effects on interactive elements"
+    },
+    "layout": {
+      "structure": "Multiple full-height sections for hero, philosophy, services, why choose us, master barber, contact, and footer",
+      "responsive": "Mobile optimizations with adjusted font sizes and cursor behavior"
+    }
+  },
+  "login_register_pages": {
+    "colors": {
+      "off_white": "#FAFAF8",
+      "deep_green": "#1B3B36",
+      "dark_red": "#8B2635",
+      "dark_brown": "#1A1A1A",
+      "warm_beige": "#F0EBE3",
+      "premium_green": "#2A5A4B"
+    },
+    "fonts": {
+      "primary": "Not specified (inherits global)",
+      "headings": "Playfair Display, serif"
+    },
+    "design_elements": {
+      "background": "var(--off-white)",
+      "text_color": "var(--dark-brown)",
+      "accent": "var(--deep-green)",
+      "error": "var(--dark-red)",
+      "form_style": "Minimalist with border-bottom inputs, light text weight, and subtle transitions",
+      "container": "Centered card-like container with white background and subtle green border"
+    },
+    "layout": {
+      "structure": "Full-screen centered layout with header and form container",
+      "responsive": "Adjusts padding and width for different screen sizes"
+    }
+  },
+  "reservation_page": {
+    "colors": {
+      "off_white": "#FAFAF8",
+      "deep_green": "#1B3B36",
+      "dark_red": "#8B2635",
+      "dark_brown": "#1A1A1A",
+      "warm_beige": "#F0EBE3",
+      "premium_green": "#2A5A4B"
+    },
+    "fonts": {
+      "primary": "Not specified (inherits global)",
+      "headings": "Playfair Display, serif"
+    },
+    "design_elements": {
+      "background": "var(--off-white)",
+      "text_color": "var(--dark-brown)",
+      "accent": "var(--deep-green)",
+      "header": "White background with subtle green border bottom",
+      "form_style": "Clean forms with border-bottom inputs, organized in card-like containers",
+      "success_message": "Centered confirmation with check icon and detailed reservation summary"
+    },
+    "layout": {
+      "structure": "Header, main content with centered title and multi-column form layout, sidebar for additional info",
+      "responsive": "Grid layout adjusts from single column on mobile to three columns on desktop"
+    }
+  }
+} 

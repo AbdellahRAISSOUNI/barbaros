@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaUpload, FaSearch, FaQrcode, FaTimes, FaCheckCircle, FaExclamationCircle, FaUser, FaPlus, FaHistory, FaEye, FaGift, FaCut, FaCrown, FaCalendarAlt, FaArrowRight, FaSpinner, FaCamera } from 'react-icons/fa';
 import { ClientLookup } from '@/components/ui/ClientLookup';
 import { VisitRecordingForm } from '@/components/ui/VisitRecordingForm';
@@ -55,6 +56,7 @@ interface RecentVisit {
 }
 
 export default function BarberScannerPage() {
+  const router = useRouter();
   const [scanMode, setScanMode] = useState<ScanMode>('camera');
   const [viewMode, setViewMode] = useState<ViewMode>('scanner');
   const [foundClientId, setFoundClientId] = useState<string | null>(null);
@@ -65,6 +67,7 @@ export default function BarberScannerPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [checkingPermissions, setCheckingPermissions] = useState(true);
 
   const handleClientFound = (clientId: string) => {
     setFoundClientId(clientId);
@@ -141,6 +144,29 @@ export default function BarberScannerPage() {
       setIsLoadingClient(false);
     }
   };
+
+  // Check scanner permissions on page load
+  useEffect(() => {
+    const checkScannerPermissions = async () => {
+      try {
+        const response = await fetch('/api/barber/scanner-status');
+        const data = await response.json();
+        
+        if (!data.success || !data.scannerEnabled) {
+          router.replace('/barber/scanner-disabled');
+          return;
+        }
+        
+        setCheckingPermissions(false);
+      } catch (error) {
+        console.error('Error checking scanner permissions:', error);
+        router.replace('/barber/scanner-disabled');
+        return;
+      }
+    };
+
+    checkScannerPermissions();
+  }, [router]);
 
   // Fetch client information when clientId is found
   useEffect(() => {
@@ -312,6 +338,19 @@ export default function BarberScannerPage() {
       </button>
     );
   };
+
+  // Show loading state while checking permissions
+  if (checkingPermissions) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-emerald-50/20 flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-xl text-center max-w-sm mx-auto border border-stone-200/50">
+          <FaSpinner className="animate-spin text-4xl text-emerald-700 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2 text-stone-800">Checking Scanner Access</h3>
+          <p className="text-sm text-stone-600">Verifying your scanner permissions...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Scanner View
   if (viewMode === 'scanner') {

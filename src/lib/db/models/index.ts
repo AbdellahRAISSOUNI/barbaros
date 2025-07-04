@@ -9,6 +9,7 @@ import BarberStats from './barberStats';
 import BarberReward from './barberReward';
 import BarberRewardRedemption from './barberRewardRedemption';
 import Reservation from './reservation';
+import ScannerSettings from './scannerSettings';
 
 export {
   Admin,
@@ -21,7 +22,8 @@ export {
   BarberStats,
   BarberReward,
   BarberRewardRedemption,
-  Reservation
+  Reservation,
+  ScannerSettings
 };
 
 export type { IAdmin } from './admin';
@@ -33,4 +35,5 @@ export type { IVisit, ServiceReceived } from './visit';
 export type { IBarberStats, MonthlyStats, ServiceStats } from './barberStats';
 export type { IBarberReward } from './barberReward';
 export type { IBarberRewardRedemption } from './barberRewardRedemption';
-export type { IReservation } from './reservation'; 
+export type { IReservation } from './reservation';
+export type { IScannerSettings } from './scannerSettings'; 

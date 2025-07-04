@@ -14,6 +14,8 @@ export interface IAdmin extends Document {
   joinDate: Date;
   isBarber: boolean;
   phoneNumber?: string;
+  // Scanner permission fields
+  scannerEnabled: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -70,6 +72,11 @@ const AdminSchema = new Schema<IAdmin>(
     phoneNumber: {
       type: String,
       trim: true,
+    },
+    // Scanner permission fields
+    scannerEnabled: {
+      type: Boolean,
+      default: false,
     },
   },
   {

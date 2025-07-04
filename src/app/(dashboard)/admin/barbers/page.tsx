@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaPlus, FaUserTie, FaSearch, FaFilter, FaEdit, FaChartLine, FaBan, FaTrash, FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaEye, FaTh, FaList } from 'react-icons/fa';
+import { FaPlus, FaUserTie, FaSearch, FaFilter, FaEdit, FaChartLine, FaBan, FaTrash, FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaEye, FaTh, FaList, FaQrcode, FaClock } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import BarberForm from '@/components/admin/barbers/BarberForm';
 import BarberStatsModal from '@/components/admin/barbers/BarberStatsModal';
@@ -16,6 +16,7 @@ interface Barber {
   active: boolean;
   joinDate: string;
   createdAt: string;
+  scannerEnabled: boolean;
 }
 
 export default function BarbersPage() {
@@ -27,6 +28,11 @@ export default function BarbersPage() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
+  // Scanner settings state
+  const [globalScannerEnabled, setGlobalScannerEnabled] = useState(false);
+  const [autoDisableHours, setAutoDisableHours] = useState(2);
+  const [scannerSettingsLoading, setScannerSettingsLoading] = useState(false);
+  
   // Modal states
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
@@ -34,6 +40,7 @@ export default function BarbersPage() {
 
   useEffect(() => {
     fetchBarbers();
+    fetchScannerSettings();
   }, []);
 
   useEffect(() => {
@@ -56,6 +63,20 @@ export default function BarbersPage() {
       toast.error('Failed to fetch barbers');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchScannerSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/scanner-settings');
+      const data = await response.json();
+
+      if (data.success) {
+        setGlobalScannerEnabled(data.settings.globalScannerEnabled);
+        setAutoDisableHours(data.settings.autoDisableHours);
+      }
+    } catch (error) {
+      console.error('Error fetching scanner settings:', error);
     }
   };
 
@@ -150,6 +171,114 @@ export default function BarbersPage() {
     }
   };
 
+  const handleToggleGlobalScanner = async (enabled: boolean) => {
+    try {
+      setScannerSettingsLoading(true);
+      
+      // If we have custom state, always disable all first
+      const targetState = scannerStats.hasCustom ? false : enabled;
+      
+      // First update global scanner settings
+      const globalResponse = await fetch('/api/admin/scanner-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          globalScannerEnabled: targetState,
+          autoDisableHours: autoDisableHours 
+        }),
+      });
+
+      const globalData = await globalResponse.json();
+      if (!globalData.success) {
+        throw new Error('Failed to update global scanner settings');
+      }
+
+      // Then update all barbers to match the global setting
+      const bulkResponse = await fetch('/api/admin/barbers/bulk-scanner-toggle', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scannerEnabled: targetState }),
+      });
+
+      const bulkData = await bulkResponse.json();
+      if (!bulkData.success) {
+        throw new Error('Failed to update all barbers scanner permissions');
+      }
+
+      // Update local state
+      setGlobalScannerEnabled(targetState);
+      setBarbers(prevBarbers => 
+        prevBarbers.map(barber => ({ ...barber, scannerEnabled: targetState }))
+      );
+      
+      const actionText = scannerStats.hasCustom 
+        ? 'disabled for all barbers (was custom)' 
+        : `${targetState ? 'enabled' : 'disabled'} globally for all barbers`;
+      
+      toast.success(`Scanner ${actionText}`);
+    } catch (error) {
+      console.error('Error updating global scanner:', error);
+      toast.error('Failed to update scanner settings');
+    } finally {
+      setScannerSettingsLoading(false);
+    }
+  };
+
+  const handleToggleBarberScanner = async (barberId: string, barberName: string, enabled: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/barbers/${barberId}/scanner-toggle`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scannerEnabled: enabled }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Update local state
+        setBarbers(prevBarbers => 
+          prevBarbers.map(barber => 
+            barber._id === barberId 
+              ? { ...barber, scannerEnabled: enabled }
+              : barber
+          )
+        );
+        toast.success(`Scanner ${enabled ? 'enabled' : 'disabled'} for ${barberName}`);
+      } else {
+        toast.error('Failed to update scanner permission');
+      }
+    } catch (error) {
+      toast.error('Failed to update scanner permission');
+    }
+  };
+
+  const handleAutoDisableHoursChange = async (hours: number) => {
+    if (hours < 1 || hours > 10000) return;
+    
+    try {
+      setScannerSettingsLoading(true);
+      const response = await fetch('/api/admin/scanner-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          globalScannerEnabled: globalScannerEnabled,
+          autoDisableHours: hours 
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAutoDisableHours(hours);
+        toast.success('Auto-disable timer updated');
+      } else {
+        toast.error('Failed to update auto-disable timer');
+      }
+    } catch (error) {
+      toast.error('Failed to update auto-disable timer');
+    } finally {
+      setScannerSettingsLoading(false);
+    }
+  };
+
   const getTotalStats = () => {
     const totalBarbers = barbers.length;
     const activeBarbers = barbers.filter(b => b.active).length;
@@ -174,6 +303,17 @@ export default function BarbersPage() {
   };
 
   const stats = getTotalStats();
+
+  // Calculate scanner permission statistics
+  const getScannerStats = () => {
+    const enabledCount = barbers.filter(b => b.scannerEnabled).length;
+    const disabledCount = barbers.length - enabledCount;
+    const hasCustom = enabledCount > 0 && disabledCount > 0;
+    
+    return { enabledCount, disabledCount, hasCustom };
+  };
+
+  const scannerStats = getScannerStats();
 
   const StatsOverview = () => (
     <div className="grid grid-cols-3 gap-3 mb-6 sm:mb-8">
@@ -208,6 +348,91 @@ export default function BarbersPage() {
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mt-2">{stats.inactiveBarbers}</h3>
         <p className="text-sm text-gray-600">Inactive Barbers</p>
+      </div>
+    </div>
+  );
+
+  const ScannerControls = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-blue-500/10 rounded-xl">
+          <FaQrcode className="h-5 w-5 text-blue-600" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Scanner Controls</h3>
+          <p className="text-sm text-gray-600">Manage global and individual scanner access</p>
+        </div>
+      </div>
+
+      {/* Global Scanner Control */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h4 className="font-medium text-gray-900">Global Scanner Access</h4>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                scannerStats.hasCustom
+                  ? 'bg-amber-100 text-amber-800'
+                  : globalScannerEnabled 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+              }`}>
+                {scannerStats.hasCustom 
+                  ? 'Custom' 
+                  : globalScannerEnabled 
+                    ? 'Enabled' 
+                    : 'Disabled'
+                }
+              </span>
+              {scannerStats.hasCustom && (
+                <span className="text-xs text-gray-500">
+                  ({scannerStats.enabledCount} enabled, {scannerStats.disabledCount} disabled)
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-600">
+              {scannerStats.hasCustom 
+                ? 'Some barbers have different scanner permissions. Click to set all to the same state.'
+                : 'Control scanner access for all barbers. Individual permissions still apply.'
+              }
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            {(globalScannerEnabled && !scannerStats.hasCustom) && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <FaClock className="h-4 w-4" />
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={autoDisableHours}
+                  onChange={(e) => handleAutoDisableHoursChange(parseInt(e.target.value) || 2)}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                  disabled={scannerSettingsLoading}
+                />
+                <span>hours</span>
+              </div>
+            )}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={scannerStats.hasCustom ? false : globalScannerEnabled}
+                onChange={(e) => handleToggleGlobalScanner(e.target.checked)}
+                disabled={scannerSettingsLoading}
+                className="sr-only peer"
+              />
+              <div className={`w-11 h-6 ${
+                scannerStats.hasCustom 
+                  ? 'bg-amber-200' 
+                  : 'bg-gray-200'
+              } peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${
+                scannerStats.hasCustom 
+                  ? 'after:bg-amber-500 after:translate-x-full' 
+                  : 'peer-checked:bg-blue-600'
+              }`}></div>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -306,6 +531,32 @@ export default function BarbersPage() {
           </div>
         </div>
 
+        {/* Scanner Permission Control */}
+        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FaQrcode className={`h-4 w-4 ${barber.scannerEnabled ? 'text-green-600' : 'text-gray-400'}`} />
+              <span className="text-sm font-medium text-gray-900">Scanner Access</span>
+              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                barber.scannerEnabled 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {barber.scannerEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={barber.scannerEnabled}
+                onChange={(e) => handleToggleBarberScanner(barber._id, barber.name, e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+
         <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
           <div className="flex gap-1">
             <button
@@ -377,6 +628,7 @@ export default function BarbersPage() {
       </div>
 
       <StatsOverview />
+      <ScannerControls />
       <SearchAndFilters />
 
       {loading ? (
