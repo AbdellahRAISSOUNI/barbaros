@@ -7,10 +7,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CustomCursor from '@/components/landing/CustomCursor';
 import MagneticButton from '@/components/landing/MagneticButton';
-import LoadingScreen from '@/components/landing/LoadingScreen';
 
 export default function LandingPage() {
-  const [isLoading, setIsLoading] = useState(true);
   const [headerVisible, setHeaderVisible] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
   const heroImageRef = useRef<HTMLDivElement>(null);
@@ -18,8 +16,6 @@ export default function LandingPage() {
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    if (isLoading) return;
-    
     gsap.registerPlugin(ScrollTrigger);
     
     // Header hide/show on scroll
@@ -40,49 +36,31 @@ export default function LandingPage() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isLoading]);
+  }, []);
 
   useEffect(() => {
-    if (isLoading) return;
-    
     gsap.registerPlugin(ScrollTrigger);
     
-    // Enhanced hero animation with mask reveal
+    // Simplified hero animation without glitches
     const tl = gsap.timeline();
     
-    // Set initial states
-    gsap.set('.hero-title', { opacity: 1 });
-    gsap.set('.hero-subtitle span', { opacity: 0, y: 20 });
-    
-    // Title reveal with split text
-    const titleChars = document.querySelector('.hero-title');
-    if (titleChars) {
-      const text = titleChars.textContent || '';
-      titleChars.innerHTML = text.split('').map(char => 
-        `<span class="inline-block">${char}</span>`
-      ).join('');
-      
-      tl.from('.hero-title span', {
-        opacity: 0,
-        y: 50,
-        rotationX: -90,
-        stagger: 0.02,
-        duration: 0.8,
-        ease: 'power3.out',
-      });
-    }
-    
-    // Subtitle reveal
-    tl.to('.hero-subtitle span', {
+    // Smooth title reveal - animating from CSS initial states
+    tl.to('.hero-title', {
       opacity: 1,
       y: 0,
-      stagger: 0.2,
-      duration: 0.6,
+      duration: 1.2,
+      ease: 'power3.out',
+    })
+    .to('.hero-subtitle span', {
+      opacity: 1,
+      y: 0,
+      stagger: 0.15,
+      duration: 0.8,
       ease: 'power2.out',
-    }, '-=0.4')
-    .from('.hero-image', {
-      opacity: 0,
-      scale: 1.05,
+    }, '-=0.6')
+    .to('.hero-image', {
+      opacity: 0.08,
+      scale: 1,
       duration: 1.5,
       ease: 'power2.out',
     }, '-=0.8');
@@ -125,8 +103,6 @@ export default function LandingPage() {
       });
     });
 
-
-
     // Service item animations
     const serviceItems = document.querySelectorAll('.service-item');
     serviceItems.forEach((item, index) => {
@@ -145,22 +121,16 @@ export default function LandingPage() {
       });
     });
 
-
-
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isLoading]);
+  }, []);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission here
     window.location.href = '/reservations/new';
   };
-
-  if (isLoading) {
-    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
-  }
 
   return (
     <>
@@ -191,7 +161,7 @@ export default function LandingPage() {
               >
                 REGISTER
               </Link>
-                              <Link 
+              <Link 
                 href="/reservations/new"
                 className="px-12 py-4 bg-[var(--oxblood)] text-white text-xs md:text-sm tracking-widest hover:bg-opacity-90 transition-all duration-300"
                 data-cursor-hover
@@ -272,8 +242,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-
 
       {/* Why Choose Us Section */}
       <section className="min-h-screen flex items-center">
