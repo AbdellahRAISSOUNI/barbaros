@@ -121,6 +121,159 @@ export default function LandingPage() {
       });
     });
 
+    // Premium Philosophy Section Animations
+    const philosophySection = document.querySelector('.philosophy-label');
+    if (philosophySection) {
+      // Main timeline for the philosophy section
+      const philosophyTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: philosophySection.closest('section'),
+          start: 'top 75%',
+          end: 'bottom 25%',
+          toggleActions: 'play none none reverse',
+        }
+      });
+
+      // Section label animation
+      philosophyTl.to('.philosophy-label > div', {
+        y: 0,
+        duration: 1,
+        ease: 'power3.out',
+      })
+
+      // Title words reveal with sophisticated stagger
+      .to('.philosophy-title span span', {
+        y: 0,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: 'power3.out',
+      }, '-=0.5')
+
+      // Text paragraphs fade in
+      .to('.philosophy-text p', {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.3,
+        ease: 'power2.out',
+      }, '-=0.6')
+
+      // Stats animation
+      .to('.philosophy-stats > div:not(.w-\\[1px\\])', {
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: 'power2.out',
+      }, '-=0.4')
+
+      // Divider lines scale
+      .to('.philosophy-stats .w-\\[1px\\]', {
+        scaleY: 1,
+        duration: 0.4,
+        stagger: 0.1,
+        ease: 'power2.out',
+      }, '-=0.3');
+
+      // Background elements animation
+      gsap.set('.philosophy-bg-line', { scaleX: 0 });
+      gsap.set('.philosophy-accent', { scale: 0, rotation: 0 });
+
+      ScrollTrigger.create({
+        trigger: philosophySection.closest('section'),
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to('.philosophy-bg-line', {
+            scaleX: 1,
+            duration: 2,
+            stagger: 0.3,
+            ease: 'power2.out',
+          });
+          
+          gsap.to('.philosophy-accent', {
+            scale: 1,
+            rotation: (i) => i === 0 ? 45 : 12,
+            duration: 1.5,
+            stagger: 0.2,
+            ease: 'back.out(1.7)',
+          });
+        }
+      });
+
+      // Visual element animations
+      const visualElement = document.querySelector('.philosophy-visual');
+      if (visualElement) {
+        gsap.set('.philosophy-visual > div', { scale: 0, opacity: 0 });
+        gsap.set('.philosophy-inner-circle', { rotation: 0, scale: 0 });
+        gsap.set('.philosophy-float', { scale: 0, y: -20 });
+        gsap.set('.philosophy-orbit', { rotation: 0, scale: 0 });
+
+        ScrollTrigger.create({
+          trigger: visualElement,
+          start: 'top 85%',
+          onEnter: () => {
+            const visualTl = gsap.timeline();
+            
+            // Main circle appears
+            visualTl.to('.philosophy-visual > div:first-child', {
+              scale: 1,
+              opacity: 1,
+              duration: 1.2,
+              ease: 'power3.out',
+            })
+            
+            // Inner circle rotates in
+            .to('.philosophy-inner-circle', {
+              scale: 1,
+              rotation: 180,
+              duration: 1.5,
+              ease: 'power2.out',
+            }, '-=0.8')
+            
+            // Floating elements appear
+            .to('.philosophy-float', {
+              scale: 1,
+              y: 0,
+              duration: 0.8,
+              stagger: 0.15,
+              ease: 'back.out(1.7)',
+            }, '-=1')
+            
+            // Orbit elements
+            .to('.philosophy-orbit', {
+              scale: 1,
+              duration: 1,
+              ease: 'power2.out',
+            }, '-=0.8');
+          }
+        });
+
+        // Continuous animations
+        gsap.to('.philosophy-inner-circle', {
+          rotation: '+=360',
+          duration: 20,
+          repeat: -1,
+          ease: 'none',
+        });
+
+        gsap.to('.philosophy-orbit', {
+          rotation: '-=360',
+          duration: 30,
+          repeat: -1,
+          ease: 'none',
+        });
+
+        gsap.to('.philosophy-float', {
+          y: -10,
+          duration: 3,
+          stagger: 0.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut',
+        });
+      }
+    }
+
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
@@ -201,17 +354,108 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Our Philosophy Section */}
-      <section className="min-h-screen flex items-center">
-        <div className="max-w-5xl mx-auto px-8 md:px-16 text-center">
-          <h2 className="word-reveal text-4xl md:text-5xl lg:text-6xl font-light mb-16 text-[var(--deep-green)]">
-            The Barbaros Experience
-          </h2>
-          <p className="word-reveal text-xl md:text-2xl lg:text-3xl leading-relaxed font-light text-[var(--dark-brown)]">
-            In the sanctuary of our chair, time slows. Each cut is a meditation, 
-            each stroke deliberate. We honor the ritual of grooming as our 
-            fathers did, with tools that whisper rather than roar.
-          </p>
+      {/* Premium Philosophy Section */}
+      <section className="min-h-screen flex items-center relative overflow-hidden bg-gradient-to-b from-[var(--off-white)] to-[var(--warm-beige)] bg-opacity-20">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="philosophy-bg-line absolute top-1/4 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--deep-green)] to-transparent opacity-20"></div>
+          <div className="philosophy-bg-line absolute bottom-1/4 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--premium-green)] to-transparent opacity-15"></div>
+          <div className="philosophy-accent absolute top-1/2 left-8 w-12 h-12 border border-[var(--deep-green)] border-opacity-10 transform -translate-y-1/2 rotate-45"></div>
+          <div className="philosophy-accent absolute top-1/3 right-16 w-8 h-8 bg-[var(--premium-green)] bg-opacity-5 transform rotate-12"></div>
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-8 md:px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            {/* Left Content */}
+            <div className="lg:col-span-7 space-y-12">
+              {/* Section Label */}
+              <div className="philosophy-label overflow-hidden">
+                <div className="flex items-center gap-4 transform translate-y-full">
+                  <div className="w-12 h-[1px] bg-[var(--deep-green)]"></div>
+                  <span className="text-xs tracking-[0.4em] font-light text-[var(--deep-green)] opacity-60">
+                    PHILOSOPHY
+                  </span>
+                  <div className="w-12 h-[1px] bg-[var(--deep-green)]"></div>
+                </div>
+              </div>
+
+              {/* Main Heading */}
+              <div className="space-y-6">
+                <h2 className="philosophy-title text-5xl md:text-6xl lg:text-7xl font-light leading-[0.9] text-[var(--dark-brown)]">
+                  <span className="block overflow-hidden">
+                    <span className="inline-block transform translate-y-full">Crafted</span>
+                  </span>
+                  <span className="block overflow-hidden">
+                    <span className="inline-block transform translate-y-full text-[var(--deep-green)]">in</span>
+                  </span>
+                  <span className="block overflow-hidden">
+                    <span className="inline-block transform translate-y-full">Silence</span>
+                  </span>
+                </h2>
+              </div>
+
+              {/* Philosophy Text */}
+              <div className="philosophy-text space-y-8 max-w-xl">
+                <p className="text-lg md:text-xl leading-relaxed font-light text-[var(--dark-brown)] opacity-0">
+                  In the quietude of our atelier, time becomes irrelevant. 
+                  Each gesture carries the weight of tradition, each tool 
+                  an extension of decades of refined expertise.
+                </p>
+                <p className="text-lg md:text-xl leading-relaxed font-light text-[var(--dark-brown)] opacity-0">
+                  We practice the ancient art of barbering not as a service, 
+                  but as a <span className="text-[var(--premium-green)] font-normal">meditation</span> — 
+                  where precision meets poetry, and every cut tells a story.
+                </p>
+              </div>
+
+              {/* Stats */}
+              <div className="philosophy-stats flex items-center gap-12 pt-8">
+                <div className="text-center transform translate-y-full opacity-0">
+                  <div className="text-2xl md:text-3xl font-light text-[var(--deep-green)] mb-2">29</div>
+                  <div className="text-xs tracking-[0.3em] text-[var(--dark-brown)] opacity-60">YEARS</div>
+                </div>
+                <div className="w-[1px] h-12 bg-[var(--deep-green)] opacity-20 transform scale-y-0"></div>
+                <div className="text-center transform translate-y-full opacity-0">
+                  <div className="text-2xl md:text-3xl font-light text-[var(--deep-green)] mb-2">∞</div>
+                  <div className="text-xs tracking-[0.3em] text-[var(--dark-brown)] opacity-60">PRECISION</div>
+                </div>
+                <div className="w-[1px] h-12 bg-[var(--deep-green)] opacity-20 transform scale-y-0"></div>
+                <div className="text-center transform translate-y-full opacity-0">
+                  <div className="text-2xl md:text-3xl font-light text-[var(--deep-green)] mb-2">01</div>
+                  <div className="text-xs tracking-[0.3em] text-[var(--dark-brown)] opacity-60">TRADITION</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Visual Element */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="philosophy-visual relative">
+                {/* Main Circle */}
+                <div className="w-72 h-72 md:w-80 md:h-80 border border-[var(--deep-green)] border-opacity-20 rounded-full relative overflow-hidden">
+                  {/* Inner rotating element */}
+                  <div className="philosophy-inner-circle absolute inset-4 border border-[var(--premium-green)] border-opacity-30 rounded-full">
+                    <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[var(--deep-green)] rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                  </div>
+                  
+                  {/* Floating elements */}
+                  <div className="philosophy-float absolute top-8 right-8 w-3 h-3 bg-[var(--premium-green)] bg-opacity-40 rounded-full"></div>
+                  <div className="philosophy-float absolute bottom-12 left-12 w-2 h-2 bg-[var(--deep-green)] bg-opacity-60 rounded-full"></div>
+                  <div className="philosophy-float absolute top-1/3 left-8 w-1 h-1 bg-[var(--premium-green)] rounded-full"></div>
+                  
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--deep-green)] to-[var(--premium-green)] opacity-5 rounded-full"></div>
+                </div>
+                
+                {/* Orbiting elements */}
+                <div className="philosophy-orbit absolute inset-0 w-72 h-72 md:w-80 md:h-80">
+                  <div className="absolute -top-2 left-1/2 w-4 h-4 border border-[var(--deep-green)] border-opacity-40 transform -translate-x-1/2 rotate-45"></div>
+                  <div className="absolute top-1/2 -right-2 w-3 h-3 bg-[var(--premium-green)] bg-opacity-20 transform -translate-y-1/2"></div>
+                  <div className="absolute -bottom-2 left-1/2 w-2 h-2 bg-[var(--deep-green)] bg-opacity-30 rounded-full transform -translate-x-1/2"></div>
+                  <div className="absolute top-1/2 -left-2 w-3 h-3 border border-[var(--premium-green)] border-opacity-30 rounded-full transform -translate-y-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

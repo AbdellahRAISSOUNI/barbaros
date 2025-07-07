@@ -8,6 +8,9 @@
   --champagne-gold: #E6D7B8;
   --oxblood: #8B0000;
   --charcoal: #1A1A1A;
+  --deep-green: #1B3B36;
+  --premium-green: #2A5A4B;
+  --dark-red: #8B0000;
 }
 
 body.landing-page-active * {
@@ -106,6 +109,65 @@ body.landing-page-active * {
   transform: scale(1.05);
 }
 
+/* Premium Philosophy Section Styles */
+.philosophy-bg-line {
+  transform-origin: center;
+}
+
+.philosophy-accent {
+  transform-origin: center;
+}
+
+.philosophy-visual {
+  transform-origin: center;
+}
+
+.philosophy-inner-circle {
+  transform-origin: center;
+}
+
+.philosophy-orbit {
+  transform-origin: center;
+}
+
+.philosophy-float {
+  will-change: transform;
+}
+
+.philosophy-title span {
+  display: block;
+  overflow: hidden;
+}
+
+.philosophy-title span span {
+  display: inline-block;
+  will-change: transform;
+}
+
+.philosophy-text p {
+  transform: translateY(20px);
+  will-change: transform, opacity;
+}
+
+.philosophy-stats > div {
+  will-change: transform, opacity;
+}
+
+.philosophy-stats .w-\[1px\] {
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Smooth hardware acceleration for philosophy section */
+.philosophy-label,
+.philosophy-title,
+.philosophy-text,
+.philosophy-stats,
+.philosophy-visual {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
   body.landing-page-active * {
@@ -118,5 +180,24 @@ body.landing-page-active * {
   
   .landing-page h1 {
     font-size: 60px !important;
+  }
+
+  /* Philosophy section mobile adjustments */
+  .philosophy-title {
+    font-size: 3rem !important;
+  }
+  
+  .philosophy-visual .w-72 {
+    width: 16rem !important;
+    height: 16rem !important;
+  }
+  
+  .philosophy-visual .md\:w-80 {
+    width: 16rem !important;
+    height: 16rem !important;
+  }
+  
+  .philosophy-stats {
+    gap: 2rem !important;
   }
 } 
