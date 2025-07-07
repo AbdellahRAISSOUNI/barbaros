@@ -442,7 +442,7 @@ export function VisitRecordingForm({
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start">
                               <h3 className="font-bold text-stone-800 text-base truncate pr-2">{service.name}</h3>
-                              <p className="text-base font-bold text-emerald-600 flex-shrink-0">${service.price}</p>
+                              <p className="text-base font-bold text-emerald-600 flex-shrink-0">{service.price} MAD</p>
                             </div>
                             <p className="text-sm text-stone-500 mb-2 truncate">{service.description}</p>
                             <div className="flex items-center gap-3 text-sm">
@@ -504,7 +504,7 @@ export function VisitRecordingForm({
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-stone-500">$</span>
+                              <span className="text-xs text-stone-500">MAD</span>
                               <input
                                 type="number"
                                 value={service.price}
@@ -547,7 +547,7 @@ export function VisitRecordingForm({
               <div className="space-y-3 text-sm text-black">
                 <div className="flex justify-between">
                   <span className="text-stone-600">Services Total:</span>
-                  <span className="font-medium text-black">${calculatedTotal.toFixed(2)}</span>
+                  <span className="font-medium text-black">{calculatedTotal.toFixed(2)} MAD</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-600">Total Duration:</span>
@@ -559,7 +559,7 @@ export function VisitRecordingForm({
                     Final Total:
                   </label>
                   <div className="flex items-center space-x-2">
-                    <span className="text-gray-500">$</span>
+                    <span className="text-gray-500">MAD</span>
                     <input
                       id="customPrice"
                       type="number"

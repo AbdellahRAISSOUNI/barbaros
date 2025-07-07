@@ -258,7 +258,7 @@ export default function BarberRewardForm({ reward, onSubmit, onCancel, isLoading
               errors.rewardValue ? 'border-red-300' : 'border-gray-300'
             }`}
             placeholder={
-              formData.rewardType === 'monetary' ? '$100' :
+              formData.rewardType === 'monetary' ? '1000 MAD' :
               formData.rewardType === 'gift' ? 'Premium shaver set' :
               formData.rewardType === 'time_off' ? '1 day paid leave' :
               'Employee of the month recognition'

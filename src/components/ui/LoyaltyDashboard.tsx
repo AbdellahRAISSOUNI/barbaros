@@ -428,7 +428,7 @@ export default function LoyaltyDashboard({ clientId }: LoyaltyDashboardProps) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">${history.totalPrice}</p>
+                          <p className="text-lg font-bold text-gray-900">{history.totalPrice} MAD</p>
                           <p className="text-sm text-gray-600">{history.services.length} service{history.services.length !== 1 ? 's' : ''}</p>
                         </div>
                       </div>

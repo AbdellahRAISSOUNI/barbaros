@@ -252,7 +252,7 @@ export default function ServiceForm({ service, categories, onSubmit, onCancel }:
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                Price ($) *
+                Price (MAD) *
               </label>
               <input
                 type="number"

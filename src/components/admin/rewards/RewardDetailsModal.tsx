@@ -252,10 +252,10 @@ export default function RewardDetailsModal({ reward, isOpen, onClose }: RewardDe
                         <p className="text-xs sm:text-sm text-gray-600">{service.category?.name || 'No Category'}</p>
                       </div>
                       <div className="text-left sm:text-right">
-                        <p className="font-semibold text-green-600 text-sm sm:text-base">${service.price}</p>
+                        <p className="font-semibold text-green-600 text-sm sm:text-base">{service.price} MAD</p>
                         {reward.rewardType === 'discount' && reward.discountPercentage && (
                           <p className="text-xs sm:text-sm text-blue-600">
-                            ${(service.price * (100 - reward.discountPercentage) / 100).toFixed(2)} after discount
+                            {(service.price * (100 - reward.discountPercentage) / 100).toFixed(2)} MAD after discount
                           </p>
                         )}
                         {reward.rewardType === 'free' && (

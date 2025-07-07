@@ -47,20 +47,20 @@ The following service categories are created:
 Sample services are created for each category:
 
 #### Haircuts Category
-- Regular Haircut ($25, 30 mins)
-- Premium Haircut ($35, 45 mins)
+- Regular Haircut (250 MAD, 30 mins)
+- Premium Haircut (350 MAD, 45 mins)
 
 #### Shaves Category
-- Classic Shave ($20, 25 mins)
-- Beard Trim ($15, 20 mins)
+- Classic Shave (200 MAD, 25 mins)
+- Beard Trim (150 MAD, 20 mins)
 
 #### Treatments Category
-- Scalp Treatment ($30, 30 mins)
-- Hair Coloring ($50, 60 mins)
+- Scalp Treatment (300 MAD, 30 mins)
+- Hair Coloring (500 MAD, 60 mins)
 
 #### Packages Category
-- Haircut + Shave ($40, 50 mins)
-- Full Service Package ($75, 90 mins)
+- Haircut + Shave (400 MAD, 50 mins)
+- Full Service Package (750 MAD, 90 mins)
 
 ### Rewards
 

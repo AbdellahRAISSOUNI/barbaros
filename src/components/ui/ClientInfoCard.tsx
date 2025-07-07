@@ -174,6 +174,7 @@ export function ClientInfoCard({
         }}
         onVisitCreated={handleVisitCreated}
         onCancel={handleBackToInfo}
+        onNavigateToRewards={(clientId) => setViewMode('rewards')}
       />
     );
   }
@@ -457,7 +458,7 @@ export function ClientInfoCard({
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
-                      ${visit.totalPrice}
+                      {visit.totalPrice} MAD
                     </div>
                   </div>
                 </div>

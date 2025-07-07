@@ -185,7 +185,7 @@ src/components/admin/services/
 3. Fill in service details:
    - **Name**: Enter service name (required)
    - **Description**: Provide detailed description (required)
-   - **Price**: Set price in dollars (required, min: 0)
+   - **Price**: Set price in MAD (required, min: 0)
    - **Duration**: Set duration in minutes (required, min: 1)
    - **Category**: Select from available categories (required)
    - **Image**: Upload service image (optional, max 5MB)

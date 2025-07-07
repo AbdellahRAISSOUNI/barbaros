@@ -113,7 +113,7 @@ export async function seedDatabase() {
       {
         name: 'Regular Haircut',
         description: 'Standard haircut with scissors',
-        price: 25,
+        price: 250,
         durationMinutes: 30,
         imageUrl: '/images/services/regular-haircut.jpg',
         categoryId: createdCategories[0]._id,
@@ -123,7 +123,7 @@ export async function seedDatabase() {
       {
         name: 'Buzz Cut',
         description: 'Short haircut with clippers',
-        price: 20,
+        price: 200,
         durationMinutes: 20,
         imageUrl: '/images/services/buzz-cut.jpg',
         categoryId: createdCategories[0]._id,
@@ -133,7 +133,7 @@ export async function seedDatabase() {
       {
         name: 'Beard Trim',
         description: 'Trim and shape beard',
-        price: 15,
+        price: 150,
         durationMinutes: 15,
         imageUrl: '/images/services/beard-trim.jpg',
         categoryId: createdCategories[1]._id,
@@ -143,7 +143,7 @@ export async function seedDatabase() {
       {
         name: 'Hot Towel Shave',
         description: 'Traditional hot towel shave',
-        price: 30,
+        price: 300,
         durationMinutes: 30,
         imageUrl: '/images/services/hot-towel-shave.jpg',
         categoryId: createdCategories[1]._id,
@@ -153,7 +153,7 @@ export async function seedDatabase() {
       {
         name: 'Hair Styling',
         description: 'Hair styling with products',
-        price: 20,
+        price: 200,
         durationMinutes: 20,
         imageUrl: '/images/services/hair-styling.jpg',
         categoryId: createdCategories[2]._id,
@@ -163,7 +163,7 @@ export async function seedDatabase() {
       {
         name: 'Hair Coloring',
         description: 'Full hair coloring service',
-        price: 50,
+        price: 500,
         durationMinutes: 60,
         imageUrl: '/images/services/hair-coloring.jpg',
         categoryId: createdCategories[3]._id,

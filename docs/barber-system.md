@@ -237,7 +237,7 @@ interface IBarberStats {
 
 2. **One Month Strong** - First month dedication (30 days)
    - Tier: Bronze, Points: 100
-   - Reward: $25 bonus
+   - Reward: 250 MAD bonus
 
 3. **Quarterly Champion** - Three months service (90 days)
    - Tier: Silver, Points: 250
@@ -245,11 +245,11 @@ interface IBarberStats {
 
 4. **Half-Year Hero** - Six months commitment (180 days)
    - Tier: Gold, Points: 500
-   - Reward: $100 loyalty bonus
+   - Reward: 1000 MAD loyalty bonus
 
 5. **Annual Veteran** - One year dedication (365 days)
    - Tier: Platinum, Points: 1000
-   - Reward: $300 + extra benefits
+   - Reward: 3000 MAD + extra benefits
 
 ### Performance
 1. **First Cut** - Complete first service (1 visit)
@@ -262,11 +262,11 @@ interface IBarberStats {
 
 3. **Weekly Warrior** - 25+ services in one week (repeatable)
    - Tier: Silver, Points: 75
-   - Reward: $20 weekly bonus
+   - Reward: 200 MAD weekly bonus
 
 4. **Monthly Master** - 100+ services in one month (repeatable)
    - Tier: Gold, Points: 200
-   - Reward: $75 excellence bonus
+   - Reward: 750 MAD excellence bonus
 
 ### Consistency
 1. **Consistency Starter** - 5 consecutive days with 2+ services
@@ -284,7 +284,7 @@ interface IBarberStats {
 
 2. **Community Favorite** - Build clientele of 25 customers
    - Tier: Silver, Points: 150
-   - Reward: $40 relationship bonus
+   - Reward: 400 MAD relationship bonus
 
 3. **Network Builder** - Serve 50 unique clients
    - Tier: Gold, Points: 400
@@ -293,7 +293,7 @@ interface IBarberStats {
 ### Quality & Craft
 1. **Quality Craftsman** - Maintain 80%+ client retention
    - Tier: Gold, Points: 300
-   - Reward: $60 quality bonus
+   - Reward: 600 MAD quality bonus
 
 2. **Service Specialist** - Master 4 different service types
    - Tier: Silver, Points: 200
@@ -302,11 +302,11 @@ interface IBarberStats {
 ### Major Milestones
 1. **Century Club** - Complete 100 total services
    - Tier: Platinum, Points: 500
-   - Reward: $150 milestone reward
+   - Reward: 1500 MAD milestone reward
 
 2. **Elite Professional** - Reach 500 total services
    - Tier: Diamond, Points: 1500
-   - Reward: $500 + special recognition
+   - Reward: 5000 MAD + special recognition
 
 ## Admin Features
 

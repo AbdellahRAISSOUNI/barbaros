@@ -69,9 +69,9 @@ export default function ServicePopularityChart({ dateRange }: ServicePopularityC
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-MA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'MAD',
       minimumFractionDigits: 0
     }).format(amount);
   };
@@ -227,7 +227,7 @@ export default function ServicePopularityChart({ dateRange }: ServicePopularityC
               <p className="text-lg font-bold text-yellow-800">
                 {popularityData.length > 0
                   ? formatCurrency(popularityData.reduce((sum, item) => sum + item.averagePrice, 0) / popularityData.length)
-                  : '$0'
+                  : formatCurrency(0)
                 }
               </p>
             </div>

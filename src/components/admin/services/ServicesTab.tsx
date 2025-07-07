@@ -293,7 +293,7 @@ export default function ServicesTab() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium text-gray-900 line-clamp-1">{service.name}</h3>
                   <span className="text-lg font-semibold text-green-600">
-                    ${service.price}
+                    {service.price} MAD
                   </span>
                 </div>
 

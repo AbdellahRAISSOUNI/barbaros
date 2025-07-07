@@ -976,7 +976,7 @@ describe('MetricsOverview', () => {
 
     await waitFor(() => {
       expect(screen.getByText('150')).toBeInTheDocument();
-      expect(screen.getByText('$5,000')).toBeInTheDocument();
+      expect(screen.getByText('5,000 MAD')).toBeInTheDocument();
     });
   });
 

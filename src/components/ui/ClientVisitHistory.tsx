@@ -1086,7 +1086,7 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                         <p className="text-xs text-gray-500">{service.duration} min</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gray-900 text-sm">${service.price.toFixed(2)}</p>
+                        <p className="font-bold text-gray-900 text-sm">{service.price.toFixed(2)} MAD</p>
                       </div>
                     </div>
                   ))}
@@ -1095,7 +1095,7 @@ export default function ClientVisitHistory({ clientId }: ClientVisitHistoryProps
                 <div className="mt-3 p-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-semibold text-gray-900">Total</span>
-                    <span className="font-bold text-gray-900">${selectedVisit.totalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-gray-900">{selectedVisit.totalPrice.toFixed(2)} MAD</span>
                   </div>
                 </div>
               </div>

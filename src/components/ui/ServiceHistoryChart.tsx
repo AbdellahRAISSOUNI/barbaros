@@ -209,7 +209,7 @@ export default function ServiceHistoryChart({ clientId }: ServiceHistoryChartPro
                       </div>
                       
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Avg: ${service.averagePrice.toFixed(2)}</span>
+                        <span>Avg: {service.averagePrice.toFixed(2)} MAD</span>
                         <span>Last used: {new Date(service.lastUsed).toLocaleDateString()}</span>
                       </div>
                     </div>

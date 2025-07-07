@@ -275,9 +275,9 @@ export default function AdminHistoryPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-MA', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'MAD'
     }).format(amount);
   };
 

@@ -17,10 +17,10 @@ The Barbaros achievement system is a sophisticated employee loyalty and retentio
 
 **Sample Achievements**:
 - **Welcome Aboard** (7 days) - Bronze, 50pts, Team Welcome Certificate
-- **One Month Strong** (30 days) - Bronze, 100pts, $25 bonus
+- **One Month Strong** (30 days) - Bronze, 100pts, 250 MAD bonus
 - **Quarterly Champion** (90 days) - Silver, 250pts, 1 day paid time off
-- **Half-Year Hero** (180 days) - Gold, 500pts, $100 loyalty bonus
-- **Annual Veteran** (365 days) - Platinum, 1000pts, $300 + extra benefits
+- **Half-Year Hero** (180 days) - Gold, 500pts, 1000 MAD loyalty bonus
+- **Annual Veteran** (365 days) - Platinum, 1000pts, 3000 MAD + extra benefits
 
 ### 2. Performance (📊)
 **Purpose**: Track productivity and service completion without revenue pressure
@@ -28,16 +28,16 @@ The Barbaros achievement system is a sophisticated employee loyalty and retentio
 **Sample Achievements**:
 - **First Cut** (1 service) - Bronze, 25pts, First Cut Certificate
 - **Daily Achiever** (3+ services/day, repeatable) - Bronze, 15pts, Daily Star
-- **Weekly Warrior** (25+ services/week, repeatable) - Silver, 75pts, $20 bonus
-- **Monthly Master** (100+ services/month, repeatable) - Gold, 200pts, $75 bonus
-- **Century Club** (100 total services) - Platinum, 500pts, $150 milestone
+- **Weekly Warrior** (25+ services/week, repeatable) - Silver, 75pts, 200 MAD bonus
+- **Monthly Master** (100+ services/month, repeatable) - Gold, 200pts, 750 MAD bonus
+- **Century Club** (100 total services) - Platinum, 500pts, 1500 MAD milestone
 
 ### 3. Client Relations (👥)
 **Purpose**: Encourage excellent customer service and relationship building
 
 **Sample Achievements**:
 - **People Person** (5 different clients) - Bronze, 50pts, People Skills Badge
-- **Community Favorite** (25 unique clients) - Silver, 150pts, $40 bonus
+- **Community Favorite** (25 unique clients) - Silver, 150pts, 400 MAD bonus
 - **Network Builder** (50 unique clients) - Gold, 400pts, Schedule Flexibility
 
 ### 4. Consistency (🔥)
@@ -51,7 +51,7 @@ The Barbaros achievement system is a sophisticated employee loyalty and retentio
 **Purpose**: Recognize service excellence and professional skill
 
 **Sample Achievements**:
-- **Quality Craftsman** (80%+ client retention rate) - Gold, 300pts, $60 bonus
+- **Quality Craftsman** (80%+ client retention rate) - Gold, 300pts, 600 MAD bonus
 - **Service Specialist** (4 different service types) - Silver, 200pts, Advanced Training
 
 ### 6. Growth & Learning (📚)
@@ -64,7 +64,7 @@ The Barbaros achievement system is a sophisticated employee loyalty and retentio
 **Purpose**: Celebrate significant career achievements
 
 **Sample Achievements**:
-- **Elite Professional** (500 total services) - Diamond, 1500pts, $500 + recognition
+- **Elite Professional** (500 total services) - Diamond, 1500pts, 5000 MAD + recognition
 
 ## 🥉 Tier System
 

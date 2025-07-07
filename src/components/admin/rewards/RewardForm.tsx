@@ -484,7 +484,7 @@ export default function RewardForm({ reward, onSubmit, onCancel, isLoading }: Re
                         {service.category && (
                           <div className="text-sm text-gray-500">{service.category.name}</div>
                         )}
-                        <div className="text-sm text-gray-600">${service.price}</div>
+                        <div className="text-sm text-gray-600">{service.price} MAD</div>
                       </div>
                     </label>
                   );

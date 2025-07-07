@@ -211,7 +211,7 @@ export function VisitHistoryView({
                       <p className="text-sm text-gray-600">{service.duration} minutes</p>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="text-lg font-bold text-green-600">${service.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-green-600">{service.price.toFixed(2)} MAD</p>
                     </div>
                   </div>
                 ))}
@@ -229,7 +229,7 @@ export function VisitHistoryView({
                   </div>
                 </div>
                 <span className="text-2xl lg:text-3xl font-bold text-orange-800">
-                  ${selectedVisit.totalPrice.toFixed(2)}
+                  {selectedVisit.totalPrice.toFixed(2)} MAD
                 </span>
               </div>
             </div>
@@ -307,7 +307,7 @@ export function VisitHistoryView({
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Spent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${visits.reduce((sum, visit) => sum + visit.totalPrice, 0).toFixed(2)}
+                    {visits.reduce((sum, visit) => sum + visit.totalPrice, 0).toFixed(2)} MAD
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 text-green-600 rounded-lg">
@@ -321,7 +321,7 @@ export function VisitHistoryView({
                 <div>
                   <p className="text-sm font-medium text-gray-600">Average Visit</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${visits.length > 0 ? (visits.reduce((sum, visit) => sum + visit.totalPrice, 0) / visits.length).toFixed(2) : '0.00'}
+                    {visits.length > 0 ? (visits.reduce((sum, visit) => sum + visit.totalPrice, 0) / visits.length).toFixed(2) : '0.00'} MAD
                   </p>
                 </div>
                 <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">

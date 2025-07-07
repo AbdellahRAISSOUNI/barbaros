@@ -86,7 +86,7 @@ Enhanced client management with new features:
 
 5. Reward configuration (optional):
    - **Type**: Monetary, Time Off, Recognition, Privileges, or Training
-   - **Value**: Specific reward amount (e.g., "$50", "1 day")
+   - **Value**: Specific reward amount (e.g., "500 MAD", "1 day")
    - **Description**: What the employee receives
 
 ### 6. System Settings and Configuration
@@ -147,7 +147,7 @@ Enhanced client management with new features:
 
 5. Reward configuration (optional):
    - **Type**: Monetary, Time Off, Recognition, Privileges, or Training
-   - **Value**: Specific reward amount (e.g., "$50", "1 day")
+   - **Value**: Specific reward amount (e.g., "500 MAD", "1 day")
    - **Description**: What the employee receives
 
 ## Achievement Categories Explained
@@ -234,13 +234,13 @@ Enhanced client management with new features:
 **Recommended Settings**:
 - High tier (Platinum/Diamond)
 - Large point values (500-1500)
-- Significant rewards ($150-$500)
+- Significant rewards (1500-5000 MAD)
 
 ## Reward Types & Best Practices
 
 ### 💰 Monetary Rewards
 **When to Use**: Major milestones, high-tier achievements
-**Examples**: $25-$500 bonuses
+**Examples**: 250-5000 MAD bonuses
 **Best Practice**: Scale with achievement difficulty and tier
 
 ### 🏖️ Time Off Rewards
@@ -268,23 +268,23 @@ Enhanced client management with new features:
 ### For New Employees (First 90 Days)
 1. **Welcome Aboard** (7 days) - Bronze, Recognition
 2. **First Cut** (1 service) - Bronze, Certificate
-3. **One Month Strong** (30 days) - Bronze, $25 bonus
+3. **One Month Strong** (30 days) - Bronze, 250 MAD bonus
 4. **People Person** (5 clients) - Bronze, Recognition
 
 ### for Developing Employees (3-12 Months)
 1. **Quarterly Champion** (90 days) - Silver, 1 day off
-2. **Weekly Warrior** (25 services/week) - Silver, $20 bonus
-3. **Community Favorite** (25 clients) - Silver, $40 bonus
+2. **Weekly Warrior** (25 services/week) - Silver, 200 MAD bonus
+3. **Community Favorite** (25 clients) - Silver, 400 MAD bonus
 4. **Consistency Starter** (5-day streak) - Bronze, Award
 
 ### For Experienced Employees (1+ Years)
-1. **Annual Veteran** (365 days) - Platinum, $300 + benefits
-2. **Century Club** (100 services) - Platinum, $150 bonus
-3. **Quality Craftsman** (80% retention) - Gold, $60 bonus
+1. **Annual Veteran** (365 days) - Platinum, 3000 MAD + benefits
+2. **Century Club** (100 services) - Platinum, 1500 MAD bonus
+3. **Quality Craftsman** (80% retention) - Gold, 600 MAD bonus
 4. **Reliability Expert** (8-week consistency) - Gold, half day off
 
 ### For Elite Professionals (Top Performers)
-1. **Elite Professional** (500 services) - Diamond, $500 + recognition
+1. **Elite Professional** (500 services) - Diamond, 5000 MAD + recognition
 2. **Master Network Builder** (100+ clients) - Diamond, Premium privileges
 3. **Diamond Consistency** (6-month streak) - Diamond, Special recognition
 
