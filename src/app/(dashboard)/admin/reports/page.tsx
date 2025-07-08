@@ -23,9 +23,55 @@ import {
   FaUserTie,
   FaArrowUp,
   FaArrowDown,
-  FaEquals
+  FaEquals,
+  FaPercentage,
+  FaStopwatch,
+  FaMapMarkerAlt,
+  FaBookmark,
+  FaStar,
+  FaHistory,
+  FaHandshake,
+  FaCoins,
+  FaBolt,
+  FaHeart,
+  FaSync,
+  FaExpand,
+  FaCompress,
+  FaChartArea,
+  FaBusinessTime,
+  FaMoneyCheckAlt,
+  FaUserCheck,
+  FaCalendarWeek,
+  FaLayerGroup,
+  FaCrown
 } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
+import { format, subDays, subMonths, subWeeks } from 'date-fns';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 interface ReportFilter {
   startDate: string;
@@ -34,283 +80,151 @@ interface ReportFilter {
   barber?: string;
   service?: string;
   client?: string;
-  format: 'table' | 'chart' | 'export';
+  format: 'dashboard' | 'chart' | 'table';
+  period: 'daily' | 'weekly' | 'monthly';
+  comparison: boolean;
 }
 
-interface BusinessMetrics {
-  totalRevenue: number;
-  totalVisits: number;
-  totalClients: number;
-  averageVisitValue: number;
-  clientRetentionRate: number;
-  growthRate: number;
+interface AnalyticsData {
+  overview: any;
+  retention: any;
+  performance: any;
+  reservations: any;
 }
 
-interface PerformanceReport {
-  period: string;
-  revenue: number;
-  visits: number;
-  clients: number;
-  averageValue: number;
-  trend: 'up' | 'down' | 'stable';
+interface MetricCard {
+  title: string;
+  value: string | number;
+  change: number;
+  icon: any;
+  color: string;
+  description: string;
 }
 
-interface ServiceReport {
-  serviceId: string;
-  serviceName: string;
-  category: string;
-  totalBookings: number;
-  totalRevenue: number;
-  averagePrice: number;
-  growthRate: number;
-  marketShare: number;
-}
-
-interface ClientAnalytics {
-  clientId: string;
-  clientName: string;
-  totalVisits: number;
-  totalSpent: number;
-  averageVisitValue: number;
-  lastVisit: string;
-  loyaltyStatus: string;
-  frequency: 'high' | 'medium' | 'low';
-}
-
-interface BarberPerformance {
-  barberId: string;
-  barberName: string;
-  totalVisits: number;
-  totalRevenue: number;
-  uniqueClients: number;
-  averageVisitValue: number;
-  efficiency: number;
-  rating: number;
-}
-
-export default function ReportsPage() {
+export default function AdvancedReportsPage() {
   const [filters, setFilters] = useState<ReportFilter>({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
     reportType: 'overview',
-    format: 'table'
+    format: 'dashboard',
+    period: 'daily',
+    comparison: true
   });
 
-  const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics | null>(null);
-  const [performanceData, setPerformanceData] = useState<PerformanceReport[]>([]);
-  const [serviceReports, setServiceReports] = useState<ServiceReport[]>([]);
-  const [clientAnalytics, setClientAnalytics] = useState<ClientAnalytics[]>([]);
-  const [barberPerformance, setBarberPerformance] = useState<BarberPerformance[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+    overview: null,
+    retention: null,
+    performance: null,
+    reservations: null
+  });
   
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [availableBarbers, setAvailableBarbers] = useState<any[]>([]);
   const [availableServices, setAvailableServices] = useState<any[]>([]);
+  const [expandedView, setExpandedView] = useState<string | null>(null);
+
+  // Quick date presets
+  const datePresets = [
+    { label: 'Last 7 days', days: 7 },
+    { label: 'Last 30 days', days: 30 },
+    { label: 'Last 3 months', days: 90 },
+    { label: 'Last 6 months', days: 180 },
+    { label: 'Last year', days: 365 }
+  ];
 
   useEffect(() => {
-    fetchReportData();
+    fetchAllData();
     fetchFilterOptions();
-  }, [filters.startDate, filters.endDate, filters.reportType]);
+  }, [filters.startDate, filters.endDate, filters.period]);
 
   const fetchFilterOptions = async () => {
     try {
-      // Fetch barbers
-      const barbersResponse = await fetch('/api/admin/barbers');
-      const barbersData = await barbersResponse.json();
-      if (barbersData.success) {
-        setAvailableBarbers(barbersData.barbers || []);
-      }
+      const [barbersResponse, servicesResponse] = await Promise.all([
+        fetch('/api/admin/barbers'),
+        fetch('/api/services')
+      ]);
 
-      // Fetch services
-      const servicesResponse = await fetch('/api/services');
-      const servicesData = await servicesResponse.json();
-      if (servicesData.success) {
-        setAvailableServices(servicesData.services || []);
-      }
+      const [barbersData, servicesData] = await Promise.all([
+        barbersResponse.json(),
+        servicesResponse.json()
+      ]);
+
+      if (barbersData.success) setAvailableBarbers(barbersData.barbers || []);
+      if (servicesData.success) setAvailableServices(servicesData.services || []);
     } catch (error) {
       console.error('Error fetching filter options:', error);
     }
   };
 
-  const fetchReportData = async () => {
+  const fetchAllData = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         startDate: filters.startDate,
         endDate: filters.endDate,
-        ...(filters.barber && { barber: filters.barber }),
-        ...(filters.service && { service: filters.service }),
-        ...(filters.client && { client: filters.client })
+        period: filters.period
       });
 
-      // Fetch different data based on report type
-      switch (filters.reportType) {
-        case 'overview':
-          await fetchOverviewData(params);
-          break;
-        case 'financial':
-          await fetchFinancialData(params);
-          break;
-        case 'services':
-          await fetchServicesData(params);
-          break;
-        case 'clients':
-          await fetchClientsData(params);
-          break;
-        case 'barbers':
-          await fetchBarbersData(params);
-          break;
-        case 'loyalty':
-          await fetchLoyaltyData(params);
-          break;
-        default:
-          await fetchOverviewData(params);
-      }
+      const [overviewResponse, retentionResponse, performanceResponse, reservationsResponse] = await Promise.all([
+        fetch(`/api/admin/analytics/overview?${params}`),
+        fetch(`/api/admin/analytics/client-retention?${params}`),
+        fetch(`/api/admin/analytics/performance-trends?${params}`),
+        fetch(`/api/admin/analytics/reservation-analytics?${params}`)
+      ]);
+
+      const [overview, retention, performance, reservations] = await Promise.all([
+        overviewResponse.json(),
+        retentionResponse.json(),
+        performanceResponse.json(),
+        reservationsResponse.json()
+      ]);
+
+      setAnalyticsData({
+        overview: overview.success ? overview.metrics : null,
+        retention: retention.success ? retention.data : null,
+        performance: performance.success ? performance.data : null,
+        reservations: reservations.success ? reservations.data : null
+      });
+
     } catch (error) {
-      console.error('Error fetching report data:', error);
-      toast.error('Failed to fetch report data');
+      console.error('Error fetching analytics data:', error);
+      toast.error('Failed to fetch analytics data');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchOverviewData = async (params: URLSearchParams) => {
-    // Fetch overview analytics
-    const overviewResponse = await fetch(`/api/admin/analytics/overview?${params}`);
-    const overviewData = await overviewResponse.json();
-    
-    if (overviewData.success) {
-      setBusinessMetrics({
-        totalRevenue: overviewData.metrics.totalRevenue,
-        totalVisits: overviewData.metrics.totalVisits,
-        totalClients: overviewData.metrics.totalClients,
-        averageVisitValue: overviewData.metrics.averageVisitValue,
-        clientRetentionRate: 85.5, // Mock data
-        growthRate: overviewData.metrics.revenueGrowthPercentage
-      });
-    }
-
-    // Fetch growth data for performance chart
-    const growthResponse = await fetch(`/api/admin/analytics/client-growth?${params}&period=weekly`);
-    const growthData = await growthResponse.json();
-    
-    if (growthData.success) {
-      const performanceReports = growthData.growthData.map((item: any, index: number) => ({
-        period: item.date,
-        revenue: item.newClients * 45, // Mock calculation
-        visits: item.newClients * 2.3, // Mock calculation
-        clients: item.newClients,
-        averageValue: 45,
-        trend: index > 0 && item.newClients > growthData.growthData[index - 1]?.newClients ? 'up' : 
-               index > 0 && item.newClients < growthData.growthData[index - 1]?.newClients ? 'down' : 'stable'
-      }));
-      setPerformanceData(performanceReports);
-    }
-  };
-
-  const fetchFinancialData = async (params: URLSearchParams) => {
-    try {
-      const response = await fetch(`/api/admin/reports/financial?${params}&period=weekly`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setPerformanceData(data.data);
-      } else {
-        console.error('Failed to fetch financial data:', data.message);
-        // Fallback to empty data
-        setPerformanceData([]);
-      }
-    } catch (error) {
-      console.error('Error fetching financial data:', error);
-      setPerformanceData([]);
-    }
-  };
-
-  const fetchServicesData = async (params: URLSearchParams) => {
-    const response = await fetch(`/api/admin/analytics/service-popularity?${params}&sortBy=revenue`);
-    const data = await response.json();
-    
-    if (data.success) {
-      const serviceReports = data.services.map((service: any) => ({
-        serviceId: service.serviceId,
-        serviceName: service.serviceName,
-        category: service.category || 'General',
-        totalBookings: service.totalBookings,
-        totalRevenue: service.totalRevenue,
-        averagePrice: service.averagePrice,
-        growthRate: service.trendPercentage || 0,
-        marketShare: service.marketShare || (service.totalBookings / data.summary.totalBookings * 100)
-      }));
-      setServiceReports(serviceReports);
-    }
-  };
-
-  const fetchClientsData = async (params: URLSearchParams) => {
-    try {
-      const response = await fetch(`/api/admin/reports/clients?${params}&limit=50`);
-      const data = await response.json();
-      
-      if (data.success) {
-        const formattedClientData = data.data.map((client: any) => ({
-          ...client,
-          lastVisit: client.lastVisit.split('T')[0] // Format date for display
-        }));
-        setClientAnalytics(formattedClientData);
-      } else {
-        console.error('Failed to fetch client analytics:', data.message);
-        setClientAnalytics([]);
-      }
-    } catch (error) {
-      console.error('Error fetching client analytics:', error);
-      setClientAnalytics([]);
-    }
-  };
-
-  const fetchBarbersData = async (params: URLSearchParams) => {
-    try {
-      const response = await fetch(`/api/admin/reports/barbers?${params}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setBarberPerformance(data.data);
-      } else {
-        console.error('Failed to fetch barber performance:', data.message);
-        setBarberPerformance([]);
-      }
-    } catch (error) {
-      console.error('Error fetching barber performance:', error);
-      setBarberPerformance([]);
-    }
-  };
-
-  const fetchLoyaltyData = async (params: URLSearchParams) => {
-    // Fetch loyalty statistics
-    const response = await fetch(`/api/loyalty/statistics?${params}`);
-    const data = await response.json();
-    
-    if (data.success) {
-      // Process loyalty data
-      setBusinessMetrics(prev => prev ? {
-        ...prev,
-        clientRetentionRate: data.statistics.memberRetentionRate
-      } : null);
-    }
-  };
-
-  const handleFilterChange = (field: keyof ReportFilter, value: string) => {
+  const handleFilterChange = (field: keyof ReportFilter, value: string | boolean) => {
     setFilters(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const exportReport = async (format: 'pdf' | 'csv' | 'excel') => {
+  const handleDatePreset = (days: number) => {
+    const endDate = new Date();
+    const startDate = subDays(endDate, days);
+    setFilters(prev => ({
+      ...prev,
+      startDate: format(startDate, 'yyyy-MM-dd'),
+      endDate: format(endDate, 'yyyy-MM-dd')
+    }));
+  };
+
+  const exportReport = async (format: 'pdf' | 'excel') => {
     setIsExporting(true);
     try {
       const params = new URLSearchParams({
-        ...filters,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        reportType: filters.reportType,
         format,
-        reportType: filters.reportType
+        period: filters.period,
+        comparison: filters.comparison.toString(),
+        ...(filters.barber && { barber: filters.barber }),
+        ...(filters.service && { service: filters.service }),
+        ...(filters.client && { client: filters.client })
       });
 
       const response = await fetch(`/api/admin/reports/export?${params}`);
@@ -322,7 +236,7 @@ export default function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `barbaros-${filters.reportType}-report-${filters.startDate}-to-${filters.endDate}.${format}`;
+      a.download = `barbaros-${filters.reportType}-report-${filters.startDate}-to-${filters.endDate}.${format === 'excel' ? 'xlsx' : format}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -344,521 +258,623 @@ export default function ReportsPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const getTrendIcon = (change: number) => {
+    if (change > 0) return <FaArrowUp className="w-3 h-3 text-green-600" />;
+    if (change < 0) return <FaArrowDown className="w-3 h-3 text-red-600" />;
+    return <FaEquals className="w-3 h-3 text-gray-600" />;
   };
 
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up':
-        return <FaArrowUp className="w-4 h-4 text-green-600" />;
-      case 'down':
-        return <FaArrowDown className="w-4 h-4 text-red-600" />;
-      default:
-        return <FaEquals className="w-4 h-4 text-gray-600" />;
-    }
+  const getTrendColor = (change: number) => {
+    if (change > 0) return 'text-green-600';
+    if (change < 0) return 'text-red-600';
+    return 'text-gray-600';
   };
 
-  const getFrequencyBadge = (frequency: string) => {
-    const badges = {
-      high: 'bg-green-100 text-green-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-red-100 text-red-800'
+  const getMetricCards = (): MetricCard[] => {
+    if (!analyticsData.overview) return [];
+
+    return [
+      {
+        title: 'Total Revenue',
+        value: formatCurrency(analyticsData.overview.totalRevenue || 0),
+        change: analyticsData.overview.revenueGrowthPercentage || 0,
+        icon: FaMoneyCheckAlt,
+        color: 'bg-emerald-500',
+        description: 'Total revenue for the period'
+      },
+      {
+        title: 'Total Visits',
+        value: (analyticsData.overview.totalVisits || 0).toLocaleString(),
+        change: analyticsData.overview.visitGrowthPercentage || 0,
+        icon: FaCalendarCheck,
+        color: 'bg-blue-500',
+        description: 'Total visits in the period'
+      },
+      {
+        title: 'Active Clients',
+        value: (analyticsData.overview.activeClients || 0).toLocaleString(),
+        change: analyticsData.overview.activeClientGrowthPercentage || 0,
+        icon: FaUserCheck,
+        color: 'bg-purple-500',
+        description: 'Clients who visited in this period'
+      },
+      {
+        title: 'Client Loyalty',
+        value: `${analyticsData.overview.clientRetentionRate || 0}%`,
+        change: 0, // Would need historical data for comparison
+        icon: FaHeart,
+        color: 'bg-pink-500',
+        description: 'Percentage of returning clients'
+      },
+      {
+        title: 'Average Visit Value',
+        value: formatCurrency(analyticsData.overview.averageVisitValue || 0),
+        change: 0,
+        icon: FaCoins,
+        color: 'bg-amber-500',
+        description: 'Average amount spent per visit'
+      },
+      {
+        title: 'New Clients',
+        value: (analyticsData.overview.newClientsThisMonth || 0).toLocaleString(),
+        change: analyticsData.overview.clientGrowthPercentage || 0,
+        icon: FaUserTie,
+        color: 'bg-indigo-500',
+        description: 'New clients acquired'
+      },
+      {
+        title: 'Loyalty Members',
+        value: `${analyticsData.overview.loyaltyMembersCount || 0}`,
+        change: 0,
+        icon: FaCrown,
+        color: 'bg-orange-500',
+        description: 'Active loyalty program members'
+      },
+      {
+        title: 'Rewards Redeemed',
+        value: (analyticsData.overview.rewardsRedeemed || 0).toLocaleString(),
+        change: 0,
+        icon: FaGift,
+        color: 'bg-red-500',
+        description: 'Rewards redeemed in period'
+      }
+    ];
+  };
+
+  const getRevenueChartData = () => {
+    if (!analyticsData.performance?.timeSeries) return null;
+
+    return {
+      labels: analyticsData.performance.timeSeries.map((item: any) => 
+        format(new Date(item.date), 'MMM dd')
+      ),
+      datasets: [
+        {
+          label: 'Revenue (MAD)',
+          data: analyticsData.performance.timeSeries.map((item: any) => item.revenue),
+          borderColor: 'rgb(16, 185, 129)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointBackgroundColor: 'rgb(16, 185, 129)',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5
+        }
+      ]
     };
-    return badges[frequency as keyof typeof badges] || badges.low;
   };
 
-  const reportTypes = [
-    { value: 'overview', label: 'Business Overview', icon: FaChartLine },
-    { value: 'financial', label: 'Financial Performance', icon: FaDollarSign },
-    { value: 'services', label: 'Service Analytics', icon: FaCut },
-    { value: 'clients', label: 'Client Analysis', icon: FaUsers },
-    { value: 'barbers', label: 'Barber Performance', icon: FaUserTie },
-    { value: 'loyalty', label: 'Loyalty Program', icon: FaGift }
-  ];
+  const getServiceDistributionData = () => {
+    if (!analyticsData.performance?.servicePerformance) return null;
+
+    const topServices = analyticsData.performance.servicePerformance.slice(0, 6);
+    return {
+      labels: topServices.map((item: any) => item.name),
+      datasets: [{
+        data: topServices.map((item: any) => item.bookings),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)'
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+          'rgb(236, 72, 153)'
+        ],
+        borderWidth: 2,
+        hoverBorderWidth: 3
+      }]
+    };
+  };
+
+  const getServicePerformanceData = () => {
+    if (!analyticsData.performance?.servicePerformance) return null;
+
+    return {
+      labels: analyticsData.performance.servicePerformance.slice(0, 8).map((item: any) => item.name),
+      datasets: [{
+        label: 'Revenue (MAD)',
+        data: analyticsData.performance.servicePerformance.slice(0, 8).map((item: any) => item.revenue),
+        backgroundColor: 'rgba(124, 58, 237, 0.8)',
+        borderColor: 'rgba(124, 58, 237, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+        hoverBackgroundColor: 'rgba(124, 58, 237, 0.9)'
+      }]
+    };
+  };
+
+  const renderMetricCards = () => {
+    const metrics = getMetricCards();
 
   return (
-    <div className="space-y-6">
-      <Toaster position="top-right" />
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {metrics.map((metric, index) => {
+          const IconComponent = metric.icon;
+          return (
+            <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-4 rounded-xl ${metric.color.replace('bg-', 'bg-opacity-20 bg-')} shadow-sm`}>
+                  <IconComponent className={`w-6 h-6 ${metric.color.replace('bg-', 'text-')}`} />
+                </div>
+                <div className="flex items-center gap-1">
+                  {getTrendIcon(metric.change)}
+                  <span className={`text-sm font-semibold ${getTrendColor(metric.change)}`}>
+                    {Math.abs(metric.change).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Advanced Reports & Analytics</h1>
-          <p className="text-gray-600 mt-1">Comprehensive business intelligence and performance insights</p>
+                <p className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</p>
+                <p className="text-sm font-medium text-gray-700">{metric.title}</p>
+                <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => exportReport('pdf')}
-            disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-          >
-            <FaFileExport className="w-4 h-4" />
-            {isExporting ? 'Exporting...' : 'Export PDF'}
-          </button>
-          <button
-            onClick={() => exportReport('excel')}
-            disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-          >
-            <FaTable className="w-4 h-4" />
-            Export Excel
-          </button>
-        </div>
+            </div>
+          );
+        })}
       </div>
+    );
+  };
 
-      {/* Filters Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <FaFilter className="w-5 h-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Report Configuration</h2>
+  const renderCharts = () => {
+    const revenueData = getRevenueChartData();
+    const serviceDistributionData = getServiceDistributionData();
+    const serviceData = getServicePerformanceData();
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Revenue Trends Chart */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <FaChartLine className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Revenue Trends</h3>
+            </div>
+          <button
+              onClick={() => setExpandedView(expandedView === 'revenue' ? null : 'revenue')}
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
+            >
+              {expandedView === 'revenue' ? <FaCompress className="w-4 h-4" /> : <FaExpand className="w-4 h-4" />}
+          </button>
+        </div>
+          {revenueData && (
+            <div className={`${expandedView === 'revenue' ? 'h-96' : 'h-64'} transition-all`}>
+              <Line 
+                data={revenueData} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      title: { display: true, text: 'Revenue (MAD)', font: { weight: 'bold' } },
+                      grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                      grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                  },
+                  plugins: {
+                    legend: { display: true, position: 'top' }
+                  }
+                }}
+              />
+      </div>
+          )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
-            <select
-              value={filters.reportType}
-              onChange={(e) => handleFilterChange('reportType', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+        {/* Service Distribution */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <FaChartPie className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Service Distribution</h3>
+            </div>
+            <button
+              onClick={() => setExpandedView(expandedView === 'distribution' ? null : 'distribution')}
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
             >
-              {reportTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
+              {expandedView === 'distribution' ? <FaCompress className="w-4 h-4" /> : <FaExpand className="w-4 h-4" />}
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+          {serviceDistributionData && (
+            <div className={`${expandedView === 'distribution' ? 'h-96' : 'h-64'} transition-all`}>
+              <Doughnut 
+                data={serviceDistributionData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'bottom', labels: { padding: 20 } }
+                  }
+                }}
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-            />
+          )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">View Format</label>
-            <select
-              value={filters.format}
-              onChange={(e) => handleFilterChange('format', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-            >
-              <option value="table">Table View</option>
-              <option value="chart">Chart View</option>
-              <option value="export">Export Only</option>
-            </select>
+        {/* Service Performance */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <FaChartBar className="w-5 h-5 text-purple-600" />
           </div>
+              <h3 className="text-lg font-semibold text-gray-900">Top Services by Revenue</h3>
         </div>
-
-        {/* Additional Filters */}
-        {(filters.reportType === 'services' || filters.reportType === 'barbers') && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {filters.reportType === 'barbers' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Specific Barber</label>
-                <select
-                  value={filters.barber || ''}
-                  onChange={(e) => handleFilterChange('barber', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                >
-                  <option value="">All Barbers</option>
-                  {availableBarbers.map(barber => (
-                    <option key={barber._id} value={barber._id}>{barber.name}</option>
-                  ))}
-                </select>
+            <button
+              onClick={() => setExpandedView(expandedView === 'services' ? null : 'services')}
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
+            >
+              {expandedView === 'services' ? <FaCompress className="w-4 h-4" /> : <FaExpand className="w-4 h-4" />}
+            </button>
               </div>
-            )}
-
-            {filters.reportType === 'services' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Specific Service</label>
-                <select
-                  value={filters.service || ''}
-                  onChange={(e) => handleFilterChange('service', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                >
-                  <option value="">All Services</option>
-                  {availableServices.map(service => (
-                    <option key={service._id} value={service._id}>{service.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+          {serviceData && (
+            <div className={`${expandedView === 'services' ? 'h-96' : 'h-64'} transition-all`}>
+              <Bar 
+                data={serviceData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      title: { display: true, text: 'Revenue (MAD)', font: { weight: 'bold' } },
+                      grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                      grid: { display: false }
+                    }
+                  },
+                  plugins: {
+                    legend: { display: false }
+                  }
+                }}
+              />
           </div>
         )}
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <FaSpinner className="w-8 h-8 text-blue-600 animate-spin" />
-          <span className="ml-3 text-lg text-gray-600">Loading report data...</span>
+        {/* Barber Performance */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <FaCut className="w-5 h-5 text-orange-600" />
         </div>
-      )}
-
-      {/* Business Metrics Overview */}
-      {!isLoading && businessMetrics && filters.reportType === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <FaDollarSign className="w-6 h-6 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Top Barber Performance</h3>
               </div>
-              <div className="flex items-center gap-1">
-                {getTrendIcon(businessMetrics.growthRate > 0 ? 'up' : businessMetrics.growthRate < 0 ? 'down' : 'stable')}
-                <span className={`text-sm font-medium ${businessMetrics.growthRate > 0 ? 'text-green-600' : businessMetrics.growthRate < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                  {Math.abs(businessMetrics.growthRate).toFixed(1)}%
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(businessMetrics.totalRevenue)}</p>
-              <p className="text-sm text-gray-600">Total Revenue</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <FaCalendarCheck className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{businessMetrics.totalVisits.toLocaleString()}</p>
-              <p className="text-sm text-gray-600">Total Visits</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <FaUsers className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{businessMetrics.totalClients.toLocaleString()}</p>
-              <p className="text-sm text-gray-600">Total Clients</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <FaClock className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(businessMetrics.averageVisitValue)}</p>
-              <p className="text-sm text-gray-600">Avg Visit Value</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Additional Overview Metrics */}
-      {!isLoading && businessMetrics && filters.reportType === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-indigo-100 rounded-lg">
-                <FaGift className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Client Retention</h3>
-                <p className="text-sm text-gray-600">Loyalty program performance</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Retention Rate</span>
-                <span className="text-lg font-bold text-gray-900">{businessMetrics.clientRetentionRate}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-indigo-600 h-2 rounded-full" 
-                  style={{ width: `${businessMetrics.clientRetentionRate}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <FaTrophy className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Performance Insights</h3>
-                <p className="text-sm text-gray-600">Key business indicators</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Growth Trend</span>
-                <div className="flex items-center gap-1">
-                  {getTrendIcon(businessMetrics.growthRate > 0 ? 'up' : businessMetrics.growthRate < 0 ? 'down' : 'stable')}
-                  <span className={`text-sm font-medium ${businessMetrics.growthRate > 0 ? 'text-green-600' : businessMetrics.growthRate < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                    {businessMetrics.growthRate > 0 ? 'Growing' : businessMetrics.growthRate < 0 ? 'Declining' : 'Stable'}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Revenue per Client</span>
-                <span className="text-lg font-bold text-gray-900">
-                  {formatCurrency(businessMetrics.totalClients > 0 ? businessMetrics.totalRevenue / businessMetrics.totalClients : 0)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Performance Chart */}
-      {!isLoading && performanceData.length > 0 && filters.format !== 'export' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Performance Trends</h3>
-            <div className="flex items-center gap-2">
-              <FaChartLine className="w-5 h-5 text-blue-600" />
-              <span className="text-sm text-gray-600">Period Analysis</span>
-            </div>
-          </div>
-          
           <div className="space-y-4">
-            {performanceData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            {analyticsData.performance?.barberPerformance?.filter((barber: any) => 
+              barber.name && 
+              barber.name.toLowerCase() !== 'admin' && 
+              !barber.name.toLowerCase().includes('current')
+            ).slice(0, 5).map((barber: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    {getTrendIcon(item.trend)}
-                    <span className="font-medium text-gray-900">{item.period}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8">
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(item.revenue)}</p>
-                    <p className="text-xs text-gray-600">Revenue</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{item.visits}</p>
-                    <p className="text-xs text-gray-600">Visits</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{item.clients}</p>
-                    <p className="text-xs text-gray-600">Clients</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(item.averageValue)}</p>
-                    <p className="text-xs text-gray-600">Avg Value</p>
-                  </div>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
+                    index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-600' : 
+                    index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-600' : 
+                    'bg-gradient-to-r from-blue-400 to-blue-600'
+                  }`}>
+                    {index + 1}
+            </div>
+            <div>
+                    <p className="font-semibold text-gray-900">{barber.name}</p>
+                    <p className="text-sm text-gray-600">{barber.visits} visits • {barber.uniqueClients} clients</p>
+            </div>
+          </div>
+                <div className="text-right">
+                  <p className="font-bold text-gray-900">{formatCurrency(barber.revenue)}</p>
+                  <p className="text-sm text-gray-600">{formatCurrency(barber.averageValue)} avg</p>
+              </div>
+            </div>
+            ))}
+            </div>
+          </div>
+      </div>
+    );
+  };
+
+  const renderReservationAnalytics = () => {
+    if (!analyticsData.reservations) return null;
+
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-indigo-100 rounded-lg">
+            <FaCalendarWeek className="w-5 h-5 text-indigo-600" />
+              </div>
+          <h3 className="text-lg font-semibold text-gray-900">Reservation Analytics</h3>
+            </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+            <div className="p-3 bg-blue-500 rounded-lg w-fit mx-auto mb-3 shadow-sm">
+              <FaBookmark className="w-6 h-6 text-white" />
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{analyticsData.reservations.overview.totalReservations}</p>
+            <p className="text-sm font-medium text-gray-700">Total Reservations</p>
+            <p className="text-xs text-gray-500 mt-1">All reservation requests</p>
+          </div>
+
+          <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+            <div className="p-3 bg-green-500 rounded-lg w-fit mx-auto mb-3 shadow-sm">
+              <FaPercentage className="w-6 h-6 text-white" />
+              </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{analyticsData.reservations.overview.conversionRate}%</p>
+            <p className="text-sm font-medium text-gray-700">Conversion Rate</p>
+            <p className="text-xs text-gray-500 mt-1">Reservations to visits</p>
+            </div>
+          
+          <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200">
+            <div className="p-3 bg-yellow-500 rounded-lg w-fit mx-auto mb-3 shadow-sm">
+              <FaStopwatch className="w-6 h-6 text-white" />
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{analyticsData.reservations.responseTime.average}h</p>
+            <p className="text-sm font-medium text-gray-700">Avg Response Time</p>
+            <p className="text-xs text-gray-500 mt-1">Time to confirm reservations</p>
+          </div>
+        </div>
+
+        {/* Weekly Patterns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <FaCalendarWeek className="w-5 h-5 text-indigo-600" />
+              <h4 className="font-semibold text-gray-900">Popular Days</h4>
+            </div>
+            <div className="space-y-3">
+              {analyticsData.reservations.weeklyPatterns?.map((day: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                  <span className="text-sm font-semibold text-gray-900">{day.day}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">{day.reservations} reservations</span>
+                    <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">{day.conversionRate}%</span>
+              </div>
+              </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <FaClock className="w-5 h-5 text-indigo-600" />
+              <h4 className="font-semibold text-gray-900">Popular Time Slots</h4>
+            </div>
+            <div className="space-y-3">
+              {analyticsData.reservations.timeSlots?.slice(0, 5).map((slot: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                  <span className="text-sm font-semibold text-gray-900">{slot.time}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">{slot.reservations} bookings</span>
+                    <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">{slot.conversionRate}%</span>
                 </div>
               </div>
+              ))}
+              </div>
+            </div>
+          </div>
+        </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <Toaster position="top-right" />
+        
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex-1">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <FaChartArea className="w-6 h-6 text-white" />
+                  </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Advanced Analytics Dashboard</h1>
+                <p className="text-gray-600 mt-1">Comprehensive business intelligence and performance insights</p>
+                </div>
+                  </div>
+                  </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportReport('pdf')}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
+            >
+              <FaFileExport className="w-4 h-4" />
+              {isExporting ? 'Exporting...' : 'Export PDF'}
+            </button>
+            <button
+              onClick={() => exportReport('excel')}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
+            >
+              <FaTable className="w-4 h-4" />
+              Export Excel
+            </button>
+            <button
+              onClick={fetchAllData}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
+            >
+              <FaSync className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+                  </div>
+                  </div>
+
+        {/* Advanced Filters */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <FaFilter className="w-5 h-5 text-indigo-600" />
+                </div>
+            <h2 className="text-lg font-semibold text-gray-900">Advanced Filters & Configuration</h2>
+              </div>
+          
+          {/* Quick Date Presets */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Quick Date Ranges</label>
+            <div className="flex flex-wrap gap-2">
+              {datePresets.map((preset, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDatePreset(preset.days)}
+                  className="px-4 py-2 text-sm bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all border border-gray-300 hover:shadow-sm"
+                >
+                  {preset.label}
+                </button>
             ))}
           </div>
         </div>
-      )}
 
-      {/* Service Reports */}
-      {!isLoading && filters.reportType === 'services' && serviceReports.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Service Performance Analysis</h3>
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-sm"
+              />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Growth</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Market Share</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {serviceReports.map((service, index) => (
-                  <tr key={service.serviceId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{service.serviceName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                        {service.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.totalBookings.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(service.totalRevenue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(service.averagePrice)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        {getTrendIcon(service.growthRate > 0 ? 'up' : service.growthRate < 0 ? 'down' : 'stable')}
-                        <span className={`text-sm font-medium ${service.growthRate > 0 ? 'text-green-600' : service.growthRate < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                          {Math.abs(service.growthRate).toFixed(1)}%
-                        </span>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-sm"
+              />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.marketShare.toFixed(1)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
-      {/* Client Analytics */}
-      {!isLoading && filters.reportType === 'clients' && clientAnalytics.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Top Client Analysis</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+              <select
+                value={filters.period}
+                onChange={(e) => handleFilterChange('period', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-sm"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visits</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Value</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loyalty</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {clientAnalytics.map((client) => (
-                  <tr key={client.clientId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{client.clientName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {client.totalVisits}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(client.totalSpent)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(client.averageVisitValue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(client.lastVisit)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                        {client.loyaltyStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getFrequencyBadge(client.frequency)}`}>
-                        {client.frequency}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
-      {/* Barber Performance */}
-      {!isLoading && filters.reportType === 'barbers' && barberPerformance.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Barber Performance Analysis</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+              <select
+                value={filters.reportType}
+                onChange={(e) => handleFilterChange('reportType', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-sm"
+              >
+                <option value="overview">Business Overview</option>
+                <option value="financial">Financial Performance</option>
+                <option value="services">Service Analytics</option>
+                <option value="clients">Client Analysis</option>
+                <option value="barbers">Barber Performance</option>
+                <option value="loyalty">Loyalty Program</option>
+              </select>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barber</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visits</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clients</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Value</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Efficiency</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {barberPerformance.map((barber) => (
-                  <tr key={barber.barberId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{barber.barberName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {barber.totalVisits}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(barber.totalRevenue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {barber.uniqueClients}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(barber.averageVisitValue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${barber.efficiency}%` }}
-                          />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">View Format</label>
+              <select
+                value={filters.format}
+                onChange={(e) => handleFilterChange('format', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-sm"
+              >
+                <option value="dashboard">Dashboard</option>
+                <option value="chart">Charts Only</option>
+                <option value="table">Tables Only</option>
+              </select>
+          </div>
+
+            <div className="flex items-end">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={filters.comparison}
+                  onChange={(e) => handleFilterChange('comparison', e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">Show Comparisons</span>
+              </label>
                         </div>
-                        <span className="text-sm text-gray-900">{barber.efficiency}%</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <FaTrophy className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm text-gray-900">{barber.rating}</span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="text-center">
+              <FaSpinner className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+              <span className="text-lg text-gray-600">Loading analytics data...</span>
           </div>
         </div>
       )}
 
-      {/* Empty State */}
-      {!isLoading && (
-        (filters.reportType === 'services' && serviceReports.length === 0) ||
-        (filters.reportType === 'clients' && clientAnalytics.length === 0) ||
-        (filters.reportType === 'barbers' && barberPerformance.length === 0)
-      ) && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <FaChartBar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Data Available</h3>
-          <p className="text-gray-600">No data found for the selected period and filters. Try adjusting your search criteria.</p>
+        {/* Dashboard Content */}
+        {!isLoading && analyticsData.overview && (
+          <>
+            {/* Metric Cards */}
+            {filters.format === 'dashboard' && renderMetricCards()}
+
+            {/* Charts Section */}
+            {(filters.format === 'dashboard' || filters.format === 'chart') && renderCharts()}
+
+            {/* Reservation Analytics */}
+            {filters.format === 'dashboard' && renderReservationAnalytics()}
+
+            {/* Detailed Tables Section */}
+            {filters.format === 'table' && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                <FaTable className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Detailed Analytics Tables</h3>
+                <p className="text-gray-600">Export to Excel or PDF for detailed tabular data analysis.</p>
         </div>
+            )}
+          </>
       )}
+      </div>
     </div>
   );
 } 
