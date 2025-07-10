@@ -68,6 +68,7 @@ export default withAuth(
         // Allow public routes
         if (
           pathname === '/' ||
+          pathname === '/gallery' ||
           pathname === '/login' ||
           pathname === '/register' ||
           pathname === '/reservations/new' ||

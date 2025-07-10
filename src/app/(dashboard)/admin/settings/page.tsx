@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { FaUser, FaLock, FaCog, FaSave, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaLock, FaCog, FaSave, FaEye, FaEyeSlash, FaImages } from 'react-icons/fa';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import GalleryManagement from '@/components/admin/settings/GalleryManagement';
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
@@ -98,6 +99,19 @@ export default function SettingsPage() {
             <div className="flex items-center">
               <FaUser className="mr-2" />
               General Settings
+            </div>
+          </button>
+          <button
+            onClick={() => handleTabChange('gallery')}
+            className={`${
+              activeTab === 'gallery'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            <div className="flex items-center">
+              <FaImages className="mr-2" />
+              Gallery Management
             </div>
           </button>
           <button
@@ -234,6 +248,12 @@ export default function SettingsPage() {
                 </button>
               </form>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'gallery' && (
+          <div className="w-full">
+            <GalleryManagement />
           </div>
         )}
 

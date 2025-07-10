@@ -197,6 +197,54 @@ body.landing-page-active * {
     height: 16rem !important;
   }
   
+  /* Before/After Slider optimizations */
+  .before-after-card {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+  
+  .before-after-card .cursor-grab {
+    cursor: grab;
+  }
+  
+  .before-after-card .cursor-grabbing {
+    cursor: grabbing;
+  }
+  
+  /* Before/After mobile optimizations */
+  .before-after-handle {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  
+  /* Gallery page mobile optimizations */
+  .gallery-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  
+  .gallery-card {
+    max-width: 100% !important;
+  }
+  
+  /* Gallery hero section mobile adjustments */
+  .gallery-title {
+    font-size: 3rem !important;
+    line-height: 0.9 !important;
+  }
+  
+  .gallery-nav {
+    gap: 1rem !important;
+  }
+  
+  .gallery-nav button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.625rem !important;
+  }
+  
   .philosophy-stats {
     gap: 2rem !important;
   }

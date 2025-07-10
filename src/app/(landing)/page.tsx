@@ -7,6 +7,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CustomCursor from '@/components/landing/CustomCursor';
 import MagneticButton from '@/components/landing/MagneticButton';
+import BeforeAfterSlider from '@/components/landing/BeforeAfterSlider';
 
 export default function LandingPage() {
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -486,6 +487,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Before/After Transformation Gallery */}
+      <BeforeAfterSlider />
 
       {/* Why Choose Us Section */}
       <section className="min-h-screen flex items-center">
