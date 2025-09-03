@@ -104,6 +104,11 @@ body.landing-page-active * {
   transform: translateY(20px);
 }
 
+.mobile-auth-buttons {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
 .hero-image {
   opacity: 0;
   transform: scale(1.05);

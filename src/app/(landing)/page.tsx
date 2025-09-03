@@ -59,6 +59,12 @@ export default function LandingPage() {
       duration: 0.8,
       ease: 'power2.out',
     }, '-=0.6')
+    .to('.mobile-auth-buttons', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'power2.out',
+    }, '-=0.4')
     .to('.hero-image', {
       opacity: 0.08,
       scale: 1,
@@ -341,6 +347,26 @@ export default function LandingPage() {
             <span>TRADITION</span>
             <span className="hidden md:block w-16 h-[1px] bg-[var(--deep-green)] opacity-30" />
             <span>CRAFT</span>
+          </div>
+
+          {/* Mobile Auth Buttons */}
+          <div className="mobile-auth-buttons md:hidden mt-16 w-full max-w-sm">
+            <div className="flex gap-3">
+              <Link 
+                href="/login"
+                className="flex-1 px-6 py-3 bg-[var(--deep-green)] text-white text-xs tracking-widest text-center hover:bg-[var(--premium-green)] transition-all duration-300 rounded-sm shadow-md hover:shadow-lg transform hover:scale-105"
+                data-cursor-hover
+              >
+                LOGIN
+              </Link>
+              <Link 
+                href="/register"
+                className="flex-1 px-6 py-3 bg-[var(--premium-green)] text-white text-xs tracking-widest text-center hover:bg-[var(--deep-green)] transition-all duration-300 rounded-sm shadow-md hover:shadow-lg transform hover:scale-105"
+                data-cursor-hover
+              >
+                REGISTER
+              </Link>
+            </div>
           </div>
         </div>
 
