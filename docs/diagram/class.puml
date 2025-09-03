@@ -1,0 +1,424 @@
+@startuml Class Diagram
+
+!theme vibrant
+title **Barbaros System - Class Diagram**
+
+' Core User Classes
+class Admin {
+  +_id: ObjectId
+  +username: string
+  +passwordHash: string
+  +name: string
+  +role: 'owner' | 'barber' | 'receptionist'
+  +email: string
+  +phoneNumber?: string
+  +profilePicture?: string
+  +joinDate: Date
+  +lastLogin?: Date
+  +active: boolean
+  +isBarber: boolean
+  +scannerEnabled: boolean
+  +createdAt: Date
+  +updatedAt: Date
+  --
+  +comparePassword(password: string): Promise<boolean>
+}
+
+class Client {
+  +_id: ObjectId
+  +clientId: string
+  +firstName: string
+  +lastName: string
+  +phoneNumber: string
+  +passwordHash: string
+  +dateCreated: Date
+  +lastLogin?: Date
+  +lastVisit?: Date
+  +visitCount: number
+  +rewardsEarned: number
+  +rewardsRedeemed: number
+  +accountActive: boolean
+  +preferredServices: string[]
+  +qrCodeId?: string
+  +qrCodeUrl?: string
+  +selectedReward?: ObjectId
+  +selectedRewardStartVisits?: number
+  +totalLifetimeVisits: number
+  +currentProgressVisits: number
+  +nextRewardEligibleAt?: number
+  +loyaltyStatus: 'new' | 'active' | 'milestone_reached' | 'inactive'
+  +loyaltyJoinDate?: Date
+  +totalSpent?: number
+  +averageVisitValue?: number
+  --
+  +comparePassword(password: string): Promise<boolean>
+  +fullName: string {virtual}
+  +findByPhone(phoneNumber: string): Promise<Client>
+}
+
+' Service Management Classes
+class ServiceCategory {
+  +_id: ObjectId
+  +name: string
+  +description: string
+  +isActive: boolean
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+class Service {
+  +_id: ObjectId
+  +name: string
+  +description: string
+  +price: number
+  +durationMinutes: number
+  +imageUrl?: string
+  +categoryId: ObjectId
+  +isActive: boolean
+  +popularityScore: number
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+' Visit and Transaction Classes
+class Visit {
+  +_id: ObjectId
+  +clientId: ObjectId
+  +visitDate: Date
+  +services: ServiceReceived[]
+  +totalPrice: number
+  +barber: string
+  +barberId?: ObjectId
+  +notes?: string
+  +rewardRedeemed: boolean
+  +redeemedRewardId?: ObjectId
+  +visitNumber: number
+  +isRewardRedemption?: boolean
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+class ServiceReceived {
+  +serviceId: ObjectId
+  +name: string
+  +price: number
+  +duration: number
+}
+
+' Reservation System Classes
+class Reservation {
+  +_id: ObjectId
+  +clientId?: ObjectId
+  +guestName?: string
+  +guestPhone?: string
+  +preferredDate: Date
+  +preferredTime: string
+  +status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'completed'
+  +isRead: boolean
+  +notes?: string
+  +adminNotes?: string
+  +createdAt: Date
+  +updatedAt: Date
+  +contactedAt?: Date
+  +contactedBy?: ObjectId
+  +source: 'guest' | 'client_account'
+  +ipAddress?: string
+  +userAgent?: string
+  --
+  +displayName: string {virtual}
+  +contactInfo: string {virtual}
+  +formattedDateTime: string {virtual}
+  +markAsRead(): void
+  +updateStatus(status: string, adminId?: string): void
+  +getUnreadCount(): number {static}
+  +getPendingCount(): number {static}
+  +getTodayReservations(): Reservation[] {static}
+  +getUpcomingReservations(days: number): Reservation[] {static}
+}
+
+' Reward System Classes
+class Reward {
+  +_id: ObjectId
+  +name: string
+  +description: string
+  +visitsRequired: number
+  +rewardType: 'free' | 'discount'
+  +discountPercentage?: number
+  +isActive: boolean
+  +applicableServices: ObjectId[]
+  +maxRedemptions?: number
+  +validForDays?: number
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+class BarberReward {
+  +_id: ObjectId
+  +name: string
+  +description: string
+  +rewardType: 'monetary' | 'gift' | 'time_off' | 'recognition'
+  +rewardValue: string
+  +requirementType: 'visits' | 'clients' | 'months_worked' | 'client_retention' | 'custom'
+  +requirementValue: number
+  +requirementDescription: string
+  +category: string
+  +icon: string
+  +color: string
+  +priority: number
+  +isActive: boolean
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+class BarberRewardRedemption {
+  +_id: ObjectId
+  +barberId: ObjectId
+  +rewardId: ObjectId
+  +redeemedAt: Date
+  +value: string
+  +notes?: string
+  +approvedBy: ObjectId
+  +status: 'pending' | 'approved' | 'rejected'
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+' Statistics and Analytics Classes
+class BarberStats {
+  +_id: ObjectId
+  +barberId: ObjectId
+  +totalVisits: number
+  +totalRevenue: number
+  +uniqueClientsServed: ObjectId[]
+  +workDaysSinceJoining: number
+  +averageVisitsPerDay: number
+  +monthlyStats: MonthlyStats[]
+  +serviceStats: ServiceStats[]
+  +lastUpdated: Date
+  +clientRetentionRate: number
+  +averageServiceTime: number
+  +topServices: string[]
+  +busyHours: number[]
+  +createdAt: Date
+  +updatedAt: Date
+  --
+  +calculateWorkDays(joinDate: Date): number
+}
+
+class MonthlyStats {
+  +month: string
+  +visitsCount: number
+  +revenue: number
+  +uniqueClients: number
+}
+
+class ServiceStats {
+  +serviceId: ObjectId
+  +serviceName: string
+  +count: number
+  +revenue: number
+}
+
+' System Configuration Classes
+class ScannerSettings {
+  +_id: ObjectId
+  +barberId: ObjectId
+  +autoSaveVisits: boolean
+  +defaultServices: ObjectId[]
+  +requireNotes: boolean
+  +enableRewardNotifications: boolean
+  +scanTimeout: number
+  +preferredCamera: string
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+class Transformation {
+  +_id: ObjectId
+  +clientId: ObjectId
+  +visitId?: ObjectId
+  +beforeImageUrl: string
+  +afterImageUrl: string
+  +description?: string
+  +tags: string[]
+  +isPublic: boolean
+  +uploadedBy: ObjectId
+  +uploadDate: Date
+  +createdAt: Date
+  +updatedAt: Date
+}
+
+' API and Service Classes
+abstract class BaseAPI {
+  +{abstract} validate(data: any): boolean
+  +{abstract} handleError(error: Error): Response
+  +authenticate(request: Request): Promise<User>
+  +authorize(user: User, resource: string): boolean
+}
+
+class ClientAPI extends BaseAPI {
+  +createClient(data: ClientData): Promise<Client>
+  +getClientById(id: string): Promise<Client>
+  +updateClient(id: string, data: Partial<ClientData>): Promise<Client>
+  +deleteClient(id: string): Promise<boolean>
+  +listClients(filters: FilterOptions): Promise<ClientList>
+  +searchClients(query: string): Promise<Client[]>
+}
+
+class VisitAPI extends BaseAPI {
+  +recordVisit(data: VisitData): Promise<Visit>
+  +getVisitHistory(clientId: string): Promise<Visit[]>
+  +getVisitById(id: string): Promise<Visit>
+  +updateVisit(id: string, data: Partial<VisitData>): Promise<Visit>
+  +getVisitStatistics(filters: StatFilter): Promise<VisitStats>
+}
+
+class ReservationAPI extends BaseAPI {
+  +createReservation(data: ReservationData): Promise<Reservation>
+  +getReservations(filters: ReservationFilter): Promise<Reservation[]>
+  +updateReservationStatus(id: string, status: string): Promise<Reservation>
+  +markAsRead(id: string): Promise<Reservation>
+  +sendNotification(reservationId: string): Promise<boolean>
+}
+
+class ServiceAPI extends BaseAPI {
+  +createService(data: ServiceData): Promise<Service>
+  +updateService(id: string, data: Partial<ServiceData>): Promise<Service>
+  +deleteService(id: string): Promise<boolean>
+  +listServices(filters: ServiceFilter): Promise<Service[]>
+  +getPopularServices(): Promise<Service[]>
+}
+
+class LoyaltyAPI extends BaseAPI {
+  +getLoyaltyStatus(clientId: string): Promise<LoyaltyStatus>
+  +updateLoyaltyPoints(clientId: string, points: number): Promise<LoyaltyStatus>
+  +checkRewardEligibility(clientId: string): Promise<Reward[]>
+  +redeemReward(clientId: string, rewardId: string): Promise<RedemptionResult>
+  +selectReward(clientId: string, rewardId: string): Promise<boolean>
+}
+
+' Authentication and Security Classes
+class AuthenticationService {
+  +login(credentials: LoginCredentials): Promise<AuthResult>
+  +logout(token: string): Promise<boolean>
+  +validateToken(token: string): Promise<User>
+  +refreshToken(token: string): Promise<string>
+  +changePassword(userId: string, oldPassword: string, newPassword: string): Promise<boolean>
+}
+
+class SecurityMiddleware {
+  +rateLimit(request: Request): boolean
+  +validateSession(request: Request): Promise<Session>
+  +checkPermissions(user: User, action: string, resource: string): boolean
+  +logSecurityEvent(event: SecurityEvent): void
+  +sanitizeInput(data: any): any
+}
+
+' Database Connection Classes
+class DatabaseConnection {
+  +connection: MongooseConnection
+  +isConnected: boolean
+  +connectionString: string
+  +options: ConnectionOptions
+  --
+  +connect(): Promise<void>
+  +disconnect(): Promise<void>
+  +checkHealth(): Promise<HealthStatus>
+  +createBackup(): Promise<string>
+  +restoreBackup(backupId: string): Promise<boolean>
+}
+
+class CacheService {
+  +cache: Map<string, CacheEntry>
+  --
+  +set(key: string, data: any, ttl: number): void
+  +get(key: string): any | null
+  +delete(key: string): boolean
+  +clear(): void
+  +cleanup(): void
+}
+
+' Relationships
+Admin ||--o{ Visit : "performs"
+Admin ||--o{ BarberStats : "has statistics"
+Admin ||--o{ BarberRewardRedemption : "redeems rewards"
+Admin ||--o{ ScannerSettings : "configures"
+
+Client ||--o{ Visit : "receives"
+Client ||--o{ Reservation : "makes"
+Client ||--o{ Transformation : "has transformations"
+Client }o--|| Reward : "selects reward"
+
+ServiceCategory ||--o{ Service : "contains"
+Service ||--o{ ServiceReceived : "included in"
+Visit ||--o{ ServiceReceived : "contains"
+Visit }o--|| Reward : "may redeem"
+
+Reward ||--o{ BarberRewardRedemption : "triggers"
+BarberReward ||--o{ BarberRewardRedemption : "redeemed as"
+
+BarberStats ||--o{ MonthlyStats : "contains"
+BarberStats ||--o{ ServiceStats : "tracks"
+
+' API Relationships
+ClientAPI ..> Client : "manages"
+VisitAPI ..> Visit : "manages"
+ReservationAPI ..> Reservation : "manages"
+ServiceAPI ..> Service : "manages"
+LoyaltyAPI ..> Reward : "manages"
+
+AuthenticationService ..> Admin : "authenticates"
+AuthenticationService ..> Client : "authenticates"
+
+SecurityMiddleware ..> AuthenticationService : "uses"
+BaseAPI ..> SecurityMiddleware : "protected by"
+
+DatabaseConnection ..> CacheService : "uses"
+
+note top of Admin
+  **Admin/Barber/Receptionist**
+  - Role-based access control
+  - JWT authentication
+  - Password hashing with bcrypt
+  - Scanner permissions
+  - Profile management
+end note
+
+note top of Client
+  **Client Management**
+  - Phone-based identification
+  - QR code generation
+  - Loyalty program integration
+  - Visit tracking
+  - Reward eligibility
+end note
+
+note top of Visit
+  **Visit Recording**
+  - Service tracking
+  - Revenue calculation
+  - Barber assignment
+  - Reward processing
+  - Analytics data source
+end note
+
+note top of LoyaltyAPI
+  **Loyalty System**
+  - Point calculation
+  - Tier progression
+  - Reward eligibility
+  - Automatic updates
+  - Real-time tracking
+end note
+
+note top of SecurityMiddleware
+  **Security Features**
+  - Rate limiting
+  - Input validation
+  - Permission checking
+  - Audit logging
+  - CSRF protection
+end note
+
+@enduml
+

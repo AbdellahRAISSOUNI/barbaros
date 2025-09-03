@@ -1,0 +1,221 @@
+@startuml Use Case Diagram
+
+!theme vibrant
+title **Barbaros Barber Shop Management System**\n**Use Case Diagram**
+
+left to right direction
+
+' Define actors
+actor "Guest User" as Guest
+actor "Client" as Client
+actor "Barber" as Barber
+actor "Receptionist" as Receptionist
+actor "Admin/Owner" as Admin
+
+rectangle "Barbaros System" {
+  
+  ' Public/Guest Use Cases
+  package "Public System" {
+    usecase "View Landing Page" as UC1
+    usecase "View Gallery" as UC2
+    usecase "Make Guest Reservation" as UC3
+    usecase "Register as Client" as UC4
+  }
+  
+  ' Authentication
+  package "Authentication" {
+    usecase "Login" as UC5
+    usecase "Logout" as UC6
+    usecase "Change Password" as UC7
+  }
+  
+  ' Client Use Cases
+  package "Client Management" {
+    usecase "View Dashboard" as UC8
+    usecase "Generate QR Code" as UC9
+    usecase "View QR Code" as UC10
+    usecase "Update Profile" as UC11
+    usecase "View Visit History" as UC12
+    usecase "Track Loyalty Points" as UC13
+    usecase "View Available Rewards" as UC14
+    usecase "Make Reservation" as UC15
+    usecase "View Reservations" as UC16
+    usecase "Cancel Reservation" as UC17
+    usecase "View Loyalty Status" as UC18
+    usecase "Check Reward Eligibility" as UC19
+  }
+  
+  ' Barber Use Cases
+  package "Barber Operations" {
+    usecase "Access Barber Dashboard" as UC20
+    usecase "Scan Client QR Code" as UC21
+    usecase "Record Client Visit" as UC22
+    usecase "Select Services Provided" as UC23
+    usecase "Add Visit Notes" as UC24
+    usecase "Process Reward Redemption" as UC25
+    usecase "View Client Information" as UC26
+    usecase "Update Client Details" as UC27
+    usecase "View Visit Statistics" as UC28
+    usecase "Upload Client Photos" as UC29
+    usecase "Manage Before/After Images" as UC30
+  }
+  
+  ' Admin/Management Use Cases
+  package "System Administration" {
+    usecase "Access Admin Dashboard" as UC31
+    usecase "Manage Services" as UC32
+    usecase "Manage Service Categories" as UC33
+    usecase "Manage Clients" as UC34
+    usecase "View All Reservations" as UC35
+    usecase "Process Reservations" as UC36
+    usecase "Generate Reports" as UC37
+    usecase "Export Data (PDF/Excel)" as UC38
+    usecase "View Analytics Dashboard" as UC39
+    usecase "Manage Rewards System" as UC40
+    usecase "Manage Barber Accounts" as UC41
+    usecase "Configure System Settings" as UC42
+    usecase "View Financial Reports" as UC43
+    usecase "Backup Database" as UC44
+    usecase "Monitor System Status" as UC45
+  }
+  
+  ' Advanced Features
+  package "Advanced Features" {
+    usecase "Real-time Analytics" as UC46
+    usecase "Loyalty Program Management" as UC47
+    usecase "Push Notifications" as UC48
+    usecase "Email Notifications" as UC49
+    usecase "QR Code Scanner Integration" as UC50
+    usecase "Mobile-First Interface" as UC51
+    usecase "Role-Based Access Control" as UC52
+    usecase "Data Validation & Security" as UC53
+  }
+}
+
+' Actor relationships
+Guest --> UC1
+Guest --> UC2
+Guest --> UC3
+Guest --> UC4
+
+Client --> UC5
+Client --> UC6
+Client --> UC7
+Client --> UC8
+Client --> UC9
+Client --> UC10
+Client --> UC11
+Client --> UC12
+Client --> UC13
+Client --> UC14
+Client --> UC15
+Client --> UC16
+Client --> UC17
+Client --> UC18
+Client --> UC19
+
+Barber --> UC5
+Barber --> UC6
+Barber --> UC7
+Barber --> UC20
+Barber --> UC21
+Barber --> UC22
+Barber --> UC23
+Barber --> UC24
+Barber --> UC25
+Barber --> UC26
+Barber --> UC27
+Barber --> UC28
+Barber --> UC29
+Barber --> UC30
+
+Receptionist --> UC5
+Receptionist --> UC6
+Receptionist --> UC31
+Receptionist --> UC34
+Receptionist --> UC35
+Receptionist --> UC36
+Receptionist --> UC21
+Receptionist --> UC22
+
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC31
+Admin --> UC32
+Admin --> UC33
+Admin --> UC34
+Admin --> UC35
+Admin --> UC36
+Admin --> UC37
+Admin --> UC38
+Admin --> UC39
+Admin --> UC40
+Admin --> UC41
+Admin --> UC42
+Admin --> UC43
+Admin --> UC44
+Admin --> UC45
+Admin --> UC46
+Admin --> UC47
+Admin --> UC48
+Admin --> UC49
+Admin --> UC50
+Admin --> UC51
+Admin --> UC52
+Admin --> UC53
+
+' Include relationships
+UC21 .> UC26 : <<include>>
+UC22 .> UC23 : <<include>>
+UC22 .> UC25 : <<extend>>
+UC25 .> UC14 : <<include>>
+UC15 .> UC5 : <<include>>
+UC35 .> UC36 : <<extend>>
+UC37 .> UC38 : <<extend>>
+UC39 .> UC46 : <<include>>
+UC40 .> UC47 : <<include>>
+
+' Extend relationships
+UC22 .> UC24 : <<extend>>
+UC22 .> UC29 : <<extend>>
+UC36 .> UC49 : <<extend>>
+UC25 .> UC48 : <<extend>>
+
+note right of UC21
+  **QR Code Scanning**
+  - Camera integration
+  - Real-time recognition
+  - Client identification
+  - Error handling
+end note
+
+note right of UC47
+  **Loyalty Program**
+  - Visit tracking
+  - Point accumulation
+  - Tier progression
+  - Reward eligibility
+  - Automatic calculations
+end note
+
+note right of UC39
+  **Analytics Dashboard**
+  - Real-time data
+  - Revenue tracking
+  - Service popularity
+  - Client statistics
+  - Performance metrics
+end note
+
+note right of UC52
+  **Security Features**
+  - JWT Authentication
+  - Role-based permissions
+  - Session management
+  - Rate limiting
+  - Data encryption
+end note
+
+@enduml
+

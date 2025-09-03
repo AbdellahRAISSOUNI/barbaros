@@ -1,0 +1,68 @@
+@startuml Sequence Diagram
+
+!theme vibrant
+title **Barbaros System - Key Workflow Sequences**
+
+== User Authentication ==
+
+actor "User" as User
+participant "Frontend" as Frontend
+participant "Auth API" as AuthAPI
+participant "Database" as DB
+
+User -> Frontend: Login credentials
+Frontend -> AuthAPI: Authenticate
+AuthAPI -> DB: Validate user
+DB --> AuthAPI: User data
+AuthAPI --> Frontend: JWT token
+Frontend --> User: Access granted
+
+== Visit Recording (QR Scan) ==
+
+actor "Barber" as Barber
+participant "Scanner" as Scanner
+participant "API" as API
+participant "Database" as DB
+
+Barber -> Scanner: Scan client QR
+Scanner -> API: Get client info
+API -> DB: Fetch client
+DB --> API: Client data
+API --> Scanner: Display client
+
+Barber -> Scanner: Record visit
+Scanner -> API: Save visit
+API -> DB: Store visit data
+API -> DB: Update loyalty points
+DB --> API: Success
+API --> Scanner: Visit confirmed
+
+== Guest Reservation ==
+
+actor "Guest" as Guest
+participant "Website" as Website
+participant "API" as API
+participant "Database" as DB
+
+Guest -> Website: Submit reservation
+Website -> API: Create reservation
+API -> DB: Save booking
+DB --> API: Confirmation
+API --> Website: Success
+Website --> Guest: Booking confirmed
+
+== Analytics Dashboard ==
+
+actor "Admin" as Admin
+participant "Dashboard" as Dashboard
+participant "API" as API
+participant "Database" as DB
+
+Admin -> Dashboard: View analytics
+Dashboard -> API: Request data
+API -> DB: Query metrics
+DB --> API: Analytics data
+API --> Dashboard: Formatted data
+Dashboard --> Admin: Display charts
+
+@enduml
