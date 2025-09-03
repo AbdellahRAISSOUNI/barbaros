@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getLoyaltyStatus, selectReward, getAvailableRewards } from '@/lib/db/api';
 
 /**
@@ -9,6 +11,16 @@ export async function GET(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    // Check authentication
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const { clientId } = await params;
 
     const loyaltyStatus = await getLoyaltyStatus(clientId);
@@ -34,6 +46,16 @@ export async function POST(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    // Check authentication
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const { clientId } = await params;
     const { rewardId } = await request.json();
 

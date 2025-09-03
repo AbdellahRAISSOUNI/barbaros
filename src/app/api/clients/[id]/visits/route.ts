@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getVisitsByClient } from '@/lib/db/api/visitApi';
 import { getClientById, getClientByClientId } from '@/lib/db/api/clientApi';
 import Visit from '@/lib/db/models/visit';
@@ -9,6 +11,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    // Check authentication
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const { id: clientIdentifier } = await params;
     
     if (!clientIdentifier || clientIdentifier === 'undefined') {

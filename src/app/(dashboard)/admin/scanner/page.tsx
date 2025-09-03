@@ -19,7 +19,6 @@ interface ClientInfo {
   clientId: string;
   firstName: string;
   lastName: string;
-  email: string;
   phoneNumber?: string;
   visitCount: number;
   rewardsEarned: number;
@@ -30,7 +29,7 @@ interface ClientInfo {
   lastVisit?: string;
   accountActive: boolean;
   dateCreated: string;
-  qrCodeUrl: string;
+  qrCodeUrl?: string;
 }
 
 interface LoyaltyStatus {
@@ -117,7 +116,11 @@ export default function AdminScannerPage() {
       }
       
       const clientData = await clientResponse.json();
-      setClientInfo(clientData);
+      if (clientData.success && clientData.client) {
+        setClientInfo(clientData.client);
+      } else {
+        throw new Error(clientData.message || 'Client data not found');
+      }
 
       // Fetch loyalty status
       if (loyaltyResponse.ok) {
@@ -523,7 +526,7 @@ export default function AdminScannerPage() {
                       </div>
                       <div>
                         <h2 className="text-base sm:text-lg font-bold text-white">{clientInfo.firstName} {clientInfo.lastName}</h2>
-                        <p className="text-xs text-red-100">{clientInfo.email}</p>
+                        <p className="text-xs text-red-100">ID: {clientInfo.clientId}</p>
                         {clientInfo.phoneNumber && (
                           <p className="text-xs text-red-100">{clientInfo.phoneNumber}</p>
                         )}
@@ -819,7 +822,14 @@ export default function AdminScannerPage() {
           <div className="bg-white rounded-lg shadow-md border border-stone-200/60 overflow-hidden">
             <div className="p-3 sm:p-4">
               <VisitRecordingForm
-                clientInfo={clientInfo}
+                clientInfo={{
+                  _id: clientInfo._id,
+                  firstName: clientInfo.firstName,
+                  lastName: clientInfo.lastName,
+                  email: '', // Email field not available in client model
+                  visitCount: clientInfo.visitCount || 0,
+                  phone: clientInfo.phoneNumber
+                }}
                 onVisitCreated={handleVisitSuccess}
                 onCancel={() => setViewMode('client-overview')}
                 onNavigateToRewards={(clientId) => setViewMode('rewards')}
