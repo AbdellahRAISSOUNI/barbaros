@@ -1,0 +1,806 @@
+@startuml Complete Sequence Diagram
+
+!theme vibrant
+title **Barbaros System - Complete Feature Coverage**
+
+== System Initialization & Database Setup ==
+
+actor "System Admin" as SysAdmin
+participant "Deployment Script" as Deploy
+participant "MongoDB Atlas" as Atlas
+participant "Vercel Platform" as Vercel
+participant "Environment Config" as Env
+
+SysAdmin -> Deploy: Initialize system
+Deploy -> Atlas: Connect to MongoDB
+Atlas --> Deploy: Connection established
+Deploy -> Vercel: Deploy application
+Vercel -> Env: Load environment variables
+Env --> Vercel: Configuration ready
+Vercel --> Deploy: Deployment complete
+Deploy --> SysAdmin: System ready
+
+== Owner Account Creation ==
+
+actor "System Owner" as Owner
+participant "Admin Registration" as AdminReg
+participant "Admin API" as AdminAPI
+participant "MongoDB" as DB
+participant "Email Service" as Email
+
+Owner -> AdminReg: Create owner account
+AdminReg -> AdminAPI: POST /api/admin/register
+AdminAPI -> AdminAPI: Validate owner data
+AdminAPI -> DB: Create owner record
+DB --> AdminAPI: Owner created
+AdminAPI -> Email: Send welcome email
+Email --> Owner: Account confirmation
+AdminAPI --> AdminReg: Registration success
+AdminReg --> Owner: Owner account ready
+
+== Service Category Management ==
+
+actor "Owner" as Owner
+participant "Admin Panel" as AdminPanel
+participant "Category API" as CategoryAPI
+participant "MongoDB" as DB
+
+Owner -> AdminPanel: Manage categories
+AdminPanel -> CategoryAPI: GET /api/service-categories
+CategoryAPI -> DB: Fetch categories
+DB --> CategoryAPI: Category list
+CategoryAPI --> AdminPanel: Display categories
+
+Owner -> AdminPanel: Create new category
+AdminPanel -> CategoryAPI: POST /api/service-categories
+CategoryAPI -> CategoryAPI: Validate category data
+CategoryAPI -> DB: Create category
+DB --> CategoryAPI: Category created
+CategoryAPI --> AdminPanel: Success
+AdminPanel --> Owner: Category added
+
+== Service Management ==
+
+actor "Owner" as Owner
+participant "Service Management" as ServiceMgmt
+participant "Service API" as ServiceAPI
+participant "Category API" as CategoryAPI
+participant "MongoDB" as DB
+
+Owner -> ServiceMgmt: Manage services
+ServiceMgmt -> ServiceAPI: GET /api/services
+ServiceAPI -> DB: Fetch services
+DB --> ServiceAPI: Service list
+ServiceAPI --> ServiceMgmt: Display services
+
+Owner -> ServiceMgmt: Create service
+ServiceMgmt -> CategoryAPI: GET /api/service-categories
+CategoryAPI -> DB: Fetch categories
+DB --> CategoryAPI: Categories
+CategoryAPI --> ServiceMgmt: Category options
+
+Owner -> ServiceMgmt: Fill service form
+ServiceMgmt -> ServiceAPI: POST /api/services
+ServiceAPI -> ServiceAPI: Validate service data
+ServiceAPI -> DB: Create service
+DB --> ServiceAPI: Service created
+ServiceAPI --> ServiceMgmt: Success
+ServiceMgmt --> Owner: Service added
+
+== Barber Account Creation ==
+
+actor "Owner" as Owner
+participant "Barber Management" as BarberMgmt
+participant "Admin API" as AdminAPI
+participant "MongoDB" as DB
+participant "Email Service" as Email
+
+Owner -> BarberMgmt: Add barber
+BarberMgmt -> AdminAPI: POST /api/admin/create-barber
+AdminAPI -> AdminAPI: Validate barber data
+AdminAPI -> DB: Create barber account
+DB --> AdminAPI: Barber created
+AdminAPI -> Email: Send credentials
+Email --> Barber: Login details
+AdminAPI --> BarberMgmt: Barber added
+BarberMgmt --> Owner: Barber account ready
+
+== Client Registration (Multiple Methods) ==
+
+== Method 1: Self Registration ==
+
+actor "New Client" as NewClient
+participant "Landing Page" as Landing
+participant "Register API" as RegAPI
+participant "QR Generator" as QRGen
+participant "MongoDB" as DB
+participant "NextAuth" as Auth
+
+NewClient -> Landing: Access registration
+Landing -> RegAPI: POST /api/register
+RegAPI -> RegAPI: Validate client data
+RegAPI -> DB: Create client record
+RegAPI -> QRGen: Generate QR code
+QRGen -> QRGen: Create unique QR
+QRGen --> RegAPI: QR code data
+RegAPI -> DB: Store QR code
+DB --> RegAPI: Client created
+RegAPI --> Landing: Registration success
+Landing -> Auth: Auto-login
+Auth --> NewClient: Access granted
+
+== Method 2: Admin Registration ==
+
+actor "Admin" as Admin
+participant "Client Management" as ClientMgmt
+participant "Client API" as ClientAPI
+participant "QR Generator" as QRGen
+participant "MongoDB" as DB
+
+Admin -> ClientMgmt: Register client
+ClientMgmt -> ClientAPI: POST /api/clients
+ClientAPI -> ClientAPI: Validate data
+ClientAPI -> DB: Create client
+ClientAPI -> QRGen: Generate QR
+QRGen --> ClientAPI: QR code
+ClientAPI -> DB: Store QR
+DB --> ClientAPI: Client created
+ClientAPI --> ClientMgmt: Success
+ClientMgmt --> Admin: Client registered
+
+== Method 3: QR Scan Registration ==
+
+actor "Barber" as Barber
+participant "Scanner" as Scanner
+participant "Registration Flow" as RegFlow
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+Barber -> Scanner: Scan unknown QR
+Scanner -> RegFlow: Unknown client detected
+RegFlow -> RegFlow: Show registration form
+RegFlow -> ClientAPI: POST /api/clients/quick-register
+ClientAPI -> DB: Create client
+DB --> ClientAPI: Client created
+ClientAPI --> RegFlow: Registration complete
+RegFlow --> Scanner: Client ready
+Scanner --> Barber: Proceed with visit
+
+== Guest Reservation System ==
+
+== Public Reservation ==
+
+actor "Guest" as Guest
+participant "Landing Page" as Landing
+participant "Reservation Form" as ReservForm
+participant "Reservation API" as ReservAPI
+participant "Email Service" as Email
+participant "MongoDB" as DB
+participant "Admin Panel" as AdminPanel
+
+Guest -> Landing: Make reservation
+Landing -> ReservForm: Open booking form
+Guest -> ReservForm: Fill details
+ReservForm -> ReservForm: Validate form
+ReservForm -> ReservAPI: POST /api/reservations
+ReservAPI -> DB: Create reservation
+ReservAPI -> Email: Send confirmation
+Email --> Guest: Confirmation email
+DB --> ReservAPI: Reservation saved
+ReservAPI --> ReservForm: Success
+ReservForm --> Guest: Booking confirmed
+
+ReservAPI -> AdminPanel: Real-time notification
+AdminPanel -> AdminPanel: Update reservation list
+
+== Client Reservation ==
+
+actor "Client" as Client
+participant "Client Dashboard" as ClientDash
+participant "Reservation API" as ReservAPI
+participant "MongoDB" as DB
+participant "Email Service" as Email
+
+Client -> ClientDash: Book appointment
+ClientDash -> ReservAPI: POST /api/reservations/client
+ReservAPI -> DB: Create reservation with client link
+ReservAPI -> Email: Send confirmation
+Email --> Client: Confirmation email
+DB --> ReservAPI: Reservation saved
+ReservAPI --> ClientDash: Success
+ClientDash --> Client: Appointment booked
+
+== Reservation Management ==
+
+actor "Admin" as Admin
+participant "Reservation Management" as ReservMgmt
+participant "Reservation API" as ReservAPI
+participant "MongoDB" as DB
+participant "Email Service" as Email
+
+Admin -> ReservMgmt: View reservations
+ReservMgmt -> ReservAPI: GET /api/reservations
+ReservAPI -> DB: Fetch reservations
+DB --> ReservAPI: Reservation list
+ReservAPI --> ReservMgmt: Display reservations
+
+Admin -> ReservMgmt: Update status
+ReservMgmt -> ReservAPI: PUT /api/reservations/{id}
+ReservAPI -> DB: Update reservation
+ReservAPI -> Email: Send status update
+Email --> Guest: Status notification
+DB --> ReservAPI: Update successful
+ReservAPI --> ReservMgmt: Success
+ReservMgmt --> Admin: Status updated
+
+== QR Code System ==
+
+== QR Code Generation ==
+
+actor "System" as System
+participant "QR Generator" as QRGen
+participant "QR Storage" as QRStorage
+participant "MongoDB" as DB
+
+System -> QRGen: Generate QR for client
+QRGen -> QRGen: Create unique identifier
+QRGen -> QRStorage: Store QR data
+QRStorage -> DB: Save QR code
+DB --> QRStorage: QR saved
+QRStorage --> QRGen: QR ready
+QRGen --> System: QR code generated
+
+== QR Code Display ==
+
+actor "Client" as Client
+participant "Client Dashboard" as ClientDash
+participant "QR Display" as QRDisplay
+participant "MongoDB" as DB
+
+Client -> ClientDash: View QR code
+ClientDash -> QRDisplay: Load QR
+QRDisplay -> DB: Fetch QR data
+DB --> QRDisplay: QR information
+QRDisplay --> ClientDash: QR code ready
+ClientDash --> Client: Display QR
+
+== QR Code Scanning ==
+
+actor "Barber" as Barber
+participant "Scanner App" as Scanner
+participant "Camera" as Camera
+participant "QR Decoder" as QRDecoder
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+Barber -> Scanner: Open scanner
+Scanner -> Camera: Request camera access
+Camera --> Scanner: Camera ready
+Barber -> Scanner: Scan QR code
+Scanner -> QRDecoder: Decode QR
+QRDecoder -> QRDecoder: Extract client ID
+QRDecoder --> Scanner: Client ID
+Scanner -> ClientAPI: GET /api/clients/{id}
+ClientAPI -> DB: Fetch client
+DB --> ClientAPI: Client data
+ClientAPI --> Scanner: Client information
+Scanner --> Barber: Display client info
+
+== Visit Recording System ==
+
+== Basic Visit Recording ==
+
+actor "Barber" as Barber
+participant "Visit Interface" as VisitUI
+participant "Service Selector" as ServiceSel
+participant "Visit API" as VisitAPI
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+Barber -> VisitUI: Start visit recording
+VisitUI -> ServiceSel: Show available services
+ServiceSel -> ServiceSel: Load service catalog
+ServiceSel --> VisitUI: Service list
+Barber -> VisitUI: Select services
+VisitUI -> VisitAPI: POST /api/visits
+VisitAPI -> DB: Create visit record
+VisitAPI -> ClientAPI: Update client stats
+ClientAPI -> DB: Update visit count
+DB --> VisitAPI: Visit recorded
+VisitAPI --> VisitUI: Success
+VisitUI --> Barber: Visit completed
+
+== Visit with Notes ==
+
+actor "Barber" as Barber
+participant "Visit Interface" as VisitUI
+participant "Notes Editor" as NotesEditor
+participant "Visit API" as VisitAPI
+participant "MongoDB" as DB
+
+Barber -> VisitUI: Record visit
+Barber -> NotesEditor: Add notes
+NotesEditor -> NotesEditor: Save notes
+NotesEditor --> VisitUI: Notes ready
+VisitUI -> VisitAPI: POST /api/visits
+VisitAPI -> DB: Create visit with notes
+DB --> VisitAPI: Visit saved
+VisitAPI --> VisitUI: Success
+VisitUI --> Barber: Visit with notes recorded
+
+== Visit with Photos ==
+
+actor "Barber" as Barber
+participant "Photo Upload" as PhotoUpload
+participant "Image Processor" as ImageProc
+participant "Visit API" as VisitAPI
+participant "File Storage" as FileStorage
+participant "MongoDB" as DB
+
+Barber -> PhotoUpload: Upload before/after photos
+PhotoUpload -> ImageProc: Process images
+ImageProc -> ImageProc: Resize and optimize
+ImageProc -> FileStorage: Store images
+FileStorage --> ImageProc: Images stored
+ImageProc --> PhotoUpload: Photos ready
+PhotoUpload -> VisitAPI: POST /api/visits/with-photos
+VisitAPI -> DB: Create visit with photos
+DB --> VisitAPI: Visit saved
+VisitAPI --> PhotoUpload: Success
+PhotoUpload --> Barber: Visit with photos recorded
+
+== Loyalty Program System ==
+
+== Loyalty Status Check ==
+
+actor "Client" as Client
+participant "Loyalty Dashboard" as LoyaltyDash
+participant "Loyalty API" as LoyaltyAPI
+participant "MongoDB" as DB
+
+Client -> LoyaltyDash: View loyalty status
+LoyaltyDash -> LoyaltyAPI: GET /api/loyalty/{clientId}
+LoyaltyAPI -> DB: Fetch loyalty data
+DB --> LoyaltyAPI: Loyalty information
+LoyaltyAPI -> LoyaltyAPI: Calculate tier
+LoyaltyAPI --> LoyaltyDash: Status and tier
+LoyaltyDash --> Client: Display loyalty status
+
+== Reward Selection ==
+
+actor "Client" as Client
+participant "Reward Selector" as RewardSel
+participant "Reward API" as RewardAPI
+participant "Loyalty API" as LoyaltyAPI
+participant "MongoDB" as DB
+
+Client -> RewardSel: Select reward
+RewardSel -> RewardAPI: GET /api/rewards/available
+RewardAPI -> DB: Fetch available rewards
+DB --> RewardAPI: Reward list
+RewardAPI --> RewardSel: Available rewards
+Client -> RewardSel: Choose reward
+RewardSel -> LoyaltyAPI: POST /api/loyalty/select-reward
+LoyaltyAPI -> DB: Update selected reward
+DB --> LoyaltyAPI: Reward selected
+LoyaltyAPI --> RewardSel: Success
+RewardSel --> Client: Reward selected
+
+== Reward Redemption ==
+
+actor "Barber" as Barber
+participant "Visit Interface" as VisitUI
+participant "Reward Processor" as RewardProc
+participant "Loyalty API" as LoyaltyAPI
+participant "MongoDB" as DB
+
+Barber -> VisitUI: Process visit
+VisitUI -> RewardProc: Check for rewards
+RewardProc -> LoyaltyAPI: GET /api/loyalty/check-rewards
+LoyaltyAPI -> DB: Check eligibility
+DB --> LoyaltyAPI: Reward available
+LoyaltyAPI --> RewardProc: Reward details
+RewardProc --> VisitUI: Show reward option
+Barber -> VisitUI: Apply reward
+VisitUI -> RewardProc: Process redemption
+RewardProc -> LoyaltyAPI: POST /api/loyalty/redeem
+LoyaltyAPI -> DB: Update redemption status
+DB --> LoyaltyAPI: Reward redeemed
+LoyaltyAPI --> RewardProc: Success
+RewardProc --> VisitUI: Reward applied
+VisitUI --> Barber: Visit with reward completed
+
+== Analytics and Reporting ==
+
+== Real-time Analytics ==
+
+actor "Admin" as Admin
+participant "Analytics Dashboard" as AnalyticsDash
+participant "Analytics API" as AnalyticsAPI
+participant "Visit API" as VisitAPI
+participant "Revenue API" as RevenueAPI
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+Admin -> AnalyticsDash: View analytics
+AnalyticsDash -> AnalyticsAPI: GET /api/admin/analytics
+AnalyticsAPI -> VisitAPI: Fetch visit data
+AnalyticsAPI -> RevenueAPI: Fetch revenue data
+AnalyticsAPI -> ClientAPI: Fetch client data
+
+par Parallel Data Fetching
+    VisitAPI -> DB: Query visits
+    DB --> VisitAPI: Visit statistics
+    RevenueAPI -> DB: Query revenue
+    DB --> RevenueAPI: Revenue data
+    ClientAPI -> DB: Query clients
+    DB --> ClientAPI: Client metrics
+end
+
+AnalyticsAPI -> AnalyticsAPI: Aggregate data
+AnalyticsAPI --> AnalyticsDash: Combined analytics
+AnalyticsDash --> Admin: Display charts
+
+== Financial Reports ==
+
+actor "Admin" as Admin
+participant "Report Generator" as ReportGen
+participant "PDF Generator" as PDFGen
+participant "Excel Generator" as ExcelGen
+participant "MongoDB" as DB
+
+Admin -> ReportGen: Generate financial report
+ReportGen -> DB: Query financial data
+DB --> ReportGen: Financial data
+ReportGen -> PDFGen: Create PDF report
+PDFGen --> ReportGen: PDF ready
+ReportGen -> ExcelGen: Create Excel report
+ExcelGen --> ReportGen: Excel ready
+ReportGen --> Admin: Reports generated
+
+== Barber Performance Analytics ==
+
+actor "Admin" as Admin
+participant "Barber Analytics" as BarberAnalytics
+participant "Barber Stats API" as BarberStatsAPI
+participant "MongoDB" as DB
+
+Admin -> BarberAnalytics: View barber performance
+BarberAnalytics -> BarberStatsAPI: GET /api/barber/stats
+BarberStatsAPI -> DB: Query barber data
+DB --> BarberStatsAPI: Performance data
+BarberStatsAPI -> BarberStatsAPI: Calculate metrics
+BarberStatsAPI --> BarberAnalytics: Statistics
+BarberAnalytics --> Admin: Performance report
+
+== Client Management ==
+
+== Client Search and Filter ==
+
+actor "Admin" as Admin
+participant "Client Management" as ClientMgmt
+participant "Search Engine" as SearchEngine
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+Admin -> ClientMgmt: Search clients
+ClientMgmt -> SearchEngine: Process search query
+SearchEngine -> ClientAPI: GET /api/clients/search
+ClientAPI -> DB: Search clients
+DB --> ClientAPI: Search results
+ClientAPI --> SearchEngine: Client data
+SearchEngine --> ClientMgmt: Filtered results
+ClientMgmt --> Admin: Display clients
+
+== Client Profile Management ==
+
+actor "Client" as Client
+participant "Profile Editor" as ProfileEditor
+participant "Profile API" as ProfileAPI
+participant "MongoDB" as DB
+
+Client -> ProfileEditor: Edit profile
+ProfileEditor -> ProfileAPI: PUT /api/clients/profile
+ProfileAPI -> ProfileAPI: Validate data
+ProfileAPI -> DB: Update profile
+DB --> ProfileAPI: Update successful
+ProfileAPI --> ProfileEditor: Success
+ProfileEditor --> Client: Profile updated
+
+== Client Visit History ==
+
+actor "Client" as Client
+participant "History Viewer" as HistoryViewer
+participant "Visit API" as VisitAPI
+participant "MongoDB" as DB
+
+Client -> HistoryViewer: View visit history
+HistoryViewer -> VisitAPI: GET /api/visits/history
+VisitAPI -> DB: Query visit history
+DB --> VisitAPI: Visit records
+VisitAPI --> HistoryViewer: History data
+HistoryViewer --> Client: Display history
+
+== System Administration ==
+
+== User Management ==
+
+actor "Owner" as Owner
+participant "User Management" as UserMgmt
+participant "Admin API" as AdminAPI
+participant "MongoDB" as DB
+
+Owner -> UserMgmt: Manage users
+UserMgmt -> AdminAPI: GET /api/admin/users
+AdminAPI -> DB: Fetch users
+DB --> AdminAPI: User list
+AdminAPI --> UserMgmt: Display users
+
+Owner -> UserMgmt: Update user role
+UserMgmt -> AdminAPI: PUT /api/admin/users/{id}
+AdminAPI -> DB: Update user
+DB --> AdminAPI: Update successful
+AdminAPI --> UserMgmt: Success
+UserMgmt --> Owner: User updated
+
+== System Settings ==
+
+actor "Owner" as Owner
+participant "Settings Panel" as SettingsPanel
+participant "Settings API" as SettingsAPI
+participant "MongoDB" as DB
+
+Owner -> SettingsPanel: Configure system
+SettingsPanel -> SettingsAPI: GET /api/admin/settings
+SettingsAPI -> DB: Fetch settings
+DB --> SettingsAPI: Settings data
+SettingsAPI --> SettingsPanel: Display settings
+
+Owner -> SettingsPanel: Update settings
+SettingsPanel -> SettingsAPI: PUT /api/admin/settings
+SettingsAPI -> DB: Update settings
+DB --> SettingsAPI: Settings updated
+SettingsAPI --> SettingsPanel: Success
+SettingsPanel --> Owner: Settings saved
+
+== Database Backup ==
+
+actor "System Admin" as SysAdmin
+participant "Backup Service" as BackupService
+participant "MongoDB Atlas" as Atlas
+participant "Cloud Storage" as CloudStorage
+
+SysAdmin -> BackupService: Initiate backup
+BackupService -> Atlas: Create backup
+Atlas --> BackupService: Backup created
+BackupService -> CloudStorage: Store backup
+CloudStorage --> BackupService: Backup stored
+BackupService --> SysAdmin: Backup complete
+
+== Security and Authentication ==
+
+== Login Process ==
+
+actor "User" as User
+participant "Login Form" as LoginForm
+participant "NextAuth" as NextAuth
+participant "MongoDB" as DB
+participant "JWT Service" as JWT
+
+User -> LoginForm: Enter credentials
+LoginForm -> NextAuth: Authenticate
+NextAuth -> DB: Validate user
+DB --> NextAuth: User data
+NextAuth -> JWT: Generate token
+JWT --> NextAuth: JWT token
+NextAuth --> LoginForm: Authentication success
+LoginForm --> User: Access granted
+
+== Role-based Access Control ==
+
+actor "User" as User
+participant "Middleware" as Middleware
+participant "Auth Guard" as AuthGuard
+participant "Permission Checker" as PermissionChecker
+participant "MongoDB" as DB
+
+User -> Middleware: Access resource
+Middleware -> AuthGuard: Check authentication
+AuthGuard -> PermissionChecker: Verify permissions
+PermissionChecker -> DB: Check user role
+DB --> PermissionChecker: Role data
+PermissionChecker --> AuthGuard: Permission result
+AuthGuard --> Middleware: Access decision
+Middleware --> User: Resource access
+
+== Rate Limiting ==
+
+actor "API User" as APIUser
+participant "Rate Limiter" as RateLimiter
+participant "Request Counter" as RequestCounter
+participant "Redis Cache" as Redis
+
+APIUser -> RateLimiter: API request
+RateLimiter -> RequestCounter: Check rate limit
+RequestCounter -> Redis: Get request count
+Redis --> RequestCounter: Current count
+RequestCounter --> RateLimiter: Rate status
+alt Rate limit exceeded
+    RateLimiter --> APIUser: 429 Too Many Requests
+else Rate OK
+    RateLimiter --> APIUser: Process request
+end
+
+== Error Handling ==
+
+actor "System" as System
+participant "Error Handler" as ErrorHandler
+participant "Logger" as Logger
+participant "Notification Service" as NotifService
+
+System -> ErrorHandler: Error occurred
+ErrorHandler -> Logger: Log error
+Logger -> Logger: Store error details
+ErrorHandler -> NotifService: Send alert
+NotifService --> Admin: Error notification
+ErrorHandler --> System: Error handled
+
+== Real-time Features ==
+
+== Live Notifications ==
+
+actor "System" as System
+participant "WebSocket Server" as WSServer
+participant "Client App" as ClientApp
+participant "Admin App" as AdminApp
+
+System -> WSServer: Trigger notification
+WSServer -> ClientApp: Broadcast to clients
+WSServer -> AdminApp: Broadcast to admins
+ClientApp --> Client: Show notification
+AdminApp --> Admin: Show notification
+
+== Live Dashboard Updates ==
+
+actor "Data Source" as DataSource
+participant "Real-time API" as RealTimeAPI
+participant "WebSocket" as WS
+participant "Dashboard" as Dashboard
+
+DataSource -> RealTimeAPI: Data update
+RealTimeAPI -> WS: Broadcast update
+WS -> Dashboard: Push update
+Dashboard -> Dashboard: Refresh data
+Dashboard --> Admin: Updated display
+
+== Mobile App Integration ==
+
+== Mobile Login ==
+
+actor "Mobile User" as MobileUser
+participant "Mobile App" as MobileApp
+participant "Auth API" as AuthAPI
+participant "MongoDB" as DB
+
+MobileUser -> MobileApp: Login
+MobileApp -> AuthAPI: Authenticate
+AuthAPI -> DB: Validate credentials
+DB --> AuthAPI: User data
+AuthAPI --> MobileApp: Authentication success
+MobileApp --> MobileUser: Access granted
+
+== Mobile QR Scanning ==
+
+actor "Mobile User" as MobileUser
+participant "Mobile Scanner" as MobileScanner
+participant "Camera" as Camera
+participant "Client API" as ClientAPI
+participant "MongoDB" as DB
+
+MobileUser -> MobileScanner: Open scanner
+MobileScanner -> Camera: Access camera
+Camera --> MobileScanner: Camera ready
+MobileUser -> MobileScanner: Scan QR
+MobileScanner -> ClientAPI: Process QR
+ClientAPI -> DB: Fetch client data
+DB --> ClientAPI: Client information
+ClientAPI --> MobileScanner: Client details
+MobileScanner --> MobileUser: Display client
+
+== File Upload System ==
+
+== Image Upload ==
+
+actor "User" as User
+participant "Upload Interface" as UploadUI
+participant "File Processor" as FileProcessor
+participant "Cloud Storage" as CloudStorage
+participant "MongoDB" as DB
+
+User -> UploadUI: Upload image
+UploadUI -> FileProcessor: Process file
+FileProcessor -> FileProcessor: Validate and resize
+FileProcessor -> CloudStorage: Store file
+CloudStorage --> FileProcessor: File URL
+FileProcessor -> DB: Save file record
+DB --> FileProcessor: File saved
+FileProcessor --> UploadUI: Upload complete
+UploadUI --> User: File uploaded
+
+== PDF Generation ==
+
+actor "Admin" as Admin
+participant "Report Generator" as ReportGen
+participant "PDF Engine" as PDFEngine
+participant "File Storage" as FileStorage
+
+Admin -> ReportGen: Generate PDF
+ReportGen -> PDFEngine: Create PDF
+PDFEngine -> PDFEngine: Format data
+PDFEngine -> FileStorage: Store PDF
+FileStorage --> PDFEngine: PDF stored
+PDFEngine --> ReportGen: PDF ready
+ReportGen --> Admin: PDF generated
+
+== Email System ==
+
+== Email Notifications ==
+
+actor "System" as System
+participant "Email Service" as EmailService
+participant "SMTP Server" as SMTP
+participant "Email Templates" as Templates
+
+System -> EmailService: Send notification
+EmailService -> Templates: Get template
+Templates --> EmailService: Email template
+EmailService -> SMTP: Send email
+SMTP --> EmailService: Email sent
+EmailService --> System: Notification sent
+
+== Push Notifications ==
+
+actor "System" as System
+participant "Push Service" as PushService
+participant "FCM/APNS" as PushProvider
+participant "Mobile Devices" as MobileDevices
+
+System -> PushService: Send push notification
+PushService -> PushProvider: Deliver notification
+PushProvider -> MobileDevices: Push to devices
+MobileDevices --> User: Show notification
+
+== System Monitoring ==
+
+== Health Checks ==
+
+actor "Monitoring System" as Monitor
+participant "Health Checker" as HealthChecker
+participant "Database" as DB
+participant "API Services" as APIs
+
+Monitor -> HealthChecker: Check system health
+HealthChecker -> DB: Test database connection
+HealthChecker -> APIs: Test API endpoints
+DB --> HealthChecker: Database status
+APIs --> HealthChecker: API status
+HealthChecker --> Monitor: Health report
+
+== Performance Monitoring ==
+
+actor "System" as System
+participant "Performance Monitor" as PerfMonitor
+participant "Metrics Collector" as MetricsCollector
+participant "Analytics Database" as AnalyticsDB
+
+System -> PerfMonitor: Monitor performance
+PerfMonitor -> MetricsCollector: Collect metrics
+MetricsCollector -> AnalyticsDB: Store metrics
+AnalyticsDB --> MetricsCollector: Metrics stored
+MetricsCollector --> PerfMonitor: Performance data
+PerfMonitor --> System: Performance report
+
+@enduml
+
+
+

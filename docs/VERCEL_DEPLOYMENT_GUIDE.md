@@ -53,7 +53,6 @@ In Vercel dashboard → Project → Settings → Environment Variables, add:
 - `NODE_ENV` = `production`
 - `SKIP_TYPE_CHECK` = `true`
 - `DISABLE_ESLINT_PLUGIN` = `true`
-- `NEXT_TELEMETRY_DISABLED` = `1`
 
 ### 4. Deploy!
 Click "Deploy" and watch it build successfully! 🎉
@@ -118,4 +117,5 @@ This same configuration will work on Vercel!
 
 ---
 
-**Your app is ready for deployment! All lint errors have been eliminated from the build process.** 🚀 
+**Your app is ready for deployment! All lint errors have been eliminated from the build process.** 🚀
+

@@ -1,0 +1,172 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Master Architecture Blueprint" id="master-arch">
+    <mxGraphModel dx="3000" dy="2000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3000" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- =====================================================================================
+             ZONE 1: DEVOPS & CI/CD PIPELINE (Left Column)
+             ===================================================================================== -->
+        <mxCell id="zone-devops" value="🚀 DEVOPS &amp; AUTOMATION (GitOps)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3F4F6;strokeColor=#2D3436;strokeWidth=2;dashed=1;verticalAlign=top;align=left;spacingLeft=20;spacingTop=10;fontStyle=1;fontSize=18;fontColor=#2D3436;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="500" height="1800" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dev-env" value="Local Dev Env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2D3436;shadow=1;fontStyle=1;" vertex="1" parent="zone-devops">
+          <mxGeometry x="50" y="100" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="repo" value="GitHub Repository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#24292E;strokeColor=#000000;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="zone-devops">
+          <mxGeometry x="50" y="250" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ci-pipeline" value="GitHub Actions Pipeline" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#4CAF50;rounded=1;" vertex="1" parent="zone-devops">
+          <mxGeometry x="50" y="400" width="400" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="step-lint" value="1. Lint/Type Check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" vertex="1" parent="ci-pipeline">
+          <mxGeometry x="20" y="50" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step-test" value="2. Unit/Integration Tests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" vertex="1" parent="ci-pipeline">
+          <mxGeometry x="20" y="120" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step-build" value="3. Production Build" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;fontStyle=1;" vertex="1" parent="ci-pipeline">
+          <mxGeometry x="20" y="190" width="360" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cd-hook" value="⚡ Vercel Deployment Hook" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#FFFFFF;fontColor=#FFFFFF;shadow=1;fontStyle=1;" vertex="1" parent="zone-devops">
+          <mxGeometry x="50" y="800" width="400" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- =====================================================================================
+             ZONE 2: PRODUCTION CLOUD INFRASTRUCTURE (Center Column)
+             ===================================================================================== -->
+        <mxCell id="zone-cloud" value="☁️ PRODUCTION CLOUD (Vercel Edge Network)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;strokeWidth=3;verticalAlign=top;align=left;spacingLeft=20;spacingTop=10;fontStyle=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="600" y="50" width="1400" height="1800" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 1: Edge Security & CDN -->
+        <mxCell id="layer-edge" value="🛡️ EDGE LAYER (Security &amp; Caching)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#2196F3;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=16;" vertex="1" parent="zone-cloud">
+          <mxGeometry x="50" y="100" width="1300" height="300" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="waf" value="Web App Firewall (WAF)&#xa;DDoS Protection" style="shape=hexagon;whiteSpace=wrap;html=1;fillColor=#D32F2F;strokeColor=#B71C1C;fontColor=#FFFFFF;shadow=1;size=20;" vertex="1" parent="layer-edge">
+          <mxGeometry x="100" y="100" width="200" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cdn" value="Global Edge CDN&#xa;Asset Caching" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2196F3;strokeColor=#0D47A1;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="layer-edge">
+          <mxGeometry x="400" y="100" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="middleware" value="Edge Middleware&#xa;Auth/Routing/AB Testing" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#7B1FA2;strokeColor=#4A148C;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="layer-edge">
+          <mxGeometry x="700" y="110" width="250" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 2: Compute & Application -->
+        <mxCell id="layer-compute" value="⚙️ SERVERLESS COMPUTE LAYER" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=16;" vertex="1" parent="zone-cloud">
+          <mxGeometry x="50" y="500" width="1300" height="600" as="geometry" />
+        </mxCell>
+
+        <!-- Static Content -->
+        <mxCell id="static-cluster" value="Static Generation (SSG/ISR)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;rounded=1;" vertex="1" parent="layer-compute">
+          <mxGeometry x="100" y="100" width="300" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="app-client" value="Client Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;" vertex="1" parent="static-cluster">
+          <mxGeometry x="50" y="50" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="app-admin" value="Admin Portal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;" vertex="1" parent="static-cluster">
+          <mxGeometry x="50" y="150" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="app-barber" value="Barber Scanner" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;" vertex="1" parent="static-cluster">
+          <mxGeometry x="50" y="250" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Dynamic API -->
+        <mxCell id="api-cluster" value="Serverless Functions (Lambda)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;rounded=1;" vertex="1" parent="layer-compute">
+          <mxGeometry x="500" y="100" width="700" height="400" as="geometry" />
+        </mxCell>
+        
+        <!-- Microservices inside Lambda -->
+        <mxCell id="svc-auth" value="Auth Service&#xa;(NextAuth)" style="hexagon;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#E65100;size=20;" vertex="1" parent="api-cluster">
+          <mxGeometry x="50" y="50" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-qr" value="QR Engine" style="hexagon;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#E65100;size=20;" vertex="1" parent="api-cluster">
+          <mxGeometry x="250" y="50" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-loyalty" value="Loyalty Logic" style="hexagon;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#E65100;size=20;" vertex="1" parent="api-cluster">
+          <mxGeometry x="450" y="50" width="150" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="svc-data" value="Data Access Layer (Mongoose ODM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E65100;strokeColor=#BF360C;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="api-cluster">
+          <mxGeometry x="50" y="250" width="550" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 3: Observability -->
+        <mxCell id="layer-obs" value="👁️ OBSERVABILITY &amp; MONITORING" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#9C27B0;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=16;" vertex="1" parent="zone-cloud">
+          <mxGeometry x="50" y="1200" width="1300" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="logs" value="Structured Logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#4A148C;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="layer-obs">
+          <mxGeometry x="200" y="80" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics" value="Performance Metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#4A148C;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="layer-obs">
+          <mxGeometry x="500" y="80" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="alerts" value="Error Alerting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#4A148C;fontColor=#FFFFFF;shadow=1;" vertex="1" parent="layer-obs">
+          <mxGeometry x="800" y="80" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- =====================================================================================
+             ZONE 3: DATA PERSISTENCE LAYER (Right Column)
+             ===================================================================================== -->
+        <mxCell id="zone-data" value="💾 DATA PERSISTENCE (Managed Services)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#4CAF50;strokeWidth=3;verticalAlign=top;align=left;spacingLeft=20;spacingTop=10;fontStyle=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="2100" y="50" width="800" height="1800" as="geometry" />
+        </mxCell>
+
+        <!-- MongoDB Cluster -->
+        <mxCell id="mongo-cluster" value="MongoDB Atlas Cluster (Replica Set)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;rounded=1;" vertex="1" parent="zone-data">
+          <mxGeometry x="100" y="500" width="600" height="600" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db-primary" value="PRIMARY NODE&#xa;(Read/Write)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#4CAF50;strokeColor=#1B5E20;fontColor=#FFFFFF;fontStyle=1;shadow=1;fontSize=16;" vertex="1" parent="mongo-cluster">
+          <mxGeometry x="225" y="100" width="150" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db-sec1" value="Secondary&#xa;(Read Only)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#81C784;strokeColor=#2E7D32;shadow=1;" vertex="1" parent="mongo-cluster">
+          <mxGeometry x="100" y="350" width="120" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="db-sec2" value="Secondary&#xa;(Read Only)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#81C784;strokeColor=#2E7D32;shadow=1;" vertex="1" parent="mongo-cluster">
+          <mxGeometry x="380" y="350" width="120" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- Object Storage -->
+        <mxCell id="s3" value="AWS S3 / Blob Storage&#xa;(Media Assets)" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#FFC107;strokeColor=#FF6F00;fontColor=#000000;fontStyle=1;shadow=1;fontSize=16;" vertex="1" parent="zone-data">
+          <mxGeometry x="200" y="150" width="400" height="250" as="geometry" />
+        </mxCell>
+
+        <!-- =====================================================================================
+             CONNECTORS (The Nervous System)
+             ===================================================================================== -->
+        
+        <!-- Deployment Flow -->
+        <mxCell id="flow-deploy" value="Automatic Deploy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2D3436;strokeWidth=4;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cd-hook" target="zone-cloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Request Flow -->
+        <mxCell id="flow-req" value="HTTPS Traffic" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2196F3;strokeWidth=4;" edge="1" parent="1" source="middleware" target="layer-compute">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- DB Connection -->
+        <mxCell id="flow-db" value="Connection Pool" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#E65100;strokeWidth=4;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="svc-data" target="db-primary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Asset Flow -->
+        <mxCell id="flow-asset" value="Cache Miss Fetch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF6F00;strokeWidth=3;dashed=1;" edge="1" parent="1" source="cdn" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

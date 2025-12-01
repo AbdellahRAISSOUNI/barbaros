@@ -1,0 +1,132 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="MASTER Data Flow" id="master-data">
+    <mxGraphModel dx="3000" dy="2000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3000" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ================== 1. DATA DOMAIN MODELS (Left Side) ================== -->
+        <mxCell id="zone-models" value="📚 DATA ENTITY MODELS (Domain Driven)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00695C;strokeWidth=2;dashed=1;verticalAlign=top;align=left;spacingLeft=20;spacingTop=10;fontStyle=1;fontSize=24;fontColor=#00695C;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="1200" height="1800" as="geometry" />
+        </mxCell>
+
+        <!-- User Domain -->
+        <mxCell id="dom-user" value="USER DOMAIN" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;startSize=40;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="100" y="150" width="500" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ent-client" value="CLIENT ENTITY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C62828;fontColor=#FFFFFF;strokeColor=#B71C1C;fontStyle=1;fontSize=14;" vertex="1" parent="dom-user">
+          <mxGeometry x="50" y="100" width="400" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="ent-barber" value="BARBER ENTITY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C62828;fontColor=#FFFFFF;strokeColor=#B71C1C;fontStyle=1;fontSize=14;" vertex="1" parent="dom-user">
+          <mxGeometry x="50" y="350" width="400" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- Business Domain -->
+        <mxCell id="dom-biz" value="BUSINESS DOMAIN" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;startSize=40;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="700" y="150" width="500" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="ent-visit" value="VISIT TRANSACTION" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565C0;fontColor=#FFFFFF;strokeColor=#0D47A1;fontStyle=1;fontSize=14;" vertex="1" parent="dom-biz">
+          <mxGeometry x="50" y="100" width="400" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="ent-service" value="SERVICE CATALOG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565C0;fontColor=#FFFFFF;strokeColor=#0D47A1;fontStyle=1;fontSize=14;" vertex="1" parent="dom-biz">
+          <mxGeometry x="50" y="450" width="400" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- Loyalty Domain -->
+        <mxCell id="dom-loyalty" value="LOYALTY DOMAIN" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;startSize=40;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1000" width="500" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ent-reward" value="REWARD RULESET" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF6C00;fontColor=#FFFFFF;strokeColor=#E65100;fontStyle=1;fontSize=14;" vertex="1" parent="dom-loyalty">
+          <mxGeometry x="50" y="100" width="400" height="400" as="geometry" />
+        </mxCell>
+
+        <!-- Relationships -->
+        <mxCell id="rel-1" value="Initiates" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2D3436;strokeWidth=3;" edge="1" parent="1" source="ent-client" target="ent-visit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-2" value="Manages" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2D3436;strokeWidth=3;" edge="1" parent="1" source="ent-barber" target="ent-visit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-3" value="Contains" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2D3436;strokeWidth=3;" edge="1" parent="1" source="ent-visit" target="ent-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-4" value="Triggers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EF6C00;strokeWidth=4;dashed=1;" edge="1" parent="1" source="ent-visit" target="ent-reward">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ================== 2. TRANSACTION PIPELINES (Right Side) ================== -->
+        <mxCell id="zone-process" value="⚙️ TRANSACTION PROCESSING LOGIC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#6A1B9A;strokeWidth=2;dashed=1;verticalAlign=top;align=left;spacingLeft=20;spacingTop=10;fontStyle=1;fontSize=24;fontColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="50" width="1600" height="1800" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline 1: Visit Recording -->
+        <mxCell id="pipe-visit" value="1. VISIT TRANSACTION PIPELINE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;verticalAlign=top;align=center;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="150" width="1500" height="600" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node-scan" value="QR Scan Event" style="hexagon;whiteSpace=wrap;html=1;fillColor=#6A1B9A;fontColor=#FFFFFF;strokeColor=#4A148C;shadow=1;size=30;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="350" width="200" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="node-verify" value="Verify Identity" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;fontColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="350" width="150" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="node-persist" value="Persist Visit&#xa;(ACID Transaction)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6A1B9A;fontColor=#FFFFFF;strokeColor=#4A148C;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2000" y="375" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="node-emit" value="Emit 'VisitCompleted'" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="2400" y="375" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline 2: Loyalty Engine -->
+        <mxCell id="pipe-loyalty" value="2. LOYALTY CALCULATION PIPELINE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;verticalAlign=top;align=center;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="850" width="1500" height="600" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node-catch" value="Catch Event" style="hexagon;whiteSpace=wrap;html=1;fillColor=#6A1B9A;fontColor=#FFFFFF;strokeColor=#4A148C;shadow=1;size=30;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="1050" width="200" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="node-calc" value="Calculate Points" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1075" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="node-check" value="Check Milestones" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;fontColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="2050" y="1050" width="150" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="node-unlock" value="UNLOCK REWARD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;fontColor=#FFFFFF;strokeColor=#1B5E20;shadow=1;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="2350" y="1075" width="250" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Flow Connectors -->
+        <mxCell id="flow-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6A1B9A;strokeWidth=3;" edge="1" parent="1" source="node-scan" target="node-verify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6A1B9A;strokeWidth=3;" edge="1" parent="1" source="node-verify" target="node-persist">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6A1B9A;strokeWidth=3;" edge="1" parent="1" source="node-persist" target="node-emit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Async Connection -->
+        <mxCell id="flow-async" value="Async Event" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=4;dashed=1;" edge="1" parent="1" source="node-emit" target="node-catch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2500" y="800" />
+              <mxPoint x="1500" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="flow-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6A1B9A;strokeWidth=3;" edge="1" parent="1" source="node-catch" target="node-calc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6A1B9A;strokeWidth=3;" edge="1" parent="1" source="node-calc" target="node-check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-6" value="Threshold Met" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=4;" edge="1" parent="1" source="node-check" target="node-unlock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

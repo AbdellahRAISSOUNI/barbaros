@@ -127,4 +127,5 @@ A digital loyalty system for barbershops that tracks client visits and rewards f
 - **Client Photos**: Store before/after photos of haircuts
 - **Payment Integration**: Link payment processing to client accounts
 - **Additional Reward Types**: Birthday specials, referral bonuses
-- **Marketing Tools**: Export client contact info for promotions 
+- **Marketing Tools**: Export client contact info for promotions
+

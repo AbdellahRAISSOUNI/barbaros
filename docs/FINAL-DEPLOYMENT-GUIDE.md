@@ -110,4 +110,5 @@ Your deployment should now succeed with:
 - Analytics dashboard
 - Mobile-responsive design
 
-**Ready to deploy! 🚀** 
+**Ready to deploy! 🚀**
+

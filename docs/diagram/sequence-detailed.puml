@@ -1,0 +1,272 @@
+@startuml Sequence Diagram - Detailed
+
+!theme vibrant
+title **Barbaros System - Complete Workflow Sequences**
+
+== Client Registration & Authentication ==
+
+actor "New User" as User
+participant "Landing Page" as Landing
+participant "Register API" as RegAPI
+participant "MongoDB" as DB
+participant "NextAuth" as Auth
+participant "Client Dashboard" as Dashboard
+
+User -> Landing: Access registration
+Landing -> RegAPI: POST /api/register
+RegAPI -> DB: Create client record
+RegAPI -> DB: Generate QR code
+RegAPI -> RegAPI: Hash password
+DB --> RegAPI: Client created
+RegAPI --> Landing: Registration success
+Landing -> Auth: Auto-login
+Auth -> Dashboard: Redirect to dashboard
+
+== QR Code Visit Recording ==
+
+actor "Barber" as Barber
+participant "Scanner Interface" as Scanner
+participant "Camera API" as Camera
+participant "Visit API" as VisitAPI
+participant "Client API" as ClientAPI
+participant "Loyalty API" as LoyaltyAPI
+participant "MongoDB" as DB
+
+Barber -> Scanner: Open scanner
+Scanner -> Camera: Request camera access
+Camera --> Scanner: Camera stream active
+Barber -> Scanner: Scan client QR code
+Scanner -> Scanner: Decode QR data
+Scanner -> ClientAPI: GET /api/clients/{id}
+ClientAPI -> DB: Fetch client details
+DB --> ClientAPI: Client information
+ClientAPI --> Scanner: Display client info
+
+Scanner -> Scanner: Select services provided
+Scanner -> Scanner: Add notes (optional)
+Scanner -> VisitAPI: POST /api/visits
+VisitAPI -> DB: Create visit record
+VisitAPI -> ClientAPI: Update client stats
+ClientAPI -> DB: Update visit count
+ClientAPI -> LoyaltyAPI: Check reward eligibility
+LoyaltyAPI -> DB: Update loyalty points
+LoyaltyAPI -> LoyaltyAPI: Calculate reward status
+
+alt Reward Available
+    LoyaltyAPI -> VisitAPI: Mark reward available
+    VisitAPI --> Scanner: Show reward notification
+    Scanner -> Barber: Display reward options
+    Barber -> Scanner: Apply reward
+    Scanner -> VisitAPI: Process reward redemption
+    VisitAPI -> DB: Update reward status
+end
+
+DB --> VisitAPI: Visit recorded
+VisitAPI --> Scanner: Visit complete
+Scanner -> Scanner: Show success message
+
+== Admin Analytics Dashboard ==
+
+actor "Admin" as Admin
+participant "Admin Dashboard" as AdminDash
+participant "Analytics API" as AnalyticsAPI
+participant "Visit API" as VisitAPI
+participant "Revenue API" as RevenueAPI
+participant "Client API" as ClientAPI
+participant "Chart.js" as Charts
+participant "MongoDB" as DB
+
+Admin -> AdminDash: Access dashboard
+AdminDash -> AnalyticsAPI: GET /api/admin/analytics/overview
+AnalyticsAPI -> VisitAPI: Fetch visit statistics
+AnalyticsAPI -> RevenueAPI: Fetch revenue data
+AnalyticsAPI -> ClientAPI: Fetch client metrics
+
+par Parallel Data Fetching
+    VisitAPI -> DB: Query visit data
+    DB --> VisitAPI: Visit statistics
+    RevenueAPI -> DB: Query revenue data
+    DB --> RevenueAPI: Revenue metrics
+    ClientAPI -> DB: Query client data
+    DB --> ClientAPI: Client statistics
+end
+
+AnalyticsAPI -> AnalyticsAPI: Aggregate data
+AnalyticsAPI --> AdminDash: Combined analytics
+AdminDash -> Charts: Render charts
+Charts --> AdminDash: Interactive visualizations
+AdminDash --> Admin: Display dashboard
+
+== Guest Reservation Flow ==
+
+actor "Guest" as Guest
+participant "Landing Page" as Landing
+participant "Reservation Form" as ReservForm
+participant "Reservation API" as ReservAPI
+participant "Email Service" as EmailSvc
+participant "MongoDB" as DB
+participant "Admin Panel" as AdminPanel
+
+Guest -> Landing: Access reservation
+Landing -> ReservForm: Open booking form
+Guest -> ReservForm: Fill reservation details
+ReservForm -> ReservForm: Validate form data
+ReservForm -> ReservAPI: POST /api/reservations
+
+ReservAPI -> DB: Create reservation record
+ReservAPI -> EmailSvc: Send confirmation email
+EmailSvc -> Guest: Confirmation email sent
+DB --> ReservAPI: Reservation created
+ReservAPI --> ReservForm: Booking confirmed
+ReservForm --> Guest: Show confirmation
+
+ReservAPI -> AdminPanel: Real-time notification
+AdminPanel -> AdminPanel: Update reservation list
+AdminPanel -> EmailSvc: Notify admin
+EmailSvc -> Admin: New reservation alert
+
+== Loyalty Reward Redemption ==
+
+actor "Client" as Client
+participant "Client Dashboard" as ClientDash
+participant "Loyalty API" as LoyaltyAPI
+participant "Reward API" as RewardAPI
+participant "Visit API" as VisitAPI
+participant "MongoDB" as DB
+
+Client -> ClientDash: View loyalty status
+ClientDash -> LoyaltyAPI: GET /api/loyalty/{clientId}
+LoyaltyAPI -> DB: Fetch loyalty data
+DB --> LoyaltyAPI: Loyalty information
+LoyaltyAPI --> ClientDash: Display rewards
+
+alt Reward Available
+    ClientDash -> RewardAPI: GET /api/rewards/available
+    RewardAPI -> DB: Fetch available rewards
+    DB --> RewardAPI: Reward list
+    RewardAPI --> ClientDash: Show available rewards
+    
+    Client -> ClientDash: Select reward
+    ClientDash -> LoyaltyAPI: POST /api/loyalty/select-reward
+    LoyaltyAPI -> DB: Update selected reward
+    DB --> LoyaltyAPI: Reward selected
+    LoyaltyAPI --> ClientDash: Confirmation
+    
+    note over ClientDash: Reward is redeemed during next visit via barber scanner
+end
+
+== Service Management ==
+
+actor "Admin" as Admin
+participant "Admin Panel" as AdminPanel
+participant "Service API" as ServiceAPI
+participant "Category API" as CategoryAPI
+participant "MongoDB" as DB
+
+Admin -> AdminPanel: Manage services
+AdminPanel -> ServiceAPI: GET /api/services
+ServiceAPI -> DB: Fetch services
+DB --> ServiceAPI: Service list
+ServiceAPI --> AdminPanel: Display services
+
+Admin -> AdminPanel: Create new service
+AdminPanel -> CategoryAPI: GET /api/service-categories
+CategoryAPI -> DB: Fetch categories
+DB --> CategoryAPI: Category list
+CategoryAPI --> AdminPanel: Category options
+
+Admin -> AdminPanel: Fill service form
+AdminPanel -> ServiceAPI: POST /api/services
+ServiceAPI -> ServiceAPI: Validate service data
+ServiceAPI -> DB: Create service record
+DB --> ServiceAPI: Service created
+ServiceAPI --> AdminPanel: Success confirmation
+AdminPanel --> Admin: Service added
+
+== Client Profile Management ==
+
+actor "Client" as Client
+participant "Client Dashboard" as ClientDash
+participant "Profile API" as ProfileAPI
+participant "MongoDB" as DB
+
+Client -> ClientDash: Access profile
+ClientDash -> ProfileAPI: GET /api/clients/profile
+ProfileAPI -> DB: Fetch client data
+DB --> ProfileAPI: Client information
+ProfileAPI --> ClientDash: Display profile
+
+Client -> ClientDash: Update information
+ClientDash -> ProfileAPI: PUT /api/clients/profile
+ProfileAPI -> ProfileAPI: Validate data
+ProfileAPI -> DB: Update client record
+DB --> ProfileAPI: Update successful
+ProfileAPI --> ClientDash: Success response
+ClientDash --> Client: Profile updated
+
+== Barber Statistics Tracking ==
+
+actor "Barber" as Barber
+participant "Barber Dashboard" as BarberDash
+participant "Stats API" as StatsAPI
+participant "MongoDB" as DB
+
+Barber -> BarberDash: View statistics
+BarberDash -> StatsAPI: GET /api/barber/stats
+StatsAPI -> DB: Query barber performance
+DB --> StatsAPI: Performance data
+StatsAPI -> StatsAPI: Calculate metrics
+StatsAPI --> BarberDash: Statistics
+BarberDash --> Barber: Display performance
+
+== Error Handling & Security ==
+
+participant "API Request" as Request
+participant "Middleware" as Middleware
+participant "Rate Limiter" as RateLimit
+participant "Auth Guard" as AuthGuard
+participant "Error Handler" as ErrorHandler
+participant "Response" as Response
+
+note over Middleware: All API requests pass through security layers
+
+Request -> Middleware: Incoming request
+activate Middleware
+Middleware -> RateLimit: Check request rate
+alt Rate Limit Exceeded
+    RateLimit --> Middleware: 429 Too Many Requests
+    Middleware --> Response: Rate limit error
+else Rate OK
+    RateLimit -> AuthGuard: Validate authentication
+    alt Unauthorized
+        AuthGuard --> Middleware: 401 Unauthorized
+        Middleware --> Response: Auth error
+    else Authorized
+        AuthGuard -> ErrorHandler: Process request
+        alt Database Error
+            ErrorHandler --> Middleware: 500 Server Error
+            Middleware --> Response: Server error
+        else Success
+            ErrorHandler --> Middleware: Valid response
+            Middleware --> Response: Successful response
+        end
+    end
+end
+deactivate Middleware
+
+== Real-time Notifications ==
+
+actor "System" as System
+participant "Notification Service" as NotifSvc
+participant "WebSocket" as WS
+participant "Client App" as ClientApp
+participant "Admin App" as AdminApp
+
+System -> NotifSvc: Trigger notification
+NotifSvc -> WS: Broadcast update
+WS -> ClientApp: Real-time update
+WS -> AdminApp: Real-time update
+ClientApp --> Client: Show notification
+AdminApp --> Admin: Show notification
+
+@enduml
