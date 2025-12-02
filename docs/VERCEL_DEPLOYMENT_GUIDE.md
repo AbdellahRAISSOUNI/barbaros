@@ -119,3 +119,4 @@ This same configuration will work on Vercel!
 
 **Your app is ready for deployment! All lint errors have been eliminated from the build process.** 🚀
 
+
