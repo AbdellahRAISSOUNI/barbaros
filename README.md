@@ -30,7 +30,7 @@
 | Section | Description |
 |:--------|:------------|
 | [🎯 Features](#-features) | Core capabilities & business value |
-| [🖼️ Visual Tour](#️-visual-tour) | UI screenshots & architecture diagrams |
+| [🖼️ Visual Tour](#️-visual-tour) | Complete UI showcase & architecture |
 | [🏗️ Architecture](#️-architecture) | Technical design & infrastructure |
 | [💻 Tech Stack](#-tech-stack) | Technologies & frameworks |
 | [🚀 Quick Start](#-quick-start) | Get running in 5 minutes |
@@ -72,49 +72,6 @@
 
 ## 🖼️ Visual Tour
 
-### Application Screenshots
-
-<div align="center">
-
-#### 🏠 Landing & Marketing
-<table>
-<tr>
-<td width="33%"><strong>Landing Page</strong><br><img src="docs/screenshots/landing-hero.png" alt="Landing Page" width="100%"></td>
-<td width="33%"><strong>Gallery</strong><br><img src="docs/screenshots/gallery-transformations.png" alt="Gallery" width="100%"></td>
-<td width="33%"><strong>Client QR Code</strong><br><img src="docs/screenshots/client-qrcode.png" alt="Client QR Code" width="100%"></td>
-</tr>
-</table>
-
-#### 👨‍💼 Admin Dashboard
-<table>
-<tr>
-<td width="50%"><strong>Dashboard Overview</strong><br><img src="docs/screenshots/admin-dashboard-overview.png" alt="Admin Dashboard" width="100%"></td>
-<td width="50%"><strong>QR Scanner</strong><br><img src="docs/screenshots/admin-qr-scanner.png" alt="Admin Scanner" width="100%"></td>
-</tr>
-<tr>
-<td width="50%"><strong>Client Management</strong><br><img src="docs/screenshots/admin-clients-table.png" alt="Clients Table" width="100%"></td>
-<td width="50%"><strong>Reports & Analytics</strong><br><img src="docs/screenshots/admin-reports.png" alt="Admin Reports" width="100%"></td>
-</tr>
-</table>
-
-#### ✂️ Barber Experience
-<table>
-<tr>
-<td width="50%"><strong>Barber Dashboard</strong><br><img src="docs/screenshots/barber-dashboard.png" alt="Barber Dashboard" width="100%"></td>
-<td width="50%"><strong>Barber Scanner</strong><br><img src="docs/screenshots/barber-scanner.png" alt="Barber Scanner" width="100%"></td>
-</tr>
-</table>
-
-#### 👤 Client Portal
-<table>
-<tr>
-<td width="50%"><strong>Client Dashboard</strong><br><img src="docs/screenshots/client-dashboard.png" alt="Client Dashboard" width="100%"></td>
-<td width="50%"><strong>Reservations</strong><br><img src="docs/screenshots/client-reservations.png" alt="Client Reservations" width="100%"></td>
-</tr>
-</table>
-
-</div>
-
 ### 🏗️ System Architecture
 
 <div align="center">
@@ -128,6 +85,106 @@
 ![Data Flow](diagrams/MASTER-DataFlow.png)
 
 **Shows:** Domain models, transaction pipelines, ACID guarantees, and reward processing.
+
+</div>
+
+---
+
+### 🔐 Authentication & Public Pages
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%"><strong>Login Page</strong><br><img src="docs/screenshots/login.png" alt="Login" width="100%"></td>
+<td width="50%"><strong>Guest Reservation</strong><br><img src="docs/screenshots/guest reservation.png" alt="Guest Reservation" width="100%"></td>
+</tr>
+</table>
+
+</div>
+
+---
+
+### 👨‍💼 Admin Dashboard - Complete Overview
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%"><strong>Main Dashboard</strong><br><img src="docs/screenshots/admin/dashboard.png" alt="Admin Dashboard" width="100%"></td>
+<td width="50%"><strong>Analytics Overview</strong><br><img src="docs/screenshots/admin/analytics.png" alt="Analytics" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Business Board</strong><br><img src="docs/screenshots/admin/board.png" alt="Business Board" width="100%"></td>
+<td width="50%"><strong>Client Management</strong><br><img src="docs/screenshots/admin/client manager.png" alt="Client Manager" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Barber Management</strong><br><img src="docs/screenshots/admin/barber manager.png" alt="Barber Manager" width="100%"></td>
+<td width="50%"><strong>Services Catalog</strong><br><img src="docs/screenshots/admin/services.png" alt="Services" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>QR Code Scanner</strong><br><img src="docs/screenshots/admin/scanner.png" alt="Admin Scanner" width="100%"></td>
+<td width="50%"><strong>Booking System</strong><br><img src="docs/screenshots/admin/booking system.png" alt="Booking System" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Visit History</strong><br><img src="docs/screenshots/admin/history.png" alt="Visit History" width="100%"></td>
+<td width="50%"><strong>Loyalty Rewards</strong><br><img src="docs/screenshots/admin/loyalty rewards.png" alt="Loyalty Rewards" width="100%"></td>
+</tr>
+</table>
+
+</div>
+
+---
+
+### ✂️ Barber Portal
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%"><strong>Barber Dashboard</strong><br><img src="docs/screenshots/barber/dashboard.png" alt="Barber Dashboard" width="100%"></td>
+<td width="50%"><strong>Dashboard View 2</strong><br><img src="docs/screenshots/barber/dashboard 2.png" alt="Barber Dashboard 2" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>QR Scanner</strong><br><img src="docs/screenshots/barber/scanner.png" alt="Barber Scanner" width="100%"></td>
+<td width="50%"><strong>Visit History</strong><br><img src="docs/screenshots/barber/history.png" alt="Barber History" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Rewards & Achievements</strong><br><img src="docs/screenshots/barber/rewards.png" alt="Barber Rewards" width="100%"></td>
+<td width="50%"><strong>Profile Management</strong><br><img src="docs/screenshots/barber/profile.png" alt="Barber Profile" width="100%"></td>
+</tr>
+</table>
+
+</div>
+
+---
+
+### 👤 Client Portal - Desktop & Mobile
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%"><strong>Client Dashboard (Desktop)</strong><br><img src="docs/screenshots/client/dashboard wide.png" alt="Client Dashboard Desktop" width="100%"></td>
+<td width="50%"><strong>Client Dashboard (Mobile)</strong><br><img src="docs/screenshots/client/dashboard mobile.png" alt="Client Dashboard Mobile" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>QR Code Display</strong><br><img src="docs/screenshots/client/qr code page.png" alt="QR Code Page" width="100%"></td>
+<td width="50%"><strong>Visit History (Desktop)</strong><br><img src="docs/screenshots/client/history wide.png" alt="History Desktop" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Visit History (Mobile)</strong><br><img src="docs/screenshots/client/history.png" alt="History Mobile" width="100%"></td>
+<td width="50%"><strong>Reservations (Desktop)</strong><br><img src="docs/screenshots/client/reservations wide.png" alt="Reservations Desktop" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Reservations (Mobile)</strong><br><img src="docs/screenshots/client/reservations mobile.png" alt="Reservations Mobile" width="100%"></td>
+<td width="50%"><strong>Rewards (Desktop)</strong><br><img src="docs/screenshots/client/rewards wide.png" alt="Rewards Desktop" width="100%"></td>
+</tr>
+<tr>
+<td width="50%"><strong>Rewards (Mobile)</strong><br><img src="docs/screenshots/client/rewards mobile.png" alt="Rewards Mobile" width="100%"></td>
+<td width="50%"><strong>Client Profile</strong><br><img src="docs/screenshots/client/profile.png" alt="Client Profile" width="100%"></td>
+</tr>
+</table>
 
 </div>
 
