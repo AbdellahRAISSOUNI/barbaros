@@ -130,3 +130,10 @@ A digital loyalty system for barbershops that tracks client visits and rewards f
 - **Marketing Tools**: Export client contact info for promotions
 
 
+
+
+
+
+
+
+
